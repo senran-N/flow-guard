@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" fill="none">
+  <rect x="24" y="24" width="208" height="208" rx="44" fill="#0F172A" stroke="#38BDF8" stroke-width="8"/>
+  <!-- Source Node -->
+  <circle cx="68" cy="128" r="20" fill="#22D3EE"/>
+  <!-- Branch Node -->
+  <circle cx="132" cy="128" r="16" fill="#818CF8"/>
+  <!-- Sink Nodes -->
+  <circle cx="192" cy="80" r="18" fill="#34D399"/>
+  <circle cx="192" cy="176" r="18" fill="#34D399"/>
+  <!-- Flow Edges -->
+  <path d="M88 128 H116" stroke="#22D3EE" stroke-width="8" stroke-linecap="round"/>
+  <path d="M146 118 C160 100, 164 80, 174 80" stroke="#818CF8" stroke-width="8" stroke-linecap="round"/>
+  <path d="M146 138 C160 156, 164 176, 174 176" stroke="#818CF8" stroke-width="8" stroke-linecap="round"/>
+  <!-- Checkmark Pulse -->
+  <path d="M185 80 L190 85 L200 74" stroke="#0F172A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M185 176 L190 181 L200 170" stroke="#0F172A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

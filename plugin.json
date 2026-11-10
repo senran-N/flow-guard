@@ -1,0 +1,21 @@
+{
+  "name": "flow-guard",
+  "displayName": "FlowGuard 链路透视与通水引擎",
+  "version": "0.1.0",
+  "description": "对 AI 特攻的端到端水路（Source ➔ Branch ➔ Sink）透视导航、同类接线蓝图提取与增量通水验收插件，彻底解决半截接入、修改漏支流与死代码堆积。",
+  "logo": "assets/logo.svg",
+  "author": {
+    "name": "senran-N",
+    "url": "https://github.com/senran-N"
+  },
+  "homepage": "https://github.com/senran-N/flow-guard#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/senran-N/flow-guard.git"
+  },
+  "suggestedPrompts": [
+    "使用 flow_overview 扫描当前仓库的端到端业务水路与跨语言桥接拓扑",
+    "使用 flow_trace 透视某个核心模块的上游水源、分流支路与终端落点",
+    "使用 flow_verify 对当前工作区执行端到端通水试验与废管死代码排查"
+  ]
+}

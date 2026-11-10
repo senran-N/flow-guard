@@ -1,0 +1,240 @@
+/**
+ * Resolve the innermost enclosing function/method/container symbol at a 1-based line number.
+ */
+function findSymbolAtLine(fileObj, line) {
+  if (!fileObj || !fileObj.symbols || fileObj.symbols.length === 0) return null;
+  if (!line) return fileObj.symbols[0];
+
+  let bestFn = null;
+  let bestContainer = null;
+  for (const s of fileObj.symbols) {
+    if (s.startLine <= line && line <= s.endLine) {
+      const span = s.endLine - s.startLine;
+      if (s.kind === "function" || s.kind === "method") {
+        if (!bestFn || span <= bestFn.endLine - bestFn.startLine) bestFn = s;
+      } else if (!bestContainer || span <= bestContainer.endLine - bestContainer.startLine) {
+        bestContainer = s;
+      }
+    }
+  }
+  if (bestFn || bestContainer) return bestFn || bestContainer;
+  // If line is in top-level script / IIFE listener outside named functions, attribute to the file's primary entry/router symbol rather than a tiny utility helper on line 1
+  return (
+    fileObj.symbols.find((s) => s.isEntrySource) ||
+    fileObj.symbols.find((s) => /^(?:send|dispatch|postMessage|onMessage|route|main|init|setup|App)$/i.test(s.name)) ||
+    fileObj.symbols[0]
+  );
+}
+
+export function linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbolsByName = new Map()) {
+  const crossBridges = [];
+  const prodFiles = files.filter((f) => f.zone === "prod");
+
+  // 1. Tauri IPC: invoke("cmd") / __TAURI_INVOKE("cmd") -> #[tauri::command] / #[command] fn cmd
+  for (const f of prodFiles) {
+    for (const item of f.bridgeSignals.tauriInvokes || []) {
+      const cmdName = typeof item === "string" ? item : item.cmd;
+      const line = typeof item === "object" ? item.line : 1;
+      const callerSym = findSymbolAtLine(f, line);
+      const rustTarget = tauriCommands.get(cmdName);
+      if (rustTarget && callerSym) {
+        addSymEdge(callerSym.id, rustTarget.id);
+        crossBridges.push({
+          kind: "TAURI_IPC",
+          fromFile: f.file,
+          fromSymbol: callerSym.name,
+          contract: `invoke("${cmdName}")`,
+          toFile: rustTarget.file,
+          toSymbol: rustTarget.name,
+          status: "CONNECTED"
+        });
+      } else if (!rustTarget) {
+        crossBridges.push({
+          kind: "TAURI_IPC",
+          fromFile: f.file,
+          fromSymbol: callerSym ? callerSym.name : f.file,
+          contract: `invoke("${cmdName}")`,
+          toFile: null,
+          toSymbol: cmdName,
+          status: "BROKEN_TARGET"
+        });
+      }
+    }
+  }
+
+  // 2. ConnectRPC / gRPC / Protobuf Service Bridge: *ServiceClient.camelMethod() -> Backend Service.PascalMethod()
+  for (const f of prodFiles) {
+    for (const rpc of f.bridgeSignals.rpcCalls || []) {
+      const callerSym = findSymbolAtLine(f, rpc.line);
+      const pascalMethod = rpc.method[0].toUpperCase() + rpc.method.slice(1);
+      const snakeMethod = rpc.method.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+      const candidates = [
+        ...(symbolsByName.get(pascalMethod) || []),
+        ...(symbolsByName.get(snakeMethod) || [])
+      ].filter((s) => s.zone === "prod" && s.file !== f.file && s.lang !== f.lang);
+
+      if (candidates.length > 0 && callerSym) {
+        // Prefer primary service implementation (`APIService`, `*Service`, `*Server`, `*Handler`)
+        const primary =
+          candidates.find((c) => c.parentContainerName && /Service$/i.test(c.parentContainerName)) ||
+          candidates.find((c) => c.parentContainerName && /Handler|Server$/i.test(c.parentContainerName)) ||
+          candidates[0];
+        for (const targetSym of candidates) {
+          addSymEdge(callerSym.id, targetSym.id);
+        }
+        crossBridges.push({
+          kind: "RPC_SERVICE",
+          fromFile: f.file,
+          fromSymbol: callerSym.name,
+          contract: `${rpc.client}.${rpc.method}()`,
+          toFile: primary.file,
+          toSymbol: primary.parentContainerName ? `${primary.parentContainerName}.${primary.name}` : primary.name,
+          status: "CONNECTED"
+        });
+      }
+    }
+  }
+
+  // 3. Cross-Language Event Bus / Custom URI Topic Bridge (`"verge://..."` emit <-> listen)
+  const eventEmitters = new Map();
+  const eventListeners = new Map();
+  for (const f of prodFiles) {
+    for (const ev of f.bridgeSignals.eventTouches || []) {
+      const sym = findSymbolAtLine(f, ev.line);
+      if (!sym) continue;
+      const map = ev.mode === "emit" ? eventEmitters : eventListeners;
+      if (!map.has(ev.topic)) map.set(ev.topic, []);
+      map.get(ev.topic).push({ file: f.file, sym });
+    }
+  }
+  for (const [topic, emitters] of eventEmitters.entries()) {
+    const listeners = eventListeners.get(topic) || [];
+    for (const em of emitters) {
+      for (const li of listeners) {
+        if (em.file !== li.file) {
+          addSymEdge(em.sym.id, li.sym.id);
+          crossBridges.push({
+            kind: "EVENT_BUS_BRIDGE",
+            fromFile: em.file,
+            fromSymbol: em.sym.name,
+            contract: topic,
+            toFile: li.file,
+            toSymbol: li.sym.name,
+            status: "CONNECTED"
+          });
+        }
+      }
+    }
+  }
+
+  // 4. Electron IPC: ipcRenderer.invoke/send("ch") -> ipcMain.handle/on("ch")
+  const electronHandlers = new Map();
+  for (const f of prodFiles) {
+    for (const item of f.bridgeSignals.electronHandles || []) {
+      const ch = typeof item === "string" ? item : item.channel;
+      const line = typeof item === "object" ? item.line : 1;
+      electronHandlers.set(ch, { fileObj: f, sym: findSymbolAtLine(f, line) });
+    }
+  }
+  for (const f of prodFiles) {
+    for (const item of f.bridgeSignals.electronSends || []) {
+      const ch = typeof item === "string" ? item : item.channel;
+      const line = typeof item === "object" ? item.line : 1;
+      const callerSym = findSymbolAtLine(f, line);
+      const target = electronHandlers.get(ch);
+      if (target && callerSym && target.sym) {
+        addSymEdge(callerSym.id, target.sym.id);
+        crossBridges.push({
+          kind: "ELECTRON_IPC",
+          fromFile: f.file,
+          fromSymbol: callerSym.name,
+          contract: `ipc("${ch}")`,
+          toFile: target.fileObj.file,
+          toSymbol: target.sym.name,
+          status: "CONNECTED"
+        });
+      } else if (!target) {
+        crossBridges.push({
+          kind: "ELECTRON_IPC",
+          fromFile: f.file,
+          fromSymbol: callerSym ? callerSym.name : f.file,
+          contract: `ipc("${ch}")`,
+          toFile: null,
+          toSymbol: ch,
+          status: "BROKEN_TARGET"
+        });
+      }
+    }
+  }
+
+  // 5. HTTP REST API: fetch("/api/...") -> Backend Route ("/api/...") with dynamic path param normalization
+  const normalizeHttpRoute = (p) =>
+    String(p || "")
+      .replace(/\$\{[^}]+\}|:[A-Za-z_][A-Za-z0-9_]*|\{[A-Za-z_][A-Za-z0-9_:]*\}|<[^>]+>/g, ":param")
+      .replace(/\/+$/, "");
+
+  const routeHandlers = new Map();
+  for (const f of prodFiles) {
+    for (const item of f.bridgeSignals.httpRoutes || []) {
+      const rt = typeof item === "string" ? item : item.path;
+      const line = typeof item === "object" ? item.line : 1;
+      const entry = { fileObj: f, sym: findSymbolAtLine(f, line), rawRoute: rt };
+      routeHandlers.set(rt, entry);
+      routeHandlers.set(normalizeHttpRoute(rt), entry);
+    }
+  }
+  for (const f of prodFiles) {
+    for (const item of f.bridgeSignals.httpCalls || []) {
+      const apiPath = typeof item === "string" ? item : item.path;
+      const line = typeof item === "object" ? item.line : 1;
+      const callerSym = findSymbolAtLine(f, line);
+      const target = routeHandlers.get(apiPath) || routeHandlers.get(normalizeHttpRoute(apiPath));
+      if (target && callerSym && target.sym) {
+        addSymEdge(callerSym.id, target.sym.id);
+        crossBridges.push({
+          kind: "HTTP_REST_API",
+          fromFile: f.file,
+          fromSymbol: callerSym.name,
+          contract: apiPath,
+          toFile: target.fileObj.file,
+          toSymbol: target.sym.name,
+          status: "CONNECTED"
+        });
+      }
+    }
+  }
+
+  // 6. Shared Config Files & Environment Variable Bridges
+  const writers = new Map();
+  const readers = new Map();
+  for (const f of prodFiles) {
+    for (const c of f.bridgeSignals.configTouches || []) {
+      const sym = findSymbolAtLine(f, c.line);
+      if (!sym) continue;
+      const map = c.mode === "write" ? writers : readers;
+      if (!map.has(c.file)) map.set(c.file, []);
+      map.get(c.file).push({ file: f.file, sym });
+    }
+  }
+  for (const [contractKey, wEntries] of writers.entries()) {
+    const rEntries = readers.get(contractKey) || [];
+    for (const w of wEntries) {
+      for (const r of rEntries) {
+        if (w.file !== r.file) {
+          addSymEdge(w.sym.id, r.sym.id);
+          crossBridges.push({
+            kind: contractKey.startsWith("ENV:") ? "ENV_VAR_BRIDGE" : "SHARED_CONFIG_BRIDGE",
+            fromFile: w.file,
+            fromSymbol: w.sym.name,
+            contract: contractKey,
+            toFile: r.file,
+            toSymbol: r.sym.name,
+            status: "CONNECTED"
+          });
+        }
+      }
+    }
+  }
+
+  return crossBridges;
+}

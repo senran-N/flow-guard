@@ -1,0 +1,54 @@
+{
+  "name": "flow-guard",
+  "version": "0.1.0",
+  "description": "End-to-End Causality Flow (Source ➔ Branch ➔ Sink) Architecture Vision, Polyglot Bridge Linker & Incremental Flow Verifier MCP Plugin for AI Agents",
+  "type": "module",
+  "main": "src/server.mjs",
+  "bin": {
+    "flow-guard": "./src/server.mjs"
+  },
+  "files": [
+    "src/",
+    "rules/",
+    "skills/",
+    "assets/",
+    "hooks.json",
+    "mcp_config.json",
+    "plugin.json",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node test/torture-suite.mjs",
+    "verify:self": "node src/server.mjs --cli verify ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/senran-N/flow-guard.git"
+  },
+  "homepage": "https://github.com/senran-N/flow-guard#readme",
+  "bugs": {
+    "url": "https://github.com/senran-N/flow-guard/issues"
+  },
+  "author": "senran-N",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-coding",
+    "antigravity",
+    "claude-code",
+    "cursor",
+    "static-analysis",
+    "data-flow",
+    "call-graph",
+    "architecture",
+    "polyglot"
+  ],
+  "license": "MIT"
+}

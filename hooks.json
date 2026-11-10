@@ -1,0 +1,19 @@
+{
+  "flow-guard-hooks": {
+    "enabled": true,
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "node \"./src/hook-runner.mjs\" session-start",
+        "timeout": 10
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node \"./src/hook-runner.mjs\" stop",
+        "timeout": 15
+      }
+    ]
+  }
+}
