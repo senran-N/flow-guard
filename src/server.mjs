@@ -77,6 +77,10 @@ const TOOLS = [
         workspaceRoot: {
           type: "string",
           description: "代码仓库根目录绝对路径"
+        },
+        fullScan: {
+          type: "boolean",
+          description: "是否强制执行全仓扫描（默认在 Git 工作区存在变更时仅增量审计变更的源码文件）"
         }
       }
     }
@@ -111,7 +115,7 @@ export function executeTool(name, args = {}) {
     case "flow_blueprint":
       return generateWiringBlueprint(root, args.reference);
     case "flow_verify":
-      return verifyWorkspaceFlow(root);
+      return verifyWorkspaceFlow(root, { fullScan: Boolean(args.fullScan) });
     default:
       throw new Error(`Unknown tool: ${name}`);
   }
@@ -210,18 +214,22 @@ if (isMainModule) {
       verify: "flow_verify"
     };
     const toolName = toolMap[rawName] || rawName;
+    const rawRest = process.argv.slice(4);
+    const hasFullFlag = rawRest.includes("--full");
+    const positional = rawRest.filter((arg) => arg !== "--full");
     let rawArgs = {};
-    if (process.argv[4]) {
-      if (process.argv[4].trim().startsWith("{")) {
-        rawArgs = JSON.parse(process.argv[4]);
+    if (positional[0]) {
+      if (positional[0].trim().startsWith("{")) {
+        rawArgs = JSON.parse(positional[0]);
       } else {
-        rawArgs = { workspaceRoot: process.argv[4] };
-        if (process.argv[5]) {
-          rawArgs.target = process.argv[5];
-          rawArgs.reference = process.argv[5];
+        rawArgs = { workspaceRoot: positional[0] };
+        if (positional[1]) {
+          rawArgs.target = positional[1];
+          rawArgs.reference = positional[1];
         }
       }
     }
+    if (hasFullFlag) rawArgs.fullScan = true;
     const result = executeTool(toolName, rawArgs);
     process.stdout.write(JSON.stringify(result, null, 2) + "\n");
     process.exit(0);

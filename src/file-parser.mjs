@@ -9,6 +9,7 @@ import {
 import {
   EXT_LANG,
   extractParamNames,
+  extractPromotedParamNames,
   matchSymbolDeclaration,
   isRuntimeEntrySource
 } from "./lang-presets.mjs";
@@ -130,6 +131,7 @@ function extractDataFlowAndTouches({
   ownCleanLines,
   fullLexicalLines,
   params,
+  promotedParams = [],
   bodyStartLineOffset,
   prevLines
 }) {
@@ -169,6 +171,7 @@ function extractDataFlowAndTouches({
       ? cleanCode.slice(bounds.paramSpan.closeOffset + 1, bounds.braceSpan ? bounds.braceSpan.openOffset : bounds.paramSpan.closeOffset + 200)
       : "";
   const paramSearchText = ctorInitSlice ? `${ctorInitSlice}\n${fullLexicalInnerBody}` : fullLexicalInnerBody;
+  const promotedParamSet = new Set(promotedParams);
   const unusedParams = [];
   if (
     isFnOrMethod &&
@@ -179,6 +182,7 @@ function extractDataFlowAndTouches({
     !isIntentionalStubBody(fullLexicalInnerBody)
   ) {
     for (const p of params) {
+      if (promotedParamSet.has(p)) continue;
       const esc = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const re = new RegExp(`\\b${esc}\\b`);
       if (!re.test(paramSearchText)) unusedParams.push(p);
@@ -212,13 +216,16 @@ function extractDataFlowAndTouches({
   const hasReturnValue =
     isFnOrMethod && (hasExplicitReturn || hasExprReturn || hasRustOrSwiftReturnType);
 
+  const hasAssertionGuard =
+    /\b(?:assert(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?|assert!(?:_eq|_ne)?|debug_assert!(?:_eq|_ne)?)\s*\(/.test(innerBody);
   const isPreconditionGuard =
-    /\b(?:throw|raise|panic!)\b/.test(innerBody) &&
-    (params.some((p) => {
-      const esc = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      return new RegExp(`\\breturn\\s+${esc}\\s*;?`).test(innerBody);
-    }) ||
-      /^(?:against|check|ensure|require|validate|assert|verify)[A-Z_]/i.test(decl.name));
+    hasAssertionGuard ||
+    (/\b(?:throw|raise|panic!)\b/.test(innerBody) &&
+      (params.some((p) => {
+        const esc = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return new RegExp(`\\breturn\\s+${esc}\\s*;?`).test(innerBody);
+      }) ||
+        /^(?:against|check|ensure|require|validate|assert|verify)[A-Z_]/i.test(decl.name)));
 
   const canIgnoreReturnValue =
     /@CanIgnoreReturnValue|#\[allow\(unused_must_use\)\]/.test(prevLines) ||
@@ -300,10 +307,10 @@ function extractDataFlowAndTouches({
   const branchMatches = fullBody.match(/\b(?:if|else\s+if|case|switch|match)\b/g);
   const conditionalCount = branchMatches ? branchMatches.length : 0;
 
-  // 5. Qualified member calls (`obj.method(`, `a.b.method(`, `obj->method(`, or `Type::method(`)
+  // 5. Qualified member calls (`obj.method(`, `this.#method(`, `a.b.method(`, `obj->method(`, or `Type::method(`)
   const qualifiedCalls = [];
   const qualCallRe =
-    /(?:\b|\$)([A-Za-z_][A-Za-z0-9_]*)(?:(?:\.|->)([A-Za-z_][A-Za-z0-9_]*))*(?:\.|->|::)([A-Za-z_][A-Za-z0-9_]*)\s*\(/g;
+    /(?:\b|\$)([A-Za-z_][A-Za-z0-9_]*)(?:(?:\.|->)(#?[A-Za-z_][A-Za-z0-9_]*))*(?:\.|->|::)(#?[A-Za-z_][A-Za-z0-9_]*)\s*\(/g;
   let m;
   while ((m = qualCallRe.exec(fullBody)) !== null) {
     qualifiedCalls.push({
@@ -360,7 +367,7 @@ function extractDataFlowAndTouches({
   }
 
   let hasInternalMutation =
-    /(?:<<<|\b(?:this|self|state|store)(?:\.|->)[A-Za-z_][A-Za-z0-9_]*\s*(?:=|\+=|-=|\*=|\+\+|--)|\$this->[A-Za-z_][A-Za-z0-9_]*\s*(?:=|\+=|-=|\*=|\+\+|--)|(?<!@)@[a-zA-Z_][a-zA-Z0-9_]*\s*(?:=|\+=|-=)(?!=)|\b_[a-zA-Z0-9_]+\s*(?:=|\+=|-=|\+\+|--)(?!=)|\*[a-zA-Z_][a-zA-Z0-9_]*\s*=(?!=)|(?:\.|->)(?:Write|WriteLine|Send|Emit|Flush|Close|Dispose|Save|Execute|Commit|Publish|Broadcast|Dispatch|write|send|emit|flush|close|dispose|save|commit|publish|broadcast|dispatch|postMessage|setItem|removeItem)(?:\s*<[^>]*>)?\s*\(|\b(?:swrMutate|mutate|revalidate\w*|invalidate\w*|on[A-Z]\w*|set[A-Z]\w*|handle[A-Z]\w*|clearTimeout|clearInterval|setTimeout|setInterval|appendFileSync|writeFileSync|execFileSync|execSync|spawnSync|mkdirSync|rmSync|unlinkSync|copyFileSync|GetProcAddress|LoadLibrary\w*|SetProcessInformation|SetProcessDpiAwarenessContext|SetThreadDescription|ShellExecute\w*|CreateProcess\w*)(?:\s*<[^>]*>)?\s*\()/.test(
+    /(?:<<<|\b(?:this|self|state|store)(?:\.|->)#?[A-Za-z_][A-Za-z0-9_]*\s*(?:=|\+=|-=|\*=|\+\+|--)|\$this->[A-Za-z_][A-Za-z0-9_]*\s*(?:=|\+=|-=|\*=|\+\+|--)|(?<!@)@[a-zA-Z_][a-zA-Z0-9_]*\s*(?:=|\+=|-=)(?!=)|\b_[a-zA-Z0-9_]+\s*(?:=|\+=|-=|\+\+|--)(?!=)|\*[a-zA-Z_][a-zA-Z0-9_]*\s*=(?!=)|(?:\.|->)(?:Write|WriteLine|Send|Emit|Flush|Close|Dispose|Save|Execute|Commit|Publish|Broadcast|Dispatch|write|send|emit|flush|close|dispose|save|commit|publish|broadcast|dispatch|postMessage|setItem|removeItem)(?:\s*<[^>]*>)?\s*\(|\b(?:swrMutate|mutate|revalidate\w*|invalidate\w*|on[A-Z]\w*|set[A-Z]\w*|handle[A-Z]\w*|clearTimeout|clearInterval|setTimeout|setInterval|appendFileSync|writeFileSync|execFileSync|execSync|spawnSync|mkdirSync|rmSync|unlinkSync|copyFileSync|GetProcAddress|LoadLibrary\w*|SetProcessInformation|SetProcessDpiAwarenessContext|SetThreadDescription|ShellExecute\w*|CreateProcess\w*)(?:\s*<[^>]*>)?\s*\()/.test(
       innerBody
     );
 
@@ -423,7 +430,7 @@ function extractDataFlowAndTouches({
   const returnsOrPassesLocalState = /\breturn\s+state\b|&\s*state\b/.test(fullBody);
   const DOM_CALLBACK_PROPS = /^(?:onmessage|onerror|onclose|onopen|onload|onabort|onupgradeneeded|onsuccess|onreadystatechange)$/;
   const writeRe =
-    /(?:\b(this|self|state|store)|(\$this))(?:(?:\.|->)[a-zA-Z_][a-zA-Z0-9_]*)?(?:\.|->)([a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=)(?!=)/g;
+    /(?:\b(this|self|state|store)|(\$this))(?:(?:\.|->)#?[a-zA-Z_][a-zA-Z0-9_]*)?(?:\.|->)(#?[a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=)(?!=)/g;
   while ((m = writeRe.exec(fullBody)) !== null) {
     const rootObj = m[1] || m[2];
     const field = m[3];
@@ -431,7 +438,8 @@ function extractDataFlowAndTouches({
     if (DOM_CALLBACK_PROPS.test(field)) continue;
     const afterAssign = fullBody.slice(m.index + m[0].length, m.index + m[0].length + 60);
     // Ignore constructor method-binding `this.fn = this.fn.bind(this)`
-    if (new RegExp(`^\\s*(?:this|self)\\.${field}\\.bind\\s*\\(`).test(afterAssign)) {
+    const fieldEsc = field.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (new RegExp(`^\\s*(?:this|self)\\.${fieldEsc}\\.bind\\s*\\(`).test(afterAssign)) {
       continue;
     }
     if (field.length > 1) writes.add(field);
@@ -442,11 +450,11 @@ function extractDataFlowAndTouches({
 
   // Strip only the LHS of pure `=` assignments so any other read of the same field in the same method is preserved
   const bodyWithoutWriteLhs = fullBody.replace(
-    /(?:\b(this|self|state|store)|(\$this))(?:(?:\.|->)[a-zA-Z_][a-zA-Z0-9_]*)?(?:\.|->)([a-zA-Z_][a-zA-Z0-9_]*)\s*=(?!=)/g,
+    /(?:\b(this|self|state|store)|(\$this))(?:(?:\.|->)#?[a-zA-Z_][a-zA-Z0-9_]*)?(?:\.|->)(#?[a-zA-Z_][a-zA-Z0-9_]*)\s*=(?!=)/g,
     " ="
   );
   const readRe =
-    /(?:\b(this|self|state|store|ctx|[A-Z][A-Za-z0-9_]*)|(\$this))(?:(?:\.|->)[a-zA-Z_][a-zA-Z0-9_]*)?(?:\.|->)([a-zA-Z_][a-zA-Z0-9_]*)\b(?!\s*\()/g;
+    /(?:\b(this|self|state|store|ctx|[A-Z][A-Za-z0-9_]*)|(\$this))(?:(?:\.|->)#?[a-zA-Z_][a-zA-Z0-9_]*)?(?:\.|->)(#?[a-zA-Z_][a-zA-Z0-9_]*)\b(?!\s*\()/g;
   while ((m = readRe.exec(bodyWithoutWriteLhs)) !== null) {
     const field = m[3];
     if (field.length > 1) reads.add(field);
@@ -478,9 +486,79 @@ function extractDataFlowAndTouches({
   };
 }
 
-function extractFileImports(lang, content) {
+function preprocessSfcContent(content) {
+  const chars = new Array(content.length);
+  for (let i = 0; i < content.length; i++) {
+    const c = content[i];
+    chars[i] = c === "\n" || c === "\r" ? c : " ";
+  }
+
+  const scriptRanges = [];
+  const scriptRe = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+  let m;
+  while ((m = scriptRe.exec(content)) !== null) {
+    const fullMatch = m[0];
+    const body = m[1];
+    const openEndOffset = m.index + fullMatch.indexOf(">") + 1;
+    for (let k = 0; k < body.length; k++) {
+      chars[openEndOffset + k] = body[k];
+    }
+    scriptRanges.push([m.index, m.index + fullMatch.length]);
+  }
+
+  // Extract template event handlers & bound expressions outside <script> and <style>
+  let markup = content
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ");
+
+  const sfcEventIdents = new Set();
+  const sfcTemplateIdents = new Set();
+
+  const addExprIdents = (expr, targetSet) => {
+    for (const id of expr.match(/[A-Za-z_$][A-Za-z0-9_$]*/g) || []) {
+      if (!/^(?:true|false|null|undefined|event|\$event|this|return|if|else|new)$/.test(id)) {
+        targetSet.add(id);
+      }
+    }
+  };
+
+  const eventAttrRe = /(?:@|v-on:|on:)[A-Za-z0-9_.:-]+\s*=\s*(?:"([^"]*)"|'([^']*)'|\{([^}]*)\})/g;
+  while ((m = eventAttrRe.exec(markup)) !== null) {
+    const expr = m[1] ?? m[2] ?? m[3] ?? "";
+    addExprIdents(expr, sfcEventIdents);
+    addExprIdents(expr, sfcTemplateIdents);
+  }
+
+  const bindAttrRe = /(?:v-bind:|v-model(?::[A-Za-z0-9_-]+)?|v-if|v-else-if|v-show|v-for|bind:|use:|class:|:)[A-Za-z0-9_.-]*\s*=\s*(?:"([^"]*)"|'([^']*)'|\{([^}]*)\})/g;
+  while ((m = bindAttrRe.exec(markup)) !== null) {
+    addExprIdents(m[1] ?? m[2] ?? m[3] ?? "", sfcTemplateIdents);
+  }
+
+  const mustacheRe = /\{\{([\s\S]*?)\}\}|\{([^{}<>"']+)\}/g;
+  while ((m = mustacheRe.exec(markup)) !== null) {
+    addExprIdents(m[1] ?? m[2] ?? "", sfcTemplateIdents);
+  }
+
+  const compTagRe = /<([A-Z][A-Za-z0-9_]*)\b/g;
+  while ((m = compTagRe.exec(markup)) !== null) {
+    sfcTemplateIdents.add(m[1]);
+  }
+
+  return {
+    scriptContent: chars.join(""),
+    hasScriptBlock: scriptRanges.length > 0,
+    sfcEventIdents,
+    sfcTemplateIdents
+  };
+}
+
+function extractFileImports(lang, content, relPath = "") {
   const importedStems = new Set();
   const importedPaths = [];
+  const reExportedPaths = [];
+  const reExportedStems = new Set();
+  const importAliases = {};
   let m;
   if (lang === "ts" || lang === "vue") {
     const re = /\bfrom\s+["']([^"']+)["']/g;
@@ -489,15 +567,66 @@ function extractFileImports(lang, content) {
       const base = path.basename(m[1], path.extname(m[1]));
       if (base) importedStems.add(base);
     }
+    const namedImportRe = /\bimport\s+(?:type\s+)?(?:[A-Za-z_$][A-Za-z0-9_$]*\s*,\s*)?\{([^}]+)\}\s*from\s*["']([^"']+)["']/g;
+    while ((m = namedImportRe.exec(content)) !== null) {
+      for (const spec of m[1].split(",")) {
+        const cleaned = spec.replace(/^\s*type\s+/, "").trim();
+        const aliasM = cleaned.match(/^([A-Za-z_$][A-Za-z0-9_$]*)\s+as\s+([A-Za-z_$][A-Za-z0-9_$]*)$/);
+        if (aliasM && aliasM[1] !== "default") {
+          importAliases[aliasM[2]] = aliasM[1];
+        }
+      }
+    }
+    const reExportStarRe = /\bexport\s+\*\s*(?:as\s+[A-Za-z_$][A-Za-z0-9_$]*\s*)?from\s*["']([^"']+)["']/g;
+    while ((m = reExportStarRe.exec(content)) !== null) {
+      reExportedPaths.push(m[1]);
+    }
+    const reExportNamedRe = /\bexport\s+(?:type\s+)?\{([^}]+)\}\s*from\s*["']([^"']+)["']/g;
+    while ((m = reExportNamedRe.exec(content)) !== null) {
+      reExportedPaths.push(m[2]);
+      for (const spec of m[1].split(",")) {
+        const cleaned = spec.replace(/^\s*type\s+/, "").trim();
+        const aliasM = cleaned.match(/^([A-Za-z_$][A-Za-z0-9_$]*)\s+as\s+([A-Za-z_$][A-Za-z0-9_$]*)$/);
+        if (aliasM && aliasM[1] !== "default") {
+          importAliases[aliasM[2]] = aliasM[1];
+        }
+      }
+    }
   } else if (lang === "rust") {
-    const re = /\b(?:mod|use\s+(?:crate|super)::(?:[a-zA-Z0-9_]+::)*)([a-zA-Z0-9_]+)/g;
+    const re = /\b(?:mod|use\s+(?:crate|super|self)::(?:[a-zA-Z0-9_]+::)*)([a-zA-Z0-9_]+)/g;
     while ((m = re.exec(content)) !== null) importedStems.add(m[1]);
+    const pubRe = /\bpub\s+(?:mod|use\s+(?:crate|super|self)::(?:[a-zA-Z0-9_]+::)*)([a-zA-Z0-9_]+)/g;
+    while ((m = pubRe.exec(content)) !== null) reExportedStems.add(m[1]);
+    const rsAliasRe = /\buse\s+[^;]*?\b([A-Za-z_][A-Za-z0-9_]*)\s+as\s+([A-Za-z_][A-Za-z0-9_]*)/g;
+    while ((m = rsAliasRe.exec(content)) !== null) {
+      if (m[2] !== "_") importAliases[m[2]] = m[1];
+    }
   } else if (lang === "python") {
-    const re = /\b(?:from|import)\s+\.*([a-zA-Z0-9_.]+)/g;
+    const isInitPy = /(?:^|\/|\\)__init__\.py$/i.test(relPath);
+    const re = /\b(?:from|import)\s+(\.*[a-zA-Z0-9_.]+)/g;
     while ((m = re.exec(content)) !== null) {
       importedPaths.push(m[1]);
-      const parts = m[1].split(".");
-      if (parts[parts.length - 1]) importedStems.add(parts[parts.length - 1]);
+      if (isInitPy) reExportedPaths.push(m[1]);
+      const parts = m[1].replace(/^\.+/, "").split(".");
+      if (parts[parts.length - 1]) {
+        importedStems.add(parts[parts.length - 1]);
+        if (isInitPy) reExportedStems.add(parts[parts.length - 1]);
+      }
+    }
+    const pyFromImportRe = /\bfrom\s+\.*[a-zA-Z0-9_.]*\s+import\s+(?:\(([^)]+)\)|([^\n;#]+))/g;
+    while ((m = pyFromImportRe.exec(content)) !== null) {
+      const listStr = m[1] || m[2] || "";
+      for (const spec of listStr.split(",")) {
+        const trimmed = spec.trim();
+        const aliasM = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)\s+as\s+([A-Za-z_][A-Za-z0-9_]*)$/);
+        if (aliasM) {
+          importAliases[aliasM[2]] = aliasM[1];
+          importedStems.add(aliasM[1]);
+        } else if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(trimmed)) {
+          importedStems.add(trimmed);
+          if (isInitPy) reExportedStems.add(trimmed);
+        }
+      }
     }
   } else if (lang === "cpp") {
     const re = /^\s*#\s*include\s*["<]([^">]+)[">]/gm;
@@ -507,12 +636,15 @@ function extractFileImports(lang, content) {
       if (base) importedStems.add(base);
     }
   } else if (lang === "php") {
-    const re = /\buse\s+(?:[A-Za-z0-9_]+\\)+([A-Za-z0-9_]+)|(?:require|include)(?:_once)?\s*\(?["']([^"']+)["']/g;
+    const re = /\buse\s+(?:[A-Za-z0-9_]+\\)+([A-Za-z0-9_]+)(?:\s+as\s+([A-Za-z0-9_]+))?|(?:require|include)(?:_once)?\s*\(?["']([^"']+)["']/g;
     while ((m = re.exec(content)) !== null) {
-      if (m[1]) importedStems.add(m[1]);
-      if (m[2]) {
-        importedPaths.push(m[2]);
-        const base = path.basename(m[2], path.extname(m[2]));
+      if (m[1]) {
+        importedStems.add(m[1]);
+        if (m[2]) importAliases[m[2]] = m[1];
+      }
+      if (m[3]) {
+        importedPaths.push(m[3]);
+        const base = path.basename(m[3], path.extname(m[3]));
         if (base) importedStems.add(base);
       }
     }
@@ -526,7 +658,10 @@ function extractFileImports(lang, content) {
   }
   return {
     importedStems: Array.from(importedStems),
-    importedPaths
+    importedPaths,
+    reExportedPaths,
+    reExportedStems: Array.from(reExportedStems),
+    importAliases
   };
 }
 
@@ -537,11 +672,20 @@ export function parseSourceFile(absPath, relPath) {
 
   const content = fs.readFileSync(absPath, "utf8");
   const rawLines = content.split(/\r?\n/);
-  const { cleanCode, commentlessCode, lineStartOffsets, parenSpans, braceSpans } = scanTokensAndScopes(content, lang);
+  const sfcInfo = ext === ".vue" || ext === ".svelte" ? preprocessSfcContent(content) : null;
+  const lexInput = sfcInfo ? sfcInfo.scriptContent : content;
+  const { cleanCode, commentlessCode, lineStartOffsets, parenSpans, braceSpans } = scanTokensAndScopes(
+    lexInput,
+    sfcInfo ? "ts" : lang
+  );
   const cleanLines = cleanCode.split(/\r?\n/);
 
   const fileZone = classifyZone(relPath);
-  const { importedStems, importedPaths } = extractFileImports(lang, content);
+  const { importedStems, importedPaths, reExportedPaths, reExportedStems, importAliases } = extractFileImports(
+    lang,
+    lexInput,
+    relPath
+  );
   const fileHasUnityOrHarmony =
     lang === "csharp" && /\b(?:UnityEngine|MonoBehaviour|BaseUnityPlugin|HarmonyLib|HarmonyPatch)\b/.test(content);
 
@@ -746,6 +890,7 @@ export function parseSourceFile(absPath, relPath) {
     }
 
     const params = decl.kind === "function" || decl.kind === "method" ? extractParamNames(lang, paramText) : [];
+    const promotedParams = decl.isConstructor ? extractPromotedParamNames(lang, paramText) : [];
     const df = extractDataFlowAndTouches({
       lang,
       decl,
@@ -754,6 +899,7 @@ export function parseSourceFile(absPath, relPath) {
       ownCleanLines,
       fullLexicalLines,
       params,
+      promotedParams,
       bodyStartLineOffset,
       prevLines
     });
@@ -781,6 +927,16 @@ export function parseSourceFile(absPath, relPath) {
       ) {
         calls.add(callee);
         fileCalls.add(callee);
+        if (importAliases[callee]) {
+          calls.add(importAliases[callee]);
+          fileCalls.add(importAliases[callee]);
+        }
+      }
+    }
+
+    for (const bCall of df.bareIgnoredCalls) {
+      if (importAliases[bCall.callee]) {
+        bCall.callee = importAliases[bCall.callee];
       }
     }
 
@@ -790,6 +946,10 @@ export function parseSourceFile(absPath, relPath) {
         calls.add(qc.member);
         fileCalls.add(qc.receiver);
         fileCalls.add(qc.member);
+        if (importAliases[qc.receiver]) {
+          calls.add(importAliases[qc.receiver]);
+          fileCalls.add(importAliases[qc.receiver]);
+        }
       }
     }
 
@@ -868,18 +1028,27 @@ export function parseSourceFile(absPath, relPath) {
     for (const w of s.writes) fileWrittenFields.add(w);
   }
   if (fileWrittenFields.size > 0) {
+    const topLevelNonContainerLines = cleanLines.map((ln, idx) => {
+      const line1 = idx + 1;
+      const inContainer = containerRanges.some((c) => line1 > c.startLine && line1 < c.endLine);
+      return inContainer ? "" : ln;
+    });
+    const topLevelCleanText = topLevelNonContainerLines.join("\n");
+
     for (const field of fileWrittenFields) {
       const esc = field.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const anyReadRe = new RegExp(`\\b${esc}\\b(?!\\s*=(?!=))`);
+      const leftBound = field.startsWith("#") ? "(?<![A-Za-z0-9_])" : "\\b";
+      const anyReadRe = new RegExp(`${leftBound}${esc}\\b(?!\\s*=(?!=))`);
       let matchedInSymbol = false;
       for (const s of symbols) {
         if (s.reads.includes(field)) {
           matchedInSymbol = true;
           continue;
         }
+        if (s.kind !== "function" && s.kind !== "method") continue;
         if (anyReadRe.test(s.ownCleanBodyText || "")) {
           const withoutWriteLhs = (s.ownCleanBodyText || "").replace(
-            new RegExp(`\\b(?:this|self|state|store)(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)?\\.${esc}\\s*=(?!=)(?:\\s*${esc}\\b)?`, "g"),
+            new RegExp(`\\b(?:this|self|state|store)(?:\\.#?[a-zA-Z_][a-zA-Z0-9_]*)?\\.${esc}\\s*=(?!=)(?:\\s*${esc}\\b)?`, "g"),
             ""
           );
           if (anyReadRe.test(withoutWriteLhs)) {
@@ -889,18 +1058,59 @@ export function parseSourceFile(absPath, relPath) {
         }
       }
       if (!matchedInSymbol && symbols.length > 0) {
-        const fileWithoutWriteLhs = cleanCode.replace(
-          new RegExp(`\\b(?:this|self|state|store)(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)?\\.${esc}\\s*=(?!=)(?:\\s*${esc}\\b)?`, "g"),
-          ""
-        );
-        if (anyReadRe.test(fileWithoutWriteLhs)) {
+        if (sfcInfo && sfcInfo.sfcTemplateIdents.has(field)) {
           const hostSym = symbols.find((s) => s.isEntrySource) || symbols[0];
           if (!hostSym.reads.includes(field)) hostSym.reads.push(field);
+        } else if (!field.startsWith("#")) {
+          const fileWithoutWriteLhs = topLevelCleanText.replace(
+            new RegExp(`\\b(?:this|self|state|store)(?:\\.#?[a-zA-Z_][a-zA-Z0-9_]*)?\\.${esc}\\s*=(?!=)(?:\\s*${esc}\\b)?`, "g"),
+            ""
+          );
+          if (anyReadRe.test(fileWithoutWriteLhs)) {
+            const hostSym = symbols.find((s) => !s.parentContainerName && s.isEntrySource) || symbols.find((s) => !s.parentContainerName) || symbols[0];
+            if (!hostSym.reads.includes(field)) hostSym.reads.push(field);
+          }
         }
       }
     }
   }
   for (const s of symbols) delete s.ownCleanBodyText;
+
+  // Track explicitly private container fields (`#field` or `private field`) and file-wide `.prop` member reads
+  const privateFieldsByContainer = {};
+  for (const c of containerRanges) {
+    if (!c.name) continue;
+    const privSet = new Set(privateFieldsByContainer[c.name] || []);
+    const cSlice = cleanLines.slice(Math.max(0, c.startLine - 1), Math.min(cleanLines.length, c.endLine)).join("\n");
+    const privDeclRe =
+      /\bprivate\s+(?:(?:readonly|static|final|const|var|let|mut)\s+)*(?:[A-Za-z0-9_<>\[\]?|&\\:]+\s+)?\$?([a-zA-Z_][a-zA-Z0-9_]*)\s*[=:;,)]|(?<![A-Za-z0-9_])(#[a-zA-Z_][a-zA-Z0-9_]*)\b(?!\s*\()/g;
+    let pm;
+    while ((pm = privDeclRe.exec(cSlice)) !== null) {
+      const fName = pm[1] || pm[2];
+      if (fName && fName.length > 1) privSet.add(fName);
+    }
+    if (privSet.size > 0) privateFieldsByContainer[c.name] = Array.from(privSet);
+  }
+  for (const s of symbols) {
+    if (s.parentContainerName) {
+      for (const w of s.writes) {
+        if (w.startsWith("#")) {
+          if (!privateFieldsByContainer[s.parentContainerName]) privateFieldsByContainer[s.parentContainerName] = [];
+          if (!privateFieldsByContainer[s.parentContainerName].includes(w)) {
+            privateFieldsByContainer[s.parentContainerName].push(w);
+          }
+        }
+      }
+    }
+  }
+
+  const memberReadsSet = new Set();
+  const cleanWithoutAssignLhs = cleanCode.replace(/\.[A-Za-z_][A-Za-z0-9_]*\s*=(?!=)/g, " =");
+  const extPropReadRe = /(?:\.|->)([a-zA-Z_][a-zA-Z0-9_]*)\b(?!\s*\()/g;
+  let mr;
+  while ((mr = extPropReadRe.exec(cleanWithoutAssignLhs)) !== null) {
+    if (mr[1].length > 1) memberReadsSet.add(mr[1]);
+  }
 
   // Detect bottom-of-file exports (`export { foo, bar }`, `export default foo`) and same-file callback/table wiring
   if (lang === "ts" || lang === "vue") {
@@ -923,7 +1133,20 @@ export function parseSourceFile(absPath, relPath) {
     }
   }
 
-  // Same-file first-class callback / table registration / Vue template / Rust serde / C# reflection binding detection
+  // Wire Vue / Svelte SFC template bindings (`@click="fn"`, `{{ fmt(x) }}`) directly to `<script>` symbols
+  if (sfcInfo) {
+    for (const s of symbols) {
+      if (sfcInfo.sfcEventIdents.has(s.name)) {
+        s.isReferencedInFile = true;
+        s.isEntrySource = true;
+        if (!s.roles.includes("source")) s.roles.push("source");
+      } else if (sfcInfo.sfcTemplateIdents.has(s.name)) {
+        s.isReferencedInFile = true;
+      }
+    }
+  }
+
+  // Same-file first-class callback / table registration / Rust serde / C# reflection binding detection
   const hasReflectedDeclaredMethods =
     lang === "csharp" && /\b(?:DeclaredMethods|GetMethods)\b/.test(cleanCode);
   const rawOutsideLines = rawLines;
@@ -934,8 +1157,9 @@ export function parseSourceFile(absPath, relPath) {
       continue;
     }
     const esc = s.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const refRe = new RegExp(`\\b${esc}\\b`);
-    const useRawLines = lang === "vue" || lang === "rust";
+    const leftBound = s.name.startsWith("#") ? "(?<![A-Za-z0-9_])" : "\\b";
+    const refRe = new RegExp(`${leftBound}${esc}\\b`);
+    const useRawLines = lang === "rust";
     const beforeSym = (useRawLines ? rawOutsideLines : cleanLines).slice(0, s.startLine - 1).join("\n");
     const afterSym = (useRawLines ? rawOutsideLines : cleanLines).slice(s.endLine).join("\n");
     if (refRe.test(beforeSym) || refRe.test(afterSym)) {
@@ -1101,16 +1325,66 @@ export function parseSourceFile(absPath, relPath) {
     while ((m = elHandleRe.exec(commentStripped)) !== null) {
       addUnique(bridgeSignals.electronHandles, `ELHND:${m[1]}`, { channel: m[1], line: offsetToLine(m.index) });
     }
-    const httpRe = /\b(?:fetch|axios\.(?:get|post|put|delete|patch))\s*\(\s*["'`](\/api\/[^"'`?\s]+)/g;
+    const httpRe = /\b(?:(fetch)|axios\.(get|post|put|delete|patch))\s*\(\s*["'`](\/api\/[^"'`?\s]+)/g;
     while ((m = httpRe.exec(commentStripped)) !== null) {
-      addUnique(bridgeSignals.httpCalls, `HTTPCALL:${m[1]}`, { path: m[1], line: offsetToLine(m.index) });
+      let method = m[2] ? m[2].toUpperCase() : "GET";
+      if (m[1]) {
+        const openParenIdx = commentStripped.indexOf("(", m.index);
+        let closeParenIdx = Math.min(commentStripped.length, m.index + m[0].length + 240);
+        if (openParenIdx >= 0) {
+          let depth = 0;
+          for (let k = openParenIdx; k < closeParenIdx; k++) {
+            if (commentStripped[k] === "(") depth++;
+            else if (commentStripped[k] === ")") {
+              depth--;
+              if (depth === 0) {
+                closeParenIdx = k;
+                break;
+              }
+            }
+          }
+        }
+        const optsSlice = commentStripped.slice(m.index + m[0].length, closeParenIdx);
+        const methodM = optsSlice.match(/\bmethod\s*:\s*["']([A-Za-z]+)["']/);
+        if (methodM) method = methodM[1].toUpperCase();
+      }
+      const apiPath = m[3];
+      addUnique(bridgeSignals.httpCalls, `HTTPCALL:${method}:${apiPath}`, {
+        method,
+        path: apiPath,
+        line: offsetToLine(m.index)
+      });
     }
   }
 
   const routeRe =
-    /(?:#\[(?:get|post|put|delete|patch|Route)|@(?:app|router|bp|GetMapping|PostMapping|PutMapping|DeleteMapping|RequestMapping)(?:\.(?:get|post|put|delete|patch|route))?|\[Http(?:Get|Post|Put|Delete|Patch)|\bRoute::(?:get|post|put|delete|patch)|\b(?:app|router|mux|r|e)\.(?:get|post|put|delete|patch|GET|POST|PUT|DELETE|PATCH|HandleFunc))\s*\(\s*["'](\/[^"']+)["']/g;
+    /(#\[(?:get|post|put|delete|patch|Route)|@(?:app|router|bp|GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping|RequestMapping)(?:\.(?:get|post|put|delete|patch|route))?|\[Http(?:Get|Post|Put|Delete|Patch)|\bRoute::(?:get|post|put|delete|patch)|\b(?:app|router|mux|r|e)\.(?:get|post|put|delete|patch|GET|POST|PUT|DELETE|PATCH|HandleFunc))\s*\(\s*["'](\/[^"']+)["']/g;
   while ((m = routeRe.exec(commentStripped)) !== null) {
-    addUnique(bridgeSignals.httpRoutes, `HTTPROUTE:${m[1]}`, { path: m[1], line: offsetToLine(m.index) });
+    const rawHead = m[1];
+    const rtPath = m[2];
+    let method = "ANY";
+    if (/(?:get|GetMapping|HttpGet)\b/i.test(rawHead) && !/RequestMapping|Route$|route$|HandleFunc$/.test(rawHead)) {
+      method = "GET";
+    } else if (/(?:post|PostMapping|HttpPost)\b/i.test(rawHead)) {
+      method = "POST";
+    } else if (/(?:put|PutMapping|HttpPut)\b/i.test(rawHead)) {
+      method = "PUT";
+    } else if (/(?:delete|DeleteMapping|HttpDelete)\b/i.test(rawHead)) {
+      method = "DELETE";
+    } else if (/(?:patch|PatchMapping|HttpPatch)\b/i.test(rawHead)) {
+      method = "PATCH";
+    } else {
+      const tailCtx = commentStripped
+        .slice(m.index, Math.min(commentStripped.length, m.index + 200))
+        .split(/\)\s*(?:\r?\n|\{|;)/)[0];
+      const explicitM = tailCtx.match(/\bmethods?\s*=\s*\[?\s*["']([A-Za-z]+)["']|RequestMethod\.([A-Z]+)/i);
+      if (explicitM) method = (explicitM[1] || explicitM[2]).toUpperCase();
+    }
+    addUnique(bridgeSignals.httpRoutes, `HTTPROUTE:${method}:${rtPath}`, {
+      method,
+      path: rtPath,
+      line: offsetToLine(m.index)
+    });
   }
 
   if (symbols.length === 0) {
@@ -1177,6 +1451,10 @@ export function parseSourceFile(absPath, relPath) {
     zone: fileZone,
     importedStems,
     importedPaths,
+    reExportedPaths,
+    reExportedStems,
+    privateFieldsByContainer,
+    memberReads: Array.from(memberReadsSet),
     symbols,
     fileCalls: Array.from(fileCalls),
     bridgeSignals

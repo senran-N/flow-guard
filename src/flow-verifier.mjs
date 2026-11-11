@@ -8,12 +8,21 @@ export function shortId(sym) {
   return `${sym.file}:${sym.startLine}-${sym.endLine} (${label})`;
 }
 
-export function verifyWorkspaceFlow(workspaceRoot) {
+export function verifyWorkspaceFlow(workspaceRoot, options = {}) {
+  const fullScan = Boolean(options.fullScan);
   const graph = buildWorkspaceFlowGraph(workspaceRoot, true);
   const gitStatus = getGitWorkingTreeStatus(workspaceRoot);
   const changedFiles = new Set(
     gitStatus.changedFiles.filter((f) => Boolean(EXT_LANG[path.extname(f).toLowerCase()]))
   );
+  const hasAnyGitChanges = gitStatus.isGitRepo && gitStatus.changedFiles.length > 0;
+  const isFullScan = fullScan || !hasAnyGitChanges;
+  const isNonSourceDiffOnly = !isFullScan && changedFiles.size === 0;
+  const scanMode = isFullScan
+    ? "FULL_WORKSPACE"
+    : isNonSourceDiffOnly
+      ? "NON_SOURCE_DIFF_ONLY"
+      : "INCREMENTAL_GIT_DIFF";
 
   // 1. Cross-Boundary Bridge Integrity
   const brokenBridges = graph.crossBridges.filter((b) => b.status !== "CONNECTED");
@@ -36,11 +45,16 @@ export function verifyWorkspaceFlow(workspaceRoot) {
 
   // 3. Write-Only Dead-End States (States written in prod with 0 readers)
   const writeOnlyStates = [];
-  for (const [field, own] of graph.stateOwnership.entries()) {
-    if (own.writers.length > 0 && own.readers.length === 0 && !/^(Instance|Log|Logger|Enabled|Visible)$/i.test(field)) {
+  for (const own of graph.stateOwnership.values()) {
+    const rawField = own.field;
+    if (own.writers.length > 0 && own.readers.length === 0 && !/^(Instance|Log|Logger|Enabled|Visible)$/i.test(rawField)) {
       const writerSyms = own.writers.map((id) => graph.symbolById.get(id)).filter(Boolean);
-      if (changedFiles.size === 0 || writerSyms.some((s) => changedFiles.has(s.file))) {
-        writeOnlyStates.push({ field, writers: writerSyms.map(shortId) });
+      if (isFullScan || writerSyms.some((s) => changedFiles.has(s.file))) {
+        writeOnlyStates.push({
+          field: rawField,
+          qualifiedField: own.qualifiedField || rawField,
+          writers: writerSyms.map(shortId)
+        });
       }
     }
   }
@@ -52,7 +66,7 @@ export function verifyWorkspaceFlow(workspaceRoot) {
 
   for (const sym of graph.symbolById.values()) {
     if (sym.zone !== "prod") continue;
-    const inScope = changedFiles.size === 0 || changedFiles.has(sym.file);
+    const inScope = isFullScan ? true : changedFiles.has(sym.file);
     if (!inScope) continue;
 
     if (sym.reservedParams && sym.reservedParams.length > 0) {
@@ -171,19 +185,21 @@ export function verifyWorkspaceFlow(workspaceRoot) {
 
   // 6. Structural Clone Sprawl Detection (with size-ratio bucketing to skip trivial getters and O(N^2) waste)
   const clones = [];
-  const fnSymbols = Array.from(graph.symbolById.values())
-    .filter((s) => s.zone === "prod" && s.shingles.size >= 18)
-    .sort((a, b) => a.shingles.size - b.shingles.size);
-  for (let i = 0; i < fnSymbols.length; i++) {
-    const a = fnSymbols[i];
-    const maxBSize = Math.ceil(a.shingles.size / 0.82);
-    for (let j = i + 1; j < fnSymbols.length; j++) {
-      const b = fnSymbols[j];
-      if (b.shingles.size > maxBSize) break;
-      if (a.name === b.name && a.file === b.file) continue;
-      if (changedFiles.size > 0 && !changedFiles.has(a.file) && !changedFiles.has(b.file)) continue;
-      const sim = jaccardSimilarity(a.shingles, b.shingles);
-      if (sim >= 0.85) clones.push({ funcA: shortId(a), funcB: shortId(b), similarity: `${Math.round(sim * 100)}%` });
+  if (!isNonSourceDiffOnly) {
+    const fnSymbols = Array.from(graph.symbolById.values())
+      .filter((s) => s.zone === "prod" && s.shingles.size >= 18)
+      .sort((a, b) => a.shingles.size - b.shingles.size);
+    for (let i = 0; i < fnSymbols.length; i++) {
+      const a = fnSymbols[i];
+      const maxBSize = Math.ceil(a.shingles.size / 0.82);
+      for (let j = i + 1; j < fnSymbols.length; j++) {
+        const b = fnSymbols[j];
+        if (b.shingles.size > maxBSize) break;
+        if (a.name === b.name && a.file === b.file) continue;
+        if (!isFullScan && !changedFiles.has(a.file) && !changedFiles.has(b.file)) continue;
+        const sim = jaccardSimilarity(a.shingles, b.shingles);
+        if (sim >= 0.85) clones.push({ funcA: shortId(a), funcB: shortId(b), similarity: `${Math.round(sim * 100)}%` });
+      }
     }
   }
 
@@ -196,6 +212,7 @@ export function verifyWorkspaceFlow(workspaceRoot) {
 
   return {
     status: blockingCount === 0 ? "PASS" : "ISSUES_FOUND",
+    scanMode,
     changedFilesScanned: Array.from(changedFiles),
     summary: {
       brokenCrossLanguageBridges: brokenBridges.length,

@@ -5,7 +5,7 @@
 <br />
 
 [![Release](https://img.shields.io/badge/release-v0.1.0-38bdf8?style=flat-square&logo=github)](https://github.com/senran-N/flow-guard/releases/tag/v0.1.0)
-[![Torture Suite](https://img.shields.io/badge/Torture%20%26%20Fuzz%20Suite-36%2F36%20Passing-34d399?style=flat-square&logo=node.js)](./test/torture-suite.mjs)
+[![Torture Suite](https://img.shields.io/badge/Torture%20%26%20Fuzz%20Suite-50%2F50%20Passing-34d399?style=flat-square&logo=node.js)](./test/torture-suite.mjs)
 [![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-818cf8?style=flat-square)](https://modelcontextprotocol.io)
 [![Languages](https://img.shields.io/badge/Polyglot-25%20Extensions%20%7C%2010%2B%20Langs-34d399?style=flat-square)](#polyglot--cross-boundary-bridge-matrix)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0%20(Pure%20Node%20ESM)-22d3ee?style=flat-square)](./package.json)
@@ -107,7 +107,7 @@ FlowGuard exposes 4 high-signal tools over the standard Model Context Protocol (
 | **Full-Stack Production** | **usememos/memos** | Go + TS/React (ConnectRPC) | 2,135 | **99.5%** | `110` | ~480 ms |
 | **Full-Stack Production** | **Flotsam Launcher** | C# + Rust + Vue 3 (Tauri) | 1,093 | **98.9%** | `31` | ~260 ms |
 | **Open-Source Libraries (14)** | `ripgrep`, `fd`, `zod`, `pinia`, `fastapi`, `httpx`, `gin`, `cobra`, `Polly`, `serilog`, `gson`, `retrofit`, `fmt`, `axum` | Rust / TS / Python / Go / C# / Java / C++ | 14,147 | **99.7% – 100%** | Full export & trait coverage | 40 – 310 ms |
-| **Adversarial Torture & Contract Suite** | **`test/torture-suite.mjs`** | 10-Lang Torture + 8 Fault Mutations + Hook/MCP Contracts | 36 Assertions | **100% Precision & Recall** | All channels + lifecycle hooks | **< 1 s** |
+| **Adversarial Torture & Contract Suite** | **`test/torture-suite.mjs`** | 10-Lang Torture + 8 Fault Mutations + Hook/MCP Contracts | 50 Assertions | **100% Precision & Recall** | All channels + lifecycle hooks | **< 1.1 s** |
 
 ---
 
@@ -139,8 +139,9 @@ node src/server.mjs --cli overview /path/to/your-repo
 node src/server.mjs --cli trace /path/to/your-repo TargetSymbol
 node src/server.mjs --cli blueprint /path/to/your-repo ReferenceSymbol
 node src/server.mjs --cli verify /path/to/your-repo
+node src/server.mjs --cli verify /path/to/your-repo --full
 
-# Run the 10-language adversarial torture, mutation fuzzing & contract suite (36 assertions)
+# Run the 10-language adversarial torture, mutation fuzzing & contract suite (50 assertions)
 npm test
 npm run verify:self
 ```

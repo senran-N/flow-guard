@@ -498,7 +498,8 @@ export function resolveSymbolBounds(
     if (fnPos >= 0) nameSearchStart = fnPos + 2;
   }
   const nameEsc = decl.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const nameRelMatch = lineText.slice(nameSearchStart).match(new RegExp(`\\b${nameEsc}\\b`));
+  const nameLeftBound = decl.name.startsWith("#") ? "(?<![A-Za-z0-9_])" : "\\b";
+  const nameRelMatch = lineText.slice(nameSearchStart).match(new RegExp(`${nameLeftBound}${nameEsc}\\b`));
   const nameEndOffset = nameRelMatch
     ? lineStart + nameSearchStart + nameRelMatch.index + decl.name.length
     : lineStart;
@@ -595,23 +596,31 @@ export function resolveSymbolBounds(
     }
   }
 
+  const hasTsReturnTypeColon =
+    (lang === "ts" || lang === "vue") &&
+    (decl.kind === "function" || decl.kind === "method") &&
+    /^\s*:/.test(cleanCode.slice(searchFromOffset, Math.min(cleanCode.length, searchFromOffset + 40)));
+  let cursorOffset = searchFromOffset;
+
   for (const bs of braceSpans) {
-    if (bs.openLine >= searchFromLine && bs.openOffset >= searchFromOffset && bs.closeOffset > bs.openOffset) {
-      const betweenCode = cleanCode.slice(searchFromOffset, bs.openOffset);
+    if (bs.openLine >= searchFromLine && bs.openOffset >= cursorOffset && bs.closeOffset > bs.openOffset) {
+      const betweenCode = cleanCode.slice(cursorOffset, bs.openOffset);
       if (betweenCode.includes(";")) {
         return { paramSpan, endLine: searchFromLine, hasBraceBody: false, isExpressionBody: false };
       }
       // C++ constructor member brace-initializers (`: types_{...}, context_(fmt) {`)
       if (lang === "cpp" && /^\s*:/.test(betweenCode) && /[A-Za-z0-9_>]\s*$/.test(betweenCode)) {
+        cursorOffset = bs.closeOffset + 1;
         continue;
       }
-      // TypeScript return type object literal (`: ZodMiniObject<{ ... }, ...>;` or `: { a: number } {`)
-      if ((lang === "ts" || lang === "vue") && (decl.kind === "function" || decl.kind === "method") && /^\s*:/.test(betweenCode)) {
+      // TypeScript return type object literal (`: Promise<{ a: number; b: string }> {`, `: { a: number; b: string } | null {`)
+      if (hasTsReturnTypeColon) {
         const afterClose = cleanCode.slice(bs.closeOffset + 1, Math.min(cleanCode.length, bs.closeOffset + 160));
         if (/^\s*(?:;|[,>|&\[]\s*[^;{]*;)/.test(afterClose)) {
           return { paramSpan, endLine: bs.closeLine, hasBraceBody: false, isExpressionBody: false };
         }
-        if (/^\s*[,>|&\[]/.test(afterClose)) {
+        if (/^\s*(?:[,>|&\[?]|is\b|\{|=>)/.test(afterClose)) {
+          cursorOffset = bs.closeOffset + 1;
           continue;
         }
       }

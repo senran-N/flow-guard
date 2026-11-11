@@ -87,7 +87,7 @@ export function generateFlowOverview(workspaceRoot, syncToAgentsMd = false) {
     .sort((a, b) => b.readers.length + b.writers.length - (a.readers.length + a.writers.length))
     .slice(0, 12)
     .map((st) => ({
-      field: st.field,
+      field: st.qualifiedField || st.field,
       authoritativeWriters: Array.from(new Set(st.writers.map((id) => graph.symbolById.get(id)?.file))).filter(Boolean),
       consumers: Array.from(new Set(st.readers.map((id) => graph.symbolById.get(id)?.file))).filter(Boolean)
     }));
@@ -215,12 +215,15 @@ export function traceSymbolFlow(workspaceRoot, query) {
       }
     }
 
-    const stateRules = Array.from(new Set([...sym.writes, ...sym.reads]))
-      .map((f) => graph.stateOwnership.get(f))
+    const symStateKeys = graph.stateKeysBySymbol?.get(sym.id)
+      ? Array.from(graph.stateKeysBySymbol.get(sym.id))
+      : Array.from(new Set([...sym.writes, ...sym.reads]));
+    const stateRules = symStateKeys
+      .map((k) => graph.stateOwnership.get(k))
       .filter(Boolean)
       .slice(0, 6)
       .map((own) => ({
-        field: own.field,
+        field: own.qualifiedField || own.field,
         writers: own.writers.map((id) => shortId(graph.symbolById.get(id))).slice(0, 5),
         readersCount: own.readers.length
       }));
@@ -340,10 +343,13 @@ export function generateWiringBlueprint(workspaceRoot, referenceQuery) {
         baseTypes: c.baseTypes || [],
         subclasses: (graph.subclassesByBase?.get(c.name) || []).map((sub) => `${sub.name} (${sub.file})`)
       })),
-      publicApiSurface: fileSyms
-        .filter((s) => s.isPublicApi && (s.kind === "function" || s.kind === "method"))
-        .slice(0, 12)
-        .map((s) => `${s.name}(${s.params.join(", ")})`),
+      publicApiSurface: Array.from(
+        new Set(
+          fileSyms
+            .filter((s) => s.isPublicApi && (s.kind === "function" || s.kind === "method"))
+            .map((s) => `${s.name}(${s.params.join(", ")})`)
+        )
+      ).slice(0, 12),
       peerImplementations: Array.from(peerImpls).slice(0, 8),
       reservedContractSignatures: reservedSignatures
     },

@@ -13,7 +13,7 @@ Thank you for your interest in contributing to **FlowGuard**!
 Run both commands locally and ensure they pass with `0` errors:
 
 ```bash
-# 1. Run the 10-language adversarial torture, mutation fuzzing & contract suite (36 assertions)
+# 1. Run the 10-language adversarial torture, mutation fuzzing & contract suite (50 assertions)
 npm test
 
 # 2. Run FlowGuard self-verification on its own repository (must report PASS with 0 issues)

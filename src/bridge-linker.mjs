@@ -1,12 +1,13 @@
 /**
  * Resolve the innermost enclosing function/method/container symbol at a 1-based line number.
  */
-function findSymbolAtLine(fileObj, line) {
+function findSymbolAtLine(fileObj, line, preferDecoratedTarget = false) {
   if (!fileObj || !fileObj.symbols || fileObj.symbols.length === 0) return null;
   if (!line) return fileObj.symbols[0];
 
   let bestFn = null;
   let bestContainer = null;
+  let decoratedFn = null;
   for (const s of fileObj.symbols) {
     if (s.startLine <= line && line <= s.endLine) {
       const span = s.endLine - s.startLine;
@@ -15,9 +16,18 @@ function findSymbolAtLine(fileObj, line) {
       } else if (!bestContainer || span <= bestContainer.endLine - bestContainer.startLine) {
         bestContainer = s;
       }
+    } else if (
+      preferDecoratedTarget &&
+      (s.kind === "function" || s.kind === "method") &&
+      s.startLine > line &&
+      s.startLine <= line + 6
+    ) {
+      if (!decoratedFn || s.startLine < decoratedFn.startLine) decoratedFn = s;
     }
   }
-  if (bestFn || bestContainer) return bestFn || bestContainer;
+  if (bestFn) return bestFn;
+  if (decoratedFn) return decoratedFn;
+  if (bestContainer) return bestContainer;
   // If line is in top-level script / IIFE listener outside named functions, attribute to the file's primary entry/router symbol rather than a tiny utility helper on line 1
   return (
     fileObj.symbols.find((s) => s.isEntrySource) ||
@@ -167,39 +177,56 @@ export function linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbo
     }
   }
 
-  // 5. HTTP REST API: fetch("/api/...") -> Backend Route ("/api/...") with dynamic path param normalization
+  // 5. HTTP REST API: fetch/axios("/api/...") -> Backend Route ("/api/...") with HTTP Method + dynamic param matching
   const normalizeHttpRoute = (p) =>
     String(p || "")
       .replace(/\$\{[^}]+\}|:[A-Za-z_][A-Za-z0-9_]*|\{[A-Za-z_][A-Za-z0-9_:]*\}|<[^>]+>/g, ":param")
       .replace(/\/+$/, "");
 
   const routeHandlers = new Map();
+  const pushRouteHandler = (key, entry) => {
+    if (!routeHandlers.has(key)) routeHandlers.set(key, []);
+    const list = routeHandlers.get(key);
+    if (!list.some((e) => e.sym?.id === entry.sym?.id && e.method === entry.method)) {
+      list.push(entry);
+    }
+  };
+
   for (const f of prodFiles) {
     for (const item of f.bridgeSignals.httpRoutes || []) {
       const rt = typeof item === "string" ? item : item.path;
+      const method = (typeof item === "object" && item.method ? item.method : "ANY").toUpperCase();
       const line = typeof item === "object" ? item.line : 1;
-      const entry = { fileObj: f, sym: findSymbolAtLine(f, line), rawRoute: rt };
-      routeHandlers.set(rt, entry);
-      routeHandlers.set(normalizeHttpRoute(rt), entry);
+      const entry = { method, fileObj: f, sym: findSymbolAtLine(f, line, true), rawRoute: rt };
+      pushRouteHandler(rt, entry);
+      pushRouteHandler(normalizeHttpRoute(rt), entry);
     }
   }
   for (const f of prodFiles) {
     for (const item of f.bridgeSignals.httpCalls || []) {
       const apiPath = typeof item === "string" ? item : item.path;
+      const callMethod = (typeof item === "object" && item.method ? item.method : "GET").toUpperCase();
       const line = typeof item === "object" ? item.line : 1;
       const callerSym = findSymbolAtLine(f, line);
-      const target = routeHandlers.get(apiPath) || routeHandlers.get(normalizeHttpRoute(apiPath));
-      if (target && callerSym && target.sym) {
-        addSymEdge(callerSym.id, target.sym.id);
-        crossBridges.push({
-          kind: "HTTP_REST_API",
-          fromFile: f.file,
-          fromSymbol: callerSym.name,
-          contract: apiPath,
-          toFile: target.fileObj.file,
-          toSymbol: target.sym.name,
-          status: "CONNECTED"
-        });
+      const exactList = routeHandlers.get(apiPath) || [];
+      const normList = routeHandlers.get(normalizeHttpRoute(apiPath)) || [];
+      const candidates = exactList.length > 0 ? exactList : normList;
+      const matchedHandlers = candidates.filter(
+        (h) => h.method === callMethod || h.method === "ANY" || callMethod === "ANY"
+      );
+      for (const target of matchedHandlers) {
+        if (callerSym && target.sym) {
+          addSymEdge(callerSym.id, target.sym.id);
+          crossBridges.push({
+            kind: "HTTP_REST_API",
+            fromFile: f.file,
+            fromSymbol: callerSym.name,
+            contract: `${callMethod} ${apiPath}`,
+            toFile: target.fileObj.file,
+            toSymbol: target.sym.name,
+            status: "CONNECTED"
+          });
+        }
       }
     }
   }

@@ -43,9 +43,10 @@ export function classifyZone(relPath) {
     return "test";
   }
   if (
-    /(^|\/)(scratch|lab|experiments?|examples?|samples?|playground|tmp|sandbox|docs|documentation|website|benchmarks?|benches|bench|metrics|\.configs?)(\/|$)/.test(
+    /(^|\/)(scratch|lab|experiments?|evals?|evaluations?|examples?|samples?|playground|tmp|sandbox|docs|documentation|website|benchmarks?|benches|bench|metrics|scripts\/profile|\.configs?)(\/|$)/.test(
       norm
-    )
+    ) ||
+    /(^|\/)eval[-_][^/]+\.[a-z0-9]+$|\.eval\.[a-z0-9]+$/.test(norm)
   ) {
     return "sandbox";
   }

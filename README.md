@@ -5,7 +5,7 @@
 <br />
 
 [![Release](https://img.shields.io/badge/release-v0.1.0-38bdf8?style=flat-square&logo=github)](https://github.com/senran-N/flow-guard/releases/tag/v0.1.0)
-[![Torture Suite](https://img.shields.io/badge/Torture%20%26%20Fuzz%20Suite-36%2F36%20Passing-34d399?style=flat-square&logo=node.js)](./test/torture-suite.mjs)
+[![Torture Suite](https://img.shields.io/badge/Torture%20%26%20Fuzz%20Suite-50%2F50%20Passing-34d399?style=flat-square&logo=node.js)](./test/torture-suite.mjs)
 [![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-818cf8?style=flat-square)](https://modelcontextprotocol.io)
 [![Languages](https://img.shields.io/badge/Polyglot-25%20Extensions%20%7C%2010%2B%20Langs-34d399?style=flat-square)](#%EF%B8%8F-%E5%A4%9A%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%B7%A8%E8%BE%B9%E7%95%8C%E6%A1%A5%E6%8E%A5%E7%9F%A9%E9%98%B5)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0%20(Pure%20Node%20ESM)-22d3ee?style=flat-square)](./package.json)
@@ -149,7 +149,7 @@ FlowGuard 已在 **17 个涵盖各大语言的真实开源仓库与生产全栈�
 | **生产全栈应用** | **usememos/memos** | Go + TS/React (ConnectRPC) | 2,135 | **99.5%** | `110` 条 (`RPC_SERVICE` + `EVENT_BUS`) | ~480 ms |
 | **生产全栈应用** | **Flotsam Launcher** | C# + Rust + Vue 3 (Tauri) | 1,093 | **98.9%** | `31` 条 (`TAURI_IPC` + `SHARED_CONFIG`) | ~260 ms |
 | **主流开源库 (14 仓)** | `ripgrep`, `fd`, `zod`, `pinia`, `fastapi`, `httpx`, `gin`, `cobra`, `Polly`, `serilog`, `gson`, `retrofit`, `fmt`, `axum` | Rust / TS / Python / Go / C# / Java / C++ | 14,147 | **99.7% – 100%** | 原生导出与多态契约全识别 | 40 – 310 ms |
-| **对抗性酷刑与契约套件** | **`test/torture-suite.mjs`** | 10 语言极端语法 + 8 类故障变异 + Hook/MCP 契约 | 36 项断言 | **100% 零误报 & 100% 故障捕获** | 全通道 + 生命周期闭环 | **< 1 s** |
+| **对抗性酷刑与契约套件** | **`test/torture-suite.mjs`** | 10 语言极端语法 + 8 类故障变异 + Hook/MCP 契约 | 50 项断言 | **100% 零误报 & 100% 故障捕获** | 全通道 + 生命周期闭环 | **< 1.1 s** |
 
 ---
 
@@ -192,8 +192,9 @@ node src/server.mjs --cli trace /path/to/your-repo YourFunctionOrClassName
 # 3. 提取同类模块四站式接线施工单
 node src/server.mjs --cli blueprint /path/to/your-repo ReferenceModuleName
 
-# 4. 执行九维端到端通水验收与死代码排查
+# 4. 执行九维端到端通水验收与死代码排查（默认 Git 增量模式；附加 --full 强制全仓审计）
 node src/server.mjs --cli verify /path/to/your-repo
+node src/server.mjs --cli verify /path/to/your-repo --full
 ```
 
 ---
@@ -203,7 +204,7 @@ node src/server.mjs --cli verify /path/to/your-repo
 FlowGuard 采用**零外部依赖纯 Node.js ESM** 编写，内置 10 语言对抗性语法酷刑、变异模糊与 Hook/MCP 契约测试套件，并通过自身 `flow_verify` 实现自举零缺陷验收：
 
 ```bash
-# 运行 10 语言极端语法酷刑测试 + 8 类故障变异测试 + Hook/MCP 契约测试 (36 项断言)
+# 运行 10 语言极端语法酷刑测试 + 8 类故障变异测试 + Hook/MCP 契约测试 (50 项断言)
 npm test
 
 # 使用 FlowGuard 对自身代码库执行九维端到端通水自举验收

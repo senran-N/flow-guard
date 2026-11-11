@@ -9,6 +9,38 @@ let cachedGraph = null;
 let cachedRoot = "";
 let cachedAtMs = 0;
 let cachedStamps = null;
+const perFileParseCache = new Map();
+
+function cloneParsedFile(raw) {
+  return {
+    ...raw,
+    importedStems: [...(raw.importedStems || [])],
+    importedPaths: [...(raw.importedPaths || [])],
+    reExportedPaths: [...(raw.reExportedPaths || [])],
+    reExportedStems: [...(raw.reExportedStems || [])],
+    memberReads: [...(raw.memberReads || [])],
+    fileCalls: [...(raw.fileCalls || [])],
+    symbols: raw.symbols.map((s) => ({
+      ...s,
+      parentContainerId: s.parentContainerId,
+      isPublicApi: s.isPublicApi,
+      roles: [...(s.roles || [])],
+      unusedParams: [...(s.unusedParams || [])],
+      reservedParams: [...(s.reservedParams || [])],
+      calls: [...(s.calls || [])],
+      writes: [...(s.writes || [])],
+      reads: [...(s.reads || [])]
+    }))
+  };
+}
+
+export function clearFlowGraphCache() {
+  cachedGraph = null;
+  cachedRoot = "";
+  cachedAtMs = 0;
+  cachedStamps = null;
+  perFileParseCache.clear();
+}
 
 function isCacheStillFresh(stamps) {
   if (!stamps) return false;
@@ -39,6 +71,7 @@ export function buildWorkspaceFlowGraph(workspaceRoot, forceRebuild = false) {
 
   const files = [];
   const nextStamps = [];
+  if (perFileParseCache.size > 10000) perFileParseCache.clear();
 
   function walk(dir) {
     if (!fs.existsSync(dir)) return;
@@ -57,8 +90,26 @@ export function buildWorkspaceFlowGraph(workspaceRoot, forceRebuild = false) {
           const fileStat = fs.statSync(full);
           nextStamps.push([full, fileStat.size, fileStat.mtimeMs]);
           const rel = path.relative(normRoot, full).replace(/\\/g, "/");
-          const parsed = parseSourceFile(full, rel);
-          if (parsed) files.push(parsed);
+          const cached = perFileParseCache.get(full);
+          if (
+            cached &&
+            cached.rel === rel &&
+            cached.size === fileStat.size &&
+            cached.mtimeMs === fileStat.mtimeMs
+          ) {
+            files.push(cloneParsedFile(cached.rawParsed));
+          } else {
+            const parsed = parseSourceFile(full, rel);
+            if (parsed) {
+              perFileParseCache.set(full, {
+                rel,
+                size: fileStat.size,
+                mtimeMs: fileStat.mtimeMs,
+                rawParsed: parsed
+              });
+              files.push(cloneParsedFile(parsed));
+            }
+          }
         }
       }
     }
@@ -155,32 +206,122 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     }
   }
 
-  // Propagate 1-hop header includes (e.g., `foo.cpp` includes `foo.h` -> inherits stems included by `foo.h`)
+  // Propagate 1-hop C++ header includes & multi-hop Barrel Re-Exports (`export * from`, `export { x } from`, `pub mod/use`, `__init__.py`)
   const filesByStem = new Map();
+  const filesByNoExt = new Map();
+  const stripCodeExt = (p) => p.replace(/\.(?:[cm]?[jt]sx?|vue|svelte|py|rs|php|rb|h|hpp|cuh|cpp|cc|cxx|c|go|cs|java|kt|swift)$/i, "");
   for (const f of files) {
     const stem = path.basename(f.file, path.extname(f.file));
     if (!filesByStem.has(stem)) filesByStem.set(stem, []);
     filesByStem.get(stem).push(f);
+    const noExt = stripCodeExt(f.file.replace(/\\/g, "/"));
+    if (!filesByNoExt.has(noExt)) filesByNoExt.set(noExt, []);
+    filesByNoExt.get(noExt).push(f);
   }
+
+  function resolveImportTargetFiles(fromFileRel, rawSpec, lang) {
+    if (!rawSpec) return [];
+    const results = new Set();
+    const addCandidates = (noExtKey) => {
+      for (const suffix of ["", "/index", "/__init__", "/mod"]) {
+        for (const match of filesByNoExt.get(noExtKey + suffix) || []) {
+          results.add(match);
+        }
+      }
+    };
+
+    const fromDir = path.posix.dirname(fromFileRel.replace(/\\/g, "/"));
+    if (lang === "python") {
+      const dotMatch = rawSpec.match(/^(\.+)(.*)$/);
+      if (dotMatch) {
+        const dots = dotMatch[1].length;
+        const rest = dotMatch[2].replace(/\./g, "/");
+        const upSegments = dots > 1 ? Array(dots - 1).fill("..").join("/") : ".";
+        const joined = path.posix.normalize(path.posix.join(fromDir, upSegments, rest));
+        addCandidates(stripCodeExt(joined));
+      } else {
+        addCandidates(rawSpec.replace(/\./g, "/"));
+      }
+    } else if (rawSpec.startsWith(".")) {
+      const joined = path.posix.normalize(path.posix.join(fromDir, rawSpec.replace(/\\/g, "/")));
+      addCandidates(stripCodeExt(joined));
+    } else if (/^[@~]\//.test(rawSpec)) {
+      const stripped = stripCodeExt(rawSpec.slice(2));
+      addCandidates(stripped);
+      addCandidates(`src/${stripped}`);
+    }
+    return Array.from(results);
+  }
+
+  // Compute transitive resolved target files & stems per file (across C++ headers & multi-hop barrel re-exports)
+  const resolvedImportedFilesByFile = new Map();
   for (const f of files) {
+    const expandedStems = new Set(f.importedStems || []);
+    const resolvedFiles = new Set();
+
     if (f.lang === "cpp" && f.importedStems) {
-      const expanded = new Set(f.importedStems);
       for (const st of f.importedStems) {
         for (const hdr of filesByStem.get(st) || []) {
           if (hdr.file.endsWith(".h") || hdr.file.endsWith(".hpp") || hdr.file.endsWith(".cuh")) {
-            for (const sub of hdr.importedStems || []) expanded.add(sub);
+            resolvedFiles.add(hdr.file);
+            for (const sub of hdr.importedStems || []) expandedStems.add(sub);
           }
         }
       }
-      f.importedStems = Array.from(expanded);
     }
+
+    const queue = [];
+    for (const spec of f.importedPaths || []) {
+      for (const tf of resolveImportTargetFiles(f.file, spec, f.lang)) {
+        queue.push({ tf, depth: 0 });
+      }
+    }
+    if (f.lang === "rust") {
+      const fDir = path.posix.dirname(f.file.replace(/\\/g, "/"));
+      for (const st of f.importedStems || []) {
+        for (const cand of filesByStem.get(st) || []) {
+          if (cand.lang === "rust" && cand.file !== f.file && cand.file.startsWith(fDir === "." ? "" : fDir)) {
+            queue.push({ tf: cand, depth: 0 });
+          }
+        }
+      }
+    }
+
+    const visitedBarrelFiles = new Set();
+    while (queue.length > 0) {
+      const { tf, depth } = queue.shift();
+      resolvedFiles.add(tf.file);
+      const tfStem = path.basename(tf.file, path.extname(tf.file));
+      if (tfStem) expandedStems.add(tfStem);
+      if (depth >= 5 || visitedBarrelFiles.has(tf.file)) continue;
+      visitedBarrelFiles.add(tf.file);
+
+      for (const reSpec of tf.reExportedPaths || []) {
+        for (const nextTf of resolveImportTargetFiles(tf.file, reSpec, tf.lang)) {
+          queue.push({ tf: nextTf, depth: depth + 1 });
+        }
+      }
+      for (const reStem of tf.reExportedStems || []) {
+        expandedStems.add(reStem);
+        const tfDir = path.posix.dirname(tf.file.replace(/\\/g, "/"));
+        for (const nextTf of filesByStem.get(reStem) || []) {
+          if (nextTf.lang === tf.lang && (tfDir === "." || nextTf.file.startsWith(tfDir))) {
+            queue.push({ tf: nextTf, depth: depth + 1 });
+          }
+        }
+      }
+    }
+
+    f.importedStems = Array.from(expandedStems);
+    resolvedImportedFilesByFile.set(f.file, resolvedFiles);
   }
 
-  // 1. Scoped Call Edge Resolution (with explicit import & module stem binding)
+  // 1. Scoped Call Edge Resolution (with explicit import, barrel re-export & module stem binding)
   for (const sym of symbolById.values()) {
     const callerFileObj = fileByPath.get(sym.file);
     const importedSet = new Set(callerFileObj?.importedStems || []);
     const importedPaths = callerFileObj?.importedPaths || [];
+    const resolvedImportFiles = resolvedImportedFilesByFile.get(sym.file) || new Set();
     const callSet = new Set(sym.calls);
     const symDir = path.dirname(sym.file);
 
@@ -212,12 +353,12 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
         if (t.id === sym.id) continue;
         const targetStem = path.basename(t.file, path.extname(t.file));
 
-        // Never link `prod` to `test`/`sandbox` unless `prod` explicitly imports that specific non-prod path
+        // Never link `prod` to `test`/`sandbox` unless `prod` explicitly imports (or transitively barrel-imports) that non-prod path
         if (sym.zone === "prod" && t.zone !== "prod") {
           const tDir = path.dirname(t.file).replace(/\\/g, "/");
-          const matchesTargetImport = importedPaths.some(
-            (p) => p.includes(tDir) && p.includes(targetStem)
-          );
+          const matchesTargetImport =
+            resolvedImportFiles.has(t.file) ||
+            importedPaths.some((p) => p.includes(tDir) && p.includes(targetStem));
           if (!matchesTargetImport) {
             continue;
           }
@@ -246,6 +387,7 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
           }
 
           if (
+            resolvedImportFiles.has(t.file) ||
             importedSet.has(targetStem) ||
             callSet.has(targetStem) ||
             (t.parentContainerName && (callSet.has(t.parentContainerName) || importedSet.has(t.parentContainerName))) ||
@@ -276,19 +418,130 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     }
   }
 
-  // 3. State Ownership Map (Writer -> Reader Data-Flow Edges)
-  const stateOwnership = new Map();
-  for (const sym of symbolById.values()) {
-    if (sym.zone !== "prod") continue;
-    for (const w of sym.writes) {
-      if (!stateOwnership.has(w)) stateOwnership.set(w, { field: w, writers: [], readers: [] });
-      stateOwnership.get(w).writers.push(sym.id);
+  // 3. Container-Scoped State Ownership Map (Writer -> Reader Data-Flow Edges + Cross-File Public `.prop` Reconciliation)
+  function rootContainerOf(containerName) {
+    if (!containerName) return null;
+    let curr = containerName;
+    const visited = new Set([curr]);
+    for (let hop = 0; hop < 4; hop++) {
+      const cSyms = containersByName.get(curr) || [];
+      const baseWithContainer = cSyms
+        .flatMap((c) => c.baseTypes || [])
+        .find((b) => containersByName.has(b) && !visited.has(b));
+      if (!baseWithContainer) break;
+      visited.add(baseWithContainer);
+      curr = baseWithContainer;
     }
-    for (const r of sym.reads) {
-      if (!stateOwnership.has(r)) stateOwnership.set(r, { field: r, writers: [], readers: [] });
-      stateOwnership.get(r).readers.push(sym.id);
+    return curr;
+  }
+
+  const privateFieldsByRoot = new Map();
+  for (const f of files) {
+    for (const [cName, fList] of Object.entries(f.privateFieldsByContainer || {})) {
+      const root = rootContainerOf(cName) || cName;
+      if (!privateFieldsByRoot.has(root)) privateFieldsByRoot.set(root, new Set());
+      const targetSet = privateFieldsByRoot.get(root);
+      for (const fld of fList) targetSet.add(fld);
     }
   }
+
+  const stateOwnership = new Map();
+  const stateKeysBySymbol = new Map();
+  const recordSymStateKey = (symId, key) => {
+    if (!stateKeysBySymbol.has(symId)) stateKeysBySymbol.set(symId, new Set());
+    stateKeysBySymbol.get(symId).add(key);
+  };
+  const ensureStateEntry = (scope, field) => {
+    const key = scope ? `${scope}.${field}` : field;
+    if (!stateOwnership.has(key)) {
+      const isPrivate =
+        field.startsWith("#") ||
+        (field.startsWith("__") && !field.endsWith("__")) ||
+        Boolean(scope && privateFieldsByRoot.get(scope)?.has(field));
+      stateOwnership.set(key, {
+        key,
+        scope: scope || null,
+        field,
+        qualifiedField: key,
+        isPrivate,
+        writers: [],
+        readers: []
+      });
+    }
+    return stateOwnership.get(key);
+  };
+
+  for (const sym of symbolById.values()) {
+    if (sym.zone !== "prod") continue;
+    const rawContainer = sym.kind === "class" || sym.kind === "struct" ? sym.name : sym.parentContainerName;
+    const scope = rootContainerOf(rawContainer);
+    for (const w of sym.writes) {
+      const entry = ensureStateEntry(scope, w);
+      if (!entry.writers.includes(sym.id)) entry.writers.push(sym.id);
+      recordSymStateKey(sym.id, entry.key);
+    }
+    for (const r of sym.reads) {
+      const entry = ensureStateEntry(scope, r);
+      if (!entry.readers.includes(sym.id)) entry.readers.push(sym.id);
+      recordSymStateKey(sym.id, entry.key);
+    }
+  }
+
+  // Reconcile non-private container fields read by same-file standalone functions or cross-file `.prop` consumers
+  const prodFilesForReads = files.filter((f) => f.zone === "prod");
+  for (const st of stateOwnership.values()) {
+    if (!st.scope || st.isPrivate || st.writers.length === 0) continue;
+    for (const wId of st.writers) {
+      const wSym = symbolById.get(wId);
+      if (!wSym) continue;
+      const wFileObj = fileByPath.get(wSym.file);
+      const wStem = path.basename(wSym.file, path.extname(wSym.file));
+      const wDir = path.dirname(wSym.file);
+      const wImportedStems = new Set(wFileObj?.importedStems || []);
+
+      // 3a. Same-file non-container functions reading `instance.field`
+      for (const s of wFileObj?.symbols || []) {
+        if (s.zone === "prod" && !s.parentContainerName && s.reads.includes(st.field)) {
+          if (!st.readers.includes(s.id)) st.readers.push(s.id);
+          recordSymStateKey(s.id, st.key);
+        }
+      }
+
+      // 3b. Cross-file `.prop` memberReads in prod files connected by import, container reference, or package dir
+      for (const rf of prodFilesForReads) {
+        if (rf.file === wSym.file) continue;
+        if (!(rf.memberReads || []).includes(st.field)) continue;
+        const rfResolved = resolvedImportedFilesByFile.get(rf.file) || new Set();
+        const rfStems = new Set(rf.importedStems || []);
+        const rfCalls = new Set(rf.fileCalls || []);
+        const sharesImportedStore =
+          wImportedStems.size > 0 && Array.from(wImportedStems).some((stem) => rfStems.has(stem));
+        const connectedToWriter =
+          rfResolved.has(wSym.file) ||
+          rfStems.has(wStem) ||
+          rfStems.has(st.scope) ||
+          rfCalls.has(st.scope) ||
+          (wSym.parentContainerName && (rfStems.has(wSym.parentContainerName) || rfCalls.has(wSym.parentContainerName))) ||
+          sharesImportedStore ||
+          (path.dirname(rf.file) === wDir &&
+            (rf.lang === "go" || rf.lang === "csharp" || rf.lang === "java" || rf.lang === "kotlin" || rf.lang === "swift" || rf.lang === "cpp"));
+        if (!connectedToWriter) continue;
+
+        const matchingSyms = rf.symbols.filter((s) => s.zone === "prod" && s.reads.includes(st.field));
+        const chosenReaders =
+          matchingSyms.length > 0
+            ? matchingSyms
+            : rf.symbols.filter((s) => s.zone === "prod" && (s.kind === "function" || s.kind === "method")).slice(0, 1);
+        for (const rSym of chosenReaders.length > 0 ? chosenReaders : rf.symbols.slice(0, 1)) {
+          if (rSym && rSym.zone === "prod") {
+            if (!st.readers.includes(rSym.id)) st.readers.push(rSym.id);
+            recordSymStateKey(rSym.id, st.key);
+          }
+        }
+      }
+    }
+  }
+
   for (const st of stateOwnership.values()) {
     for (const wId of st.writers) {
       const wSym = symbolById.get(wId);
@@ -302,6 +555,7 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
           (wSym.lang === "ts" && rSym.lang === "vue");
         if (!sameLang) continue;
         if (
+          st.scope ||
           wSym.file === rSym.file ||
           (wSym.parentContainerName && wSym.parentContainerName === rSym.parentContainerName)
         ) {
@@ -506,8 +760,17 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     const isSubclassedBaseMethod =
       Boolean(sym.parentContainerName && subclassesByBase.has(sym.parentContainerName)) &&
       !sym.name.startsWith("_");
+    const isConstructorName = /^(?:constructor|__init__|__construct|initialize|init|new)$/.test(sym.name);
     const peers = (symbolsByName.get(sym.name) || []).filter(
-      (p) => p.id !== sym.id && p.zone === "prod" && p.params.length === sym.params.length && p.params.length > 0
+      (p) =>
+        p.id !== sym.id &&
+        p.zone === "prod" &&
+        p.params.length === sym.params.length &&
+        p.params.length > 0 &&
+        (!isConstructorName ||
+          Boolean(sym.parentContainerName && p.parentContainerName === sym.parentContainerName) ||
+          Boolean(sym.baseTypes && sym.baseTypes.includes(p.parentContainerName)) ||
+          Boolean(p.baseTypes && p.baseTypes.includes(sym.parentContainerName)))
     );
 
     if (sym.unusedParams.length > 0) {
@@ -561,6 +824,7 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     fileInEdges,
     crossBridges,
     stateOwnership,
+    stateKeysBySymbol,
     reachableFromSource,
     reachesSideEffectSink,
     reachesSink

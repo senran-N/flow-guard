@@ -31,10 +31,32 @@ let assertionsCount = 0;
 // (Packs 35+ nasty real-world syntax edge cases; expects 0 false positives)
 // ============================================================================
 const CLEAN_TORTURE_FILES = {
-  // 1. TypeScript / TSX: JSX </Tag> & />, hoisted closure before setTimeout, multi-line ternary, => [...] array return, overload with object return, Tauri Specta __TAURI_INVOKE
+  // 1. TypeScript / TSX / Barrel Re-Export / Vue SFC: JSX </Tag> & />, hoisted closure, multi-line object return type `: Promise<{...; ...}>`, ES2022 `#private` fields & arrow methods, barrel `export *` + `import as`
+  "src/tools/pages.ts": `
+export const barrelTool = (id: string): string => id.trim();
+`,
+  "src/tools/index.ts": `
+export * from "./pages.js";
+`,
+  "src/Panel.vue": `
+<template>
+  <button :title="'Don\\'t break template quotes'" @click="onVueSave">{{ formatVueLabel(vueTitle) }}</button>
+</template>
+<script setup lang="ts">
+const vueTitle = "panel";
+const formatVueLabel = (v: string): string => v.toUpperCase();
+const onVueSave = () => {
+  localStorage.setItem("vue_saved", formatVueLabel(vueTitle));
+};
+</script>
+<style scoped>
+.btn { color: red; }
+</style>
+`,
   "src/index.tsx": `
 import { invoke as __TAURI_INVOKE } from "@tauri-apps/api/core";
-import { revalidateQuery } from "./services";
+import { revalidateQuery, assertValidTag, ConfigService, UnrelatedClient } from "./services";
+import { barrelTool as aliasedBarrelTool } from "./tools/index.js";
 
 export function overloadFn(x: number): { a: number };
 export function overloadFn(x: string): { a: string };
@@ -64,11 +86,17 @@ export const TortureViewer = (props: { open: boolean; label: string; onClose: ()
   preloadEditor();
   handleClose();
   revalidateQuery("cfg");
+  assertValidTag(label);
+  const cleanedId = aliasedBarrelTool(label);
+  const cfgSvc = new ConfigService("https://example.com");
+  void cfgSvc.inspectMeta();
+  const unrelated = new UnrelatedClient(cfgSvc.url() + cfgSvc.publicBadge, 1);
   const globStart = "src/*";
-  const exts = buildExtensions({ tag: label });
+  const exts = buildExtensions({ tag: cleanedId });
   const ov = overloadFn(1);
-  void __TAURI_INVOKE<string>("sync_vault", { label, exts, ov, globStart });
+  void __TAURI_INVOKE<string>("sync_vault", { label, exts, ov, globStart, unrelated });
   void fetch(\`/api/memos/\${label}\`);
+  void fetch(\`/api/memos/\${cleanedId}\`, { method: "DELETE" });
   void memoServiceClient.createMemo({ label });
   const globEnd = "*/dist";
   const busTopic = globEnd ? "verge://refresh-verge-config" : "idle";
@@ -85,12 +113,66 @@ export const TortureViewer = (props: { open: boolean; label: string; onClose: ()
 };
 `,
   "src/services.ts": `
+import assert from "node:assert/strict";
+
+export function assertValidTag(tag: string): string {
+  assert.ok(tag.length > 0);
+  return tag.trim();
+}
+
+export class ConfigService {
+  readonly publicBadge: string;
+  #secretSalt: string;
+
+  constructor(
+    private readonly endpoint: string,
+    private retries = 3,
+  ) {
+    this.publicBadge = "v1";
+    this.#secretSalt = "salty";
+  }
+
+  #readSalt = () => this.#secretSalt;
+
+  async inspectMeta(): Promise<{
+    host: string;
+    salt: string;
+  }> {
+    return {
+      host: this.endpoint,
+      salt: this.#readSalt(),
+    };
+  }
+
+  url() {
+    return \`\${this.endpoint}:\${this.retries}\`;
+  }
+}
+
+export class UnrelatedClient {
+  constructor(host: string, attempts: number) {
+    localStorage.setItem(host, String(attempts));
+  }
+}
+
 export const revalidateQuery = (key: string) => {
   localStorage.setItem("last_key", key);
 };
 export const memoServiceClient = {
   createMemo: (req: unknown) => Promise.resolve(req)
 };
+`,
+  "tests/helper.ts": `
+export function makeTestFixture() {
+  return "fixture-ok";
+}
+`,
+  "scripts/eval_bench.ts": `
+import { makeTestFixture } from "../tests/helper";
+
+export function main() {
+  console.log(makeTestFixture());
+}
 `,
 
   // 2. Rust: #[command] + #[specta::specta], r#"..."# raw string interpolation {var}, #[cfg] platform twins with unused param on Windows
@@ -157,6 +239,10 @@ class BaseApp:
 @app.get("/api/memos/{memo_id}")
 def get_memo_detail(memo_id: str):
     return f"memo:{memo_id}"
+
+@app.delete("/api/memos/{memo_id}")
+def delete_memo_detail(memo_id: str):
+    return f"deleted:{memo_id}"
 
 def render_template(title: str):
     doc = f"""
@@ -272,8 +358,12 @@ withTempWorkspace(CLEAN_TORTURE_FILES, (dir) => {
   const overview = generateFlowOverview(dir, false);
   const verify = verifyWorkspaceFlow(dir);
 
-  // Assert 0 false-positive data-flow breaks, 0 unwired pipes, 0 broken bridges, 0 write-only states
+  // Assert 0 false-positive data-flow breaks, 0 unwired pipes, 0 broken bridges, 0 write-only states, 0 sandbox leaks
   assert.equal(verify.brokenBridges.length, 0, `Expected 0 broken bridges, got: ${JSON.stringify(verify.brokenBridges)}`);
+  assertionsCount++;
+  assert.equal(verify.sandboxViolations.length, 0, `Expected 0 sandboxViolations for scripts/eval_bench.ts, got: ${JSON.stringify(verify.sandboxViolations)}`);
+  assertionsCount++;
+  assert.ok(overview.zoneCounts.sandboxFiles >= 1, "Expected scripts/eval_bench.ts to be classified in sandbox zone");
   assertionsCount++;
   assert.equal(verify.dataFlowBreaks.length, 0, `Expected 0 false-positive dataFlowBreaks, got: ${JSON.stringify(verify.dataFlowBreaks)}`);
   assertionsCount++;
@@ -281,6 +371,14 @@ withTempWorkspace(CLEAN_TORTURE_FILES, (dir) => {
   assertionsCount++;
   assert.equal(verify.writeOnlyDeadEndStates.length, 0, `Expected 0 writeOnly states, got: ${JSON.stringify(verify.writeOnlyDeadEndStates)}`);
   assertionsCount++;
+
+  // Assert TS constructor parameter properties are consumed without spurious constructor twin reservedContracts
+  const hasCtorReserveNoise = verify.reservedContracts.some((r) => r.symbol.includes("ConfigService.constructor"));
+  assert.ok(!hasCtorReserveNoise, "ConfigService.constructor should not emit spurious reservedContracts");
+  const bpIndex = generateWiringBlueprint(dir, "src/index.tsx");
+  const overloadEntries = bpIndex.moduleArchitectureProfile.publicApiSurface.filter((s) => s.startsWith("overloadFn("));
+  assert.equal(overloadEntries.length, 1, "Overloaded public API signatures should be deduplicated in flow_blueprint");
+  assertionsCount += 2;
 
   // Assert Tauri bridge (__TAURI_INVOKE("sync_vault") -> #[command] fn sync_vault), RPC bridge (memoServiceClient.createMemo -> APIService.CreateMemo), and Event Bus bridge ("verge://refresh-verge-config") are all CONNECTED with exact symbol attribution
   const tauriBridge = overview.crossLanguageBridges.find((b) => b.kind === "TAURI_IPC");
@@ -298,12 +396,31 @@ withTempWorkspace(CLEAN_TORTURE_FILES, (dir) => {
   assert.equal(evtBridge.fromSymbol, "sync_vault");
   assert.equal(evtBridge.toSymbol, "TortureViewer");
 
-  const restBridge = overview.crossLanguageBridges.find(
-    (b) => b.kind === "HTTP_REST_API" && b.fromSymbol === "TortureViewer"
+  const restGetBridge = overview.crossLanguageBridges.find(
+    (b) => b.kind === "HTTP_REST_API" && b.fromSymbol === "TortureViewer" && b.contract.startsWith("GET ")
   );
-  assert.ok(restBridge && restBridge.status === "CONNECTED");
-  assert.equal(restBridge.toSymbol, "get_memo_detail");
-  assertionsCount += 11;
+  assert.ok(restGetBridge && restGetBridge.status === "CONNECTED", "GET /api/memos/:param bridge should be CONNECTED");
+  assert.equal(restGetBridge.toSymbol, "get_memo_detail");
+
+  const restDeleteBridge = overview.crossLanguageBridges.find(
+    (b) => b.kind === "HTTP_REST_API" && b.fromSymbol === "TortureViewer" && b.contract.startsWith("DELETE ")
+  );
+  assert.ok(restDeleteBridge && restDeleteBridge.status === "CONNECTED", "DELETE /api/memos/:param bridge should be CONNECTED without overwriting GET");
+  assert.equal(restDeleteBridge.toSymbol, "delete_memo_detail");
+  assertionsCount += 13;
+
+  // Assert Barrel Re-Export (`export * from "./pages.js"`) + `import { barrelTool as aliasedBarrelTool }` links TortureViewer -> barrelTool
+  const barrelTrace = traceSymbolFlow(dir, "barrelTool");
+  assert.ok(
+    barrelTrace.traces[0]?.directCallers.some((c) => c.includes("TortureViewer")),
+    `Expected TortureViewer to link to barrelTool across barrel index, got: ${JSON.stringify(barrelTrace.traces[0]?.directCallers)}`
+  );
+  assertionsCount++;
+
+  // Assert Vue SFC `<template @click="onVueSave">` wires `<script setup>` handler as UI Source -> Sink
+  const vueTrace = traceSymbolFlow(dir, "onVueSave");
+  assert.ok(vueTrace.traces[0]?.roles.includes("source") && vueTrace.traces[0]?.roles.includes("sink"), "Vue SFC @click handler should be wired Source -> Sink");
+  assertionsCount++;
 
   // Assert dedicated Swift extension, PHP 8 promoted ctor + $this->field, and Ruby rescue + @ivar parsers extract clean symbols
   assert.ok(traceSymbolFlow(dir, "format").matchCount >= 1, "Swift extension method VaultBadge.format not parsed");
@@ -343,6 +460,21 @@ class StateStore {
   }
 }
 
+class HealthyStore {
+  public orphanField = 1;
+  public readHealthy(): number {
+    this.orphanField = 2;
+    return this.orphanField;
+  }
+}
+
+class SecretVault {
+  #unusedSecret = 0;
+  public seal(code: number) {
+    this.#unusedSecret = code;
+  }
+}
+
 function pureCompute(x: string): string {
   return x.trim();
 }
@@ -366,6 +498,10 @@ function completelyUnwiredDeadPipe(a: number): number {
 export function main() {
   const s = new StateStore();
   s.start("hello", 99);
+  const h = new HealthyStore();
+  console.log(h.readHealthy());
+  const v = new SecretVault();
+  v.seal(7);
 }
 `
 };
@@ -423,10 +559,20 @@ withTempWorkspace(MUTATED_DEFECT_FILES, (dir) => {
   assert.ok(hasUnwired, "Mutation fuzzer failed to catch UNWIRED_DEAD_PIPE");
   assertionsCount++;
 
-  // 8. Must catch WRITE_ONLY_STATE (`orphanField`)
-  const hasWriteOnly = verify.writeOnlyDeadEndStates.some((w) => w.field === "orphanField");
-  assert.ok(hasWriteOnly, "Mutation fuzzer failed to catch WRITE_ONLY_STATE");
-  assertionsCount++;
+  // 8. Must catch container-scoped WRITE_ONLY_STATE (`StateStore.orphanField` NOT masked by `HealthyStore.orphanField`, plus `#unusedSecret`)
+  const hasScopedWriteOnly = verify.writeOnlyDeadEndStates.some(
+    (w) => w.field === "orphanField" && w.qualifiedField === "StateStore.orphanField"
+  );
+  assert.ok(hasScopedWriteOnly, "Mutation fuzzer failed to isolate StateStore.orphanField from HealthyStore.orphanField");
+  const hasHealthyFalsePos = verify.writeOnlyDeadEndStates.some(
+    (w) => w.qualifiedField === "HealthyStore.orphanField"
+  );
+  assert.ok(!hasHealthyFalsePos, "HealthyStore.orphanField should NOT be flagged as write-only");
+  const hasPrivateHashWriteOnly = verify.writeOnlyDeadEndStates.some(
+    (w) => w.field === "#unusedSecret" && w.qualifiedField === "SecretVault.#unusedSecret"
+  );
+  assert.ok(hasPrivateHashWriteOnly, "Mutation fuzzer failed to catch ES2022 #unusedSecret write-only state");
+  assertionsCount += 3;
 
   // 9. Verify `flow_trace` and `flow_blueprint` architectural vision output
   const trace = traceSymbolFlow(dir, "start");
@@ -449,6 +595,15 @@ const savedLastWorkspace = fs.existsSync(lastWorkspaceCachePath)
 try {
   withTempWorkspace(
     {
+      "README.md": "# Demo\n",
+      "src/legacy.ts": `
+function untouchedLegacyDead(): number {
+  return 1;
+}
+export function keepAlive() {
+  localStorage.setItem("ok", "1");
+}
+`,
       "src/app.ts": `
 export function runApp(name: string) {
   console.log(name);
@@ -487,11 +642,23 @@ export function runApp(name: string) {
       assert.equal(resolveRoot(), path.resolve(gitDir));
       assertionsCount += 2;
 
-      // 3. Stop hook blocking on uncommitted DEAD_LOCAL_ASSIGNMENT + SHA-1 deduplication
+      // 3. Non-source git diff guard (`NON_SOURCE_DIFF_ONLY` vs `fullScan: true`) & Stop hook blocking + SHA-1 deduplication
       execSync(
         'git init && git config user.email "torture@flowguard.local" && git config user.name "FlowGuard Torture" && git add . && git -c commit.gpgsign=false commit -m "init clean baseline"',
         { cwd: gitDir, stdio: "ignore" }
       );
+
+      fs.writeFileSync(path.join(gitDir, "README.md"), "# Demo Updated\n", "utf8");
+      const mdOnlyVerify = verifyWorkspaceFlow(gitDir);
+      assert.equal(mdOnlyVerify.scanMode, "NON_SOURCE_DIFF_ONLY", "Editing only README.md should enter NON_SOURCE_DIFF_ONLY mode");
+      assert.equal(mdOnlyVerify.unwiredOrDeadPipes.length, 0, "Editing only README.md must NOT trigger full-repo legacy unwired scan");
+      const forcedFullVerify = verifyWorkspaceFlow(gitDir, { fullScan: true });
+      assert.equal(forcedFullVerify.scanMode, "FULL_WORKSPACE");
+      assert.ok(
+        forcedFullVerify.unwiredOrDeadPipes.some((u) => u.symbol.includes("untouchedLegacyDead")),
+        "fullScan: true should still audit untouched legacy files cleanly across cached file AST snapshots"
+      );
+      assertionsCount += 4;
 
       fs.writeFileSync(
         path.join(gitDir, "src/app.ts"),

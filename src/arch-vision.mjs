@@ -311,8 +311,17 @@ export function computeSymbolArchContext(graph, sym) {
         ? "MEDIUM_MODULE_CONTRACT (模块级公开/共享接口)"
         : "LOW_LOCAL_SCOPE (局部内部实现)";
 
+  const isConstructorName = /^(?:constructor|__init__|__construct|initialize|init|new)$/.test(sym.name);
   const peers = (graph.symbolsByName.get(sym.name) || [])
-    .filter((p) => p.id !== sym.id && p.zone === "prod")
+    .filter(
+      (p) =>
+        p.id !== sym.id &&
+        p.zone === "prod" &&
+        (!isConstructorName ||
+          Boolean(sym.parentContainerName && p.parentContainerName === sym.parentContainerName) ||
+          Boolean(sym.baseTypes && sym.baseTypes.includes(p.parentContainerName)) ||
+          Boolean(p.baseTypes && p.baseTypes.includes(sym.parentContainerName)))
+    )
     .slice(0, 6)
     .map(shortId);
 

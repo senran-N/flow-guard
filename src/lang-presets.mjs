@@ -134,7 +134,6 @@ function cleanParamName(rawParam, lang, hasTypedSubsequentParam = false) {
   if (!s || s.startsWith("{") || s.startsWith("[") || s.startsWith("(")) return null;
 
   if (lang === "php") {
-    if (/\b(?:public|protected|private|readonly)\b/.test(s)) return null;
     const phpM = s.match(/\$([a-zA-Z_][a-zA-Z0-9_]*)\s*$/);
     return phpM ? phpM[1] : null;
   }
@@ -219,6 +218,32 @@ export function extractParamNames(lang, sigText) {
     if (clean && !clean.startsWith("_")) names.push(clean);
   }
   return names;
+}
+
+export function extractPromotedParamNames(lang, sigText) {
+  if (lang !== "ts" && lang !== "vue" && lang !== "php") return [];
+  let inner = sigText.trim();
+  if (inner.startsWith("(") && inner.endsWith(")")) {
+    inner = inner.slice(1, -1).trim();
+  } else {
+    const openIdx = inner.indexOf("(");
+    const closeIdx = inner.lastIndexOf(")");
+    if (openIdx < 0 || closeIdx <= openIdx) return [];
+    inner = inner.slice(openIdx + 1, closeIdx).trim();
+  }
+  if (!inner) return [];
+
+  const rawList = splitTopLevelByChar(inner, ",");
+  const promoted = [];
+  for (const raw of rawList) {
+    const beforeDefault = splitTopLevelByChar(stripLeadingAttributesAndAnnotations(raw.trim()), "=")[0].trim();
+    const headerPart = lang === "php" ? beforeDefault : splitTopLevelByChar(beforeDefault, ":")[0].trim();
+    if (/\b(?:public|private|protected|readonly|override)\b/.test(headerPart)) {
+      const clean = cleanParamName(raw, lang, false);
+      if (clean && !clean.startsWith("_")) promoted.push(clean);
+    }
+  }
+  return promoted;
 }
 
 export function matchSymbolDeclaration(lang, line, inClassScope = false) {
@@ -339,6 +364,20 @@ export function matchSymbolDeclaration(lang, line, inClassScope = false) {
             };
           }
         }
+      }
+      const arrowMthM = line.match(
+        /^\s*(?:(?:public|private|protected|static|readonly|override)\s+)*(#?[a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::[^=]+)?=\s*(?:async\s*)?(?:function\b|(?:<[^>]*>\s*)?\((?:[^()]|\([^()]*\))*\)\s*(?::[^=]+)?=>|[a-zA-Z_$][a-zA-Z0-9_$]*\s*=>)/
+      );
+      if (arrowMthM && !CONTROL_KEYWORDS.test(arrowMthM[1])) {
+        const name = arrowMthM[1];
+        const beforeEq = line.slice(0, line.indexOf("="));
+        const isPrivate = name.startsWith("#") || name.startsWith("_") || /\bprivate\b/.test(beforeEq);
+        return {
+          name,
+          kind: "method",
+          isConstructor: false,
+          isPublicApi: !isPrivate
+        };
       }
     }
     return null;
