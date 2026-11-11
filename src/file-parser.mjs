@@ -10,6 +10,7 @@ import {
   EXT_LANG,
   extractParamNames,
   extractPromotedParamNames,
+  extractRefOutParamNames,
   matchSymbolDeclaration,
   isRuntimeEntrySource
 } from "./lang-presets.mjs";
@@ -166,6 +167,7 @@ function extractDataFlowAndTouches({
   fullLexicalLines,
   params,
   promotedParams = [],
+  refOutParams = [],
   bodyStartLineOffset,
   prevLines
 }) {
@@ -269,6 +271,9 @@ function extractDataFlowAndTouches({
   const canIgnoreReturnValue =
     /@CanIgnoreReturnValue|#\[allow\(unused_must_use\)\]/.test(prevLines) ||
     /\breturn[ \t]+(?:this|self)\b/.test(outerControlBody) ||
+    ((lang === "ts" || lang === "vue") &&
+      /^track[A-Z_]/.test(decl.name) &&
+      /\$effect\b|\$derived\b|\bcreateEffect\b/.test(cleanCode)) ||
     isPreconditionGuard;
 
   // 3. Bare statement calls (`foo(bar);`) and dead local variable assignments (`const x = foo(bar);`)
@@ -435,7 +440,7 @@ function extractDataFlowAndTouches({
   }
 
   let hasInternalMutation =
-    /(?:<<<|\b(?:this|self|state|store)(?:\.|->)#?[A-Za-z_][A-Za-z0-9_]*\s*(?:=|\+=|-=|\*=|\+\+|--)|\$this->[A-Za-z_][A-Za-z0-9_]*\s*(?:=|\+=|-=|\*=|\+\+|--)|(?<!@)@[a-zA-Z_][a-zA-Z0-9_]*\s*(?:=|\+=|-=)(?!=)|\b_[a-zA-Z0-9_]+\s*(?:=|\+=|-=|\+\+|--)(?!=)|\*[a-zA-Z_][a-zA-Z0-9_]*\s*=(?!=)|(?:\??\.|->)(?:Write|WriteLine|Send|Emit|Flush|Close|Dispose|Save|Execute|Commit|Publish|Broadcast|Dispatch|write|send|emit|flush|close|dispose|save|commit|publish|broadcast|dispatch|postMessage|setItem|removeItem|wait|notify|notifyAll|lock|unlock|signal|signalAll|focus|blur|hide|show|open|toggle|error|warn|info|debug|fatal|skip|readByte|readShort|readInt|readLong|go|back|forward|perform)(?:\s*<[^>]*>)?\s*\(|\b(?:emit|dispatch|go|resolve|reject|swrMutate|mutate|revalidate\w*|invalidate\w*|(?:on|set|handle|show|toast|open|close|hide|skip|notify|toggle)(?:[A-Z]|_[a-z])\w*|focus|blur|readByte|readShort|readInt|readLong|clearTimeout|clearInterval|setTimeout|setInterval|appendFileSync|writeFileSync|execFileSync|execSync|spawnSync|mkdirSync|rmSync|unlinkSync|copyFileSync|GetProcAddress|LoadLibrary\w*|SetProcessInformation|SetProcessDpiAwarenessContext|SetThreadDescription|ShellExecute\w*|CreateProcess\w*|SetEnvironmentVariable\w*|putenv|_putenv\w*|setenv|unsetenv)(?:\s*<[^>]*>)?\s*\()/.test(
+    /(?:<<<|\b(?:this|self|state|store)(?:\.|->)#?[A-Za-z_][A-Za-z0-9_]*\s*(?:=|\+=|-=|\*=|\+\+|--)|\$this->[A-Za-z_][A-Za-z0-9_]*\s*(?:=|\+=|-=|\*=|\+\+|--)|(?<!@)@[a-zA-Z_][a-zA-Z0-9_]*\s*(?:=|\+=|-=)(?!=)|\b_[a-zA-Z0-9_]+\s*(?:=|\+=|-=|\+\+|--)(?!=)|\*[a-zA-Z_][a-zA-Z0-9_]*\s*=(?!=)|(?:\??\.|->)(?:Write|WriteLine|Send|Emit|Flush|Close|Dispose|Save|Execute|Commit|Publish|Broadcast|Dispatch|write|send|emit|flush|close|dispose|save|commit|publish|broadcast|dispatch|postMessage|setItem|removeItem|wait|notify|notifyAll|lock|unlock|signal|signalAll|focus|blur|hide|show|open|toggle|error|warn|info|debug|fatal|skip|readByte|readShort|readInt|readLong|go|back|forward|perform)(?:\s*<[^>]*>)?\s*\(|\b(?:emit|dispatch|go|resolve|reject|swrMutate|mutate|revalidate\w*|invalidate\w*|(?:on|set|handle|show|toast|open|close|hide|skip|notify|toggle)(?:[A-Z]|_[a-z])\w*|focus|blur|readByte|readShort|readInt|readLong|clearTimeout|clearInterval|setTimeout|setInterval|appendFileSync|writeFileSync|execFileSync|execSync|spawnSync|mkdirSync|rmSync|unlinkSync|copyFileSync|GetProcAddress|LoadLibrary\w*|SetProcessInformation|SetProcessDpiAwarenessContext|SetThreadDescription|ShellExecute\w*|CreateProcess\w*|SetEnvironmentVariable\w*|putenv|_putenv\w*|setenv|unsetenv|Interlocked[A-Z]\w*|__atomic_\w+|__sync_\w+|atomic_(?:store\w*|exchange\w*|fetch_\w+|compare_exchange_\w+|flag_\w+)|cudaMemcpy\w*|cudaMemset\w*|cudaFree\w*|cudaStreamSynchronize|cudaDeviceSynchronize)(?:\s*<[^>]*>)?\s*\()/.test(
       innerBody
     ) ||
     (lang === "ruby" &&
@@ -503,6 +508,7 @@ function extractDataFlowAndTouches({
       }
     }
   }
+  const refOutParamSet = new Set(refOutParams);
   if (
     !hasInternalMutation &&
     lang !== "python" &&
@@ -515,8 +521,16 @@ function extractDataFlowAndTouches({
       if (
         !/^(?:return|case|default|throw|const|let|var|auto|mut|val|if|while|for)$/.test(lhs) &&
         !localVars.has(lhs) &&
-        !paramSet.has(lhs)
+        (!paramSet.has(lhs) || refOutParamSet.has(lhs))
       ) {
+        hasInternalMutation = true;
+        break;
+      }
+    }
+  } else if (!hasInternalMutation && lang === "php" && refOutParamSet.size > 0) {
+    for (const rp of refOutParamSet) {
+      const rpEsc = rp.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (new RegExp(`\\$${rpEsc}\\s*(?:=|\\+=|-=|\\.=)(?!=)`).test(innerBody)) {
         hasInternalMutation = true;
         break;
       }
@@ -524,23 +538,34 @@ function extractDataFlowAndTouches({
   }
 
   const writes = new Set();
+  const delegatedWrites = new Set();
   const reads = new Set();
   const returnsOrPassesLocalState = /\breturn\s+state\b|&\s*state\b/.test(fullBody);
   const DOM_CALLBACK_PROPS = /^(?:onmessage|onerror|onclose|onopen|onload|onabort|onupgradeneeded|onsuccess|onreadystatechange)$/;
   const writeRe =
-    /(?:\b(this|self|state|store)|(\$this))(?:(?:\.|->)#?[a-zA-Z_][a-zA-Z0-9_]*)?(?:\.|->)(#?[a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=)(?!=)/g;
+    /(?:\b(this|self|state|store)|(\$this))(?:(?:\.|->)(#?[a-zA-Z_][a-zA-Z0-9_]*))?(?:\.|->)(#?[a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=)(?!=)/g;
   while ((m = writeRe.exec(fullBody)) !== null) {
     const rootObj = m[1] || m[2];
-    const field = m[3];
-    const op = m[4];
+    const subObj = m[3];
+    const field = m[4];
+    const op = m[5];
+    if (subObj && subObj.length > 1) reads.add(subObj);
     if (DOM_CALLBACK_PROPS.test(field)) continue;
+    if (subObj && subObj !== "state" && subObj !== "store" && (field === "current" || field === "value")) {
+      continue;
+    }
     const afterAssign = fullBody.slice(m.index + m[0].length, m.index + m[0].length + 60);
     // Ignore constructor method-binding `this.fn = this.fn.bind(this)`
     const fieldEsc = field.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     if (new RegExp(`^\\s*(?:this|self)\\.${fieldEsc}\\.bind\\s*\\(`).test(afterAssign)) {
       continue;
     }
-    if (field.length > 1) writes.add(field);
+    if (field.length > 1) {
+      writes.add(field);
+      if (subObj && subObj !== "state" && subObj !== "store") {
+        delegatedWrites.add(field);
+      }
+    }
     if ((op === "+=" || op === "-=" || (rootObj === "state" && returnsOrPassesLocalState)) && field.length > 1) {
       reads.add(field);
     }
@@ -552,10 +577,14 @@ function extractDataFlowAndTouches({
     " ="
   );
   const readRe =
-    /(?:\b(this|self|state|store|ctx|[A-Z][A-Za-z0-9_]*)|(\$this))(?:(?:\.|->)#?[a-zA-Z_][a-zA-Z0-9_]*)?(?:\.|->)(#?[a-zA-Z_][a-zA-Z0-9_]*)\b(?!\s*\()/g;
+    /(?:\b(this|self|state|store|ctx|[A-Z][A-Za-z0-9_]*)|(\$this))(?:\??\.|->)(#?[a-zA-Z_][a-zA-Z0-9_]*)(?:(?:\??\.|->)(#?[a-zA-Z_][a-zA-Z0-9_]*))?/g;
   while ((m = readRe.exec(bodyWithoutWriteLhs)) !== null) {
-    const field = m[3];
-    if (field.length > 1) reads.add(field);
+    const f1 = m[3];
+    const f2 = m[4];
+    const afterMatch = bodyWithoutWriteLhs.slice(m.index + m[0].length, m.index + m[0].length + 12);
+    const endsWithCallParen = /^\s*(?:\?\.)?\s*\(/.test(afterMatch);
+    if (f1 && f1.length > 1 && (Boolean(f2) || !endsWithCallParen)) reads.add(f1);
+    if (f2 && f2.length > 1 && !endsWithCallParen) reads.add(f2);
   }
   if (lang === "ruby") {
     const rbWriteRe = /(?<!@)@([a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=)(?!=)/g;
@@ -581,6 +610,7 @@ function extractDataFlowAndTouches({
     conditionalCount,
     qualifiedCalls,
     writes: Array.from(writes),
+    delegatedWrites: Array.from(delegatedWrites),
     reads: Array.from(reads)
   };
 }
@@ -613,6 +643,7 @@ function preprocessSfcContent(content) {
 
   const sfcEventIdents = new Set();
   const sfcTemplateIdents = new Set();
+  const sfcMemberReads = new Set();
 
   const addExprIdents = (expr, targetSet) => {
     for (const id of expr.match(/[A-Za-z_$][A-Za-z0-9_$]*/g) || []) {
@@ -620,11 +651,17 @@ function preprocessSfcContent(content) {
         targetSet.add(id);
       }
     }
+    let pm;
+    const propRe = /(?:\??\.)([a-zA-Z_$][a-zA-Z0-9_$]*)\b(?!\s*\()/g;
+    while ((pm = propRe.exec(expr)) !== null) {
+      if (pm[1].length > 1) sfcMemberReads.add(pm[1]);
+    }
   };
 
-  const eventAttrRe = /(?:@|v-on:|on:)[A-Za-z0-9_.:-]+\s*=\s*(?:"([^"]*)"|'([^']*)'|\{([^}]*)\})/g;
+  const eventAttrRe =
+    /(?:(?:@|v-on:|on:)[A-Za-z0-9_.:-]+\s*=\s*(?:"([^"]*)"|'([^']*)'|\{([^}]*)\})|\bon[a-z]+\s*=\s*\{([^}]*)\})/g;
   while ((m = eventAttrRe.exec(markup)) !== null) {
-    const expr = m[1] ?? m[2] ?? m[3] ?? "";
+    const expr = m[1] ?? m[2] ?? m[3] ?? m[4] ?? "";
     addExprIdents(expr, sfcEventIdents);
     addExprIdents(expr, sfcTemplateIdents);
   }
@@ -648,7 +685,8 @@ function preprocessSfcContent(content) {
     scriptContent: chars.join(""),
     hasScriptBlock: scriptRanges.length > 0,
     sfcEventIdents,
-    sfcTemplateIdents
+    sfcTemplateIdents,
+    sfcMemberReads
   };
 }
 
@@ -976,11 +1014,14 @@ export function parseSourceFile(absPath, relPath) {
       : `${relPath}::${decl.name}#L${startLine}`;
 
     if (decl.kind === "class" || decl.kind === "struct") {
-      const baseTypes = extractBaseTypes(lang, cleanLines[i]);
+      const clsHeaderText = cleanLines
+        .slice(i, Math.min(cleanLines.length, i + Math.max(1, bodyStartLineOffset)))
+        .join(" ");
+      const baseTypes = extractBaseTypes(lang, clsHeaderText);
       const hasBaseOrInterface =
         baseTypes.length > 0 ||
-        (lang === "csharp" && /:\s*[A-Za-z_]/.test(cleanLines[i])) ||
-        (lang === "java" && /\b(?:extends|implements)\b/.test(cleanLines[i]));
+        (lang === "csharp" && /:\s*[A-Za-z_]/.test(clsHeaderText)) ||
+        (lang === "java" && /\b(?:extends|implements)\b/.test(clsHeaderText));
       decl.baseTypes = baseTypes;
       containerRanges.push({
         name: decl.name,
@@ -1060,6 +1101,8 @@ export function parseSourceFile(absPath, relPath) {
 
     const params = decl.kind === "function" || decl.kind === "method" ? extractParamNames(lang, paramText) : [];
     const promotedParams = decl.isConstructor ? extractPromotedParamNames(lang, paramText) : [];
+    const refOutParams =
+      decl.kind === "function" || decl.kind === "method" ? extractRefOutParamNames(lang, paramText) : [];
     const df = extractDataFlowAndTouches({
       lang,
       decl,
@@ -1069,6 +1112,7 @@ export function parseSourceFile(absPath, relPath) {
       fullLexicalLines,
       params,
       promotedParams,
+      refOutParams,
       bodyStartLineOffset,
       prevLines
     });
@@ -1212,6 +1256,7 @@ export function parseSourceFile(absPath, relPath) {
       qualifiedCalls: df.qualifiedCalls,
       calls: Array.from(calls),
       writes: df.writes,
+      delegatedWrites: df.delegatedWrites,
       reads: df.reads,
       ownCleanBodyText,
       snippet: rawLines.slice(Math.max(0, i - 1), Math.min(rawLines.length, i + 14)).join("\n"),
@@ -1330,9 +1375,9 @@ export function parseSourceFile(absPath, relPath) {
     }
   }
 
-  const memberReadsSet = new Set();
+  const memberReadsSet = new Set(sfcInfo ? sfcInfo.sfcMemberReads : []);
   const cleanWithoutAssignLhs = cleanCode.replace(/\.[A-Za-z_][A-Za-z0-9_]*\s*=(?!=)/g, " =");
-  const extPropReadRe = /(?:\.|->)([a-zA-Z_][a-zA-Z0-9_]*)\b(?!\s*\()/g;
+  const extPropReadRe = /(?:\??\.|->)([a-zA-Z_][a-zA-Z0-9_]*)\b(?!\s*\()/g;
   let mr;
   while ((mr = extPropReadRe.exec(cleanWithoutAssignLhs)) !== null) {
     if (mr[1].length > 1) memberReadsSet.add(mr[1]);
@@ -1388,6 +1433,14 @@ export function parseSourceFile(absPath, relPath) {
     const afterSym = (useRawLines ? rawOutsideLines : cleanLines).slice(s.endLine).join("\n");
     if (refRe.test(beforeSym) || refRe.test(afterSym)) {
       s.isReferencedInFile = true;
+      const outsideCombined = `${beforeSym}\n${afterSym}`.replace(/\bexport\s*(?:type\s*)?\{[^}]*\}/g, " ");
+      const escName = s.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const delegateBindRe = new RegExp(
+        `(?:\\+=\\s*${escName}\\b(?!\\s*\\()|\\b(?!const\\b|let\\b|var\\b|auto\\b|export\\b|return\\b)[A-Za-z_][A-Za-z0-9_]*\\s*=(?!=)\\s*(?:new\\s+[A-Za-z0-9_.<>]+\\s*\\(\\s*)?${escName}\\b(?!\\s*\\()|[,(\\[]\\s*${escName}\\s*(?=[,)\\]}]))`
+      );
+      if (delegateBindRe.test(outsideCombined)) {
+        s.isCallbackRef = true;
+      }
       for (const other of symbols) {
         if (other.id !== s.id && (s.startLine < other.startLine || s.endLine > other.endLine)) {
           const otherSlice = cleanLines.slice(other.startLine - 1, other.endLine).join("\n");
@@ -1396,6 +1449,9 @@ export function parseSourceFile(absPath, relPath) {
           }
         }
       }
+    }
+    if (lang === "csharp" && s.params[0] === "sender" && s.params.length >= 2) {
+      s.isCallbackRef = true;
     }
   }
 
@@ -1574,11 +1630,12 @@ export function parseSourceFile(absPath, relPath) {
       addUnique(bridgeSignals.electronHandles, `ELHND:${m[1]}`, { channel: m[1], line: offsetToLine(m.index) });
     }
     const httpRe =
-      /\b(?:(fetch)|(?:axios|http|ky|api)\.(get|post|put|delete|patch))\s*(?:<[^>]*>)?\s*\(\s*["'`](\/?(?:api\/|[a-z][a-z0-9_-]*\/)[a-zA-Z0-9_/${}.:-]*|[a-z][a-z0-9_-]{2,})["'`]/g;
+      /\b(?:(fetch)|(?:axios|http|ky|api)\.(get|post|put|delete|patch))\s*(?:<[^>]*>)?\s*\(\s*["'`]((?:\$\{[A-Za-z0-9_$.()?:-]+\})?\/[a-zA-Z][a-zA-Z0-9_/${}.:-]*|api\/[a-zA-Z0-9_/${}.:-]*|[a-z][a-z0-9_-]{2,})["'`]/g;
     while ((m = httpRe.exec(commentStripped)) !== null) {
-      const rawPath = m[3];
-      // Bare fetch("foo") without leading `/api/` is skipped unless called via explicit HTTP client wrapper (`axios/http/ky/api.*`)
-      if (m[1] && !rawPath.startsWith("/api/")) continue;
+      const rawMatched = m[3];
+      const rawPath = rawMatched.replace(/^\$\{[^}]+\}(?=\/)/, "");
+      // Bare fetch("foo") without leading `/` is skipped unless called via explicit HTTP client wrapper (`axios/http/ky/api.*`)
+      if (m[1] && !rawPath.startsWith("/")) continue;
       let method = m[2] ? m[2].toUpperCase() : "GET";
       if (m[1]) {
         const openParenIdx = commentStripped.indexOf("(", m.index);
@@ -1627,7 +1684,7 @@ export function parseSourceFile(absPath, relPath) {
   const isApiRoutesFile = /(?:^|\/)routes\/api[^/]*\.php$/i.test(relPath.replace(/\\/g, "/"));
 
   const routeRe =
-    /(#\[(?:get|post|put|delete|patch|Route)|@(?:app|router|bp|GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping|RequestMapping)(?:\.(?:get|post|put|delete|patch|route))?|\[Http(?:Get|HttpPost|Put|Delete|Patch|Post)|\bRoute::(?:get|post|put|delete|patch)|\b(?:app|router|mux|r|e|sub|rg)\.(?:get|post|put|delete|patch|GET|POST|PUT|DELETE|PATCH|HandleFunc))\s*\(\s*["']([^"']*)["']/g;
+    /(#\[(?:get|post|put|delete|patch|Route)|@(?:app|router|bp|GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping|RequestMapping)(?:\.(?:get|post|put|delete|patch|route))?|\[Http(?:Get|HttpPost|Put|Delete|Patch|Post)|\bRoute::(?:get|post|put|delete|patch)|\b(?:app|router|mux|r|e|sub|rg|svr|server|http\w*|ctx_http)(?:\.|->)(?:get|post|put|delete|patch|Get|Post|Put|Delete|Patch|GET|POST|PUT|DELETE|PATCH|HandleFunc))\s*\(\s*["']([^"']*)["']/g;
   while ((m = routeRe.exec(commentStripped)) !== null) {
     const rawHead = m[1];
     const rawRtPath = m[2];
@@ -1729,6 +1786,7 @@ export function parseSourceFile(absPath, relPath) {
       qualifiedCalls: df.qualifiedCalls,
       calls: Array.from(calls),
       writes: df.writes,
+      delegatedWrites: df.delegatedWrites,
       reads: df.reads,
       snippet: rawLines.slice(0, 15).join("\n"),
       shingles: new Set()

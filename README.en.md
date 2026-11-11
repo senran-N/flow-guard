@@ -4,16 +4,16 @@
 
 <br />
 
-[![Release](https://img.shields.io/badge/release-v0.1.0-38bdf8?style=flat-square&logo=github)](https://github.com/senran-N/flow-guard/releases/tag/v0.1.0)
-[![Torture Suite](https://img.shields.io/badge/Torture%20%26%20Fuzz%20Suite-50%2F50%20Passing-34d399?style=flat-square&logo=node.js)](./test/torture-suite.mjs)
+[![Release](https://img.shields.io/badge/release-v0.1.1-38bdf8?style=flat-square&logo=github)](https://github.com/senran-N/flow-guard/releases/tag/v0.1.1)
+[![Torture Suite](https://img.shields.io/badge/Torture%20%26%20Fuzz%20Suite-69%2F69%20Passing-34d399?style=flat-square&logo=node.js)](./test/torture-suite.mjs)
 [![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-818cf8?style=flat-square)](https://modelcontextprotocol.io)
-[![Languages](https://img.shields.io/badge/Polyglot-25%20Extensions%20%7C%2010%2B%20Langs-34d399?style=flat-square)](#polyglot--cross-boundary-bridge-matrix)
+[![Languages](https://img.shields.io/badge/Polyglot-27%20Extensions%20%7C%2011%2B%20Langs-34d399?style=flat-square)](#polyglot--cross-boundary-bridge-matrix)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0%20(Pure%20Node%20ESM)-22d3ee?style=flat-square)](./package.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square)](./LICENSE)
 
 **End-to-End Causality Flow (`Source ➔ Branch ➔ Sink`) Architecture Vision, Polyglot Bridge Linker & Incremental Flow Verifier MCP Engine for AI Coding Agents**
 
-[**简体中文**](./README.md) · [**English**](./README.en.md) · [**Quick Start**](#quick-start--installation) · [**MCP Tools**](#the-4-core-mcp-tools) · [**Benchmarks**](#real-world-benchmarks-17-repos--19125-symbols)
+[**简体中文**](./README.md) · [**English**](./README.en.md) · [**Quick Start**](#quick-start--installation) · [**MCP Tools**](#the-4-core-mcp-tools) · [**Benchmarks**](#real-world-benchmarks-33-repos--130981-symbols)
 
 </div>
 
@@ -36,7 +36,7 @@ When operating in large polyglot codebases, AI coding agents relying solely on `
 ```mermaid
 flowchart LR
   subgraph L1["1. Fault-Tolerant Lexer (lexer.mjs)"]
-    A1["25 Source Extensions"]
+    A1["27 Source Extensions"]
     A2["String Interpolation Preserver (Template / f-string / Raw)"]
     A3["Balanced JSX / Generics / Nested Parens"]
   end
@@ -84,30 +84,32 @@ FlowGuard exposes 4 high-signal tools over the standard Model Context Protocol (
 
 ## Polyglot & Cross-Boundary Bridge Matrix
 
-- **25 File Extensions across 10+ Language Families**:
-  - **TypeScript / JavaScript / Frontend**: `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs`, `.cjs`, `.vue`, `.svelte`
-  - **Rust**: `.rs` (`#[tauri::command]`, `#[command]`, `#[specta::specta]`, raw strings `r#"..."#`, macro interpolation)
+- **27 File Extensions across 11+ Language Families**:
+  - **TypeScript / JavaScript / Frontend**: `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs`, `.cjs`, `.vue`, `.svelte` (including Svelte 5 Runes `$props` / `$derived` / `.svelte.ts` and Vue Options/Composition API)
+  - **Rust**: `.rs` (`#[tauri::command]`, `#[command]`, `#[specta::specta]`, inline `#[cfg(test)]` isolation, raw strings `r#"..."#`)
   - **Go**: `.go` (receiver methods, `interface` contracts, auto-filtering generated `*.pb.go` / `*.connect.go`)
-  - **Python**: `.py` (decorators, indentation block bounds, `f"""..."""` multiline f-strings)
-  - **C#**: `.cs` (`$@"..."` interpolated verbatim strings, Unity/Harmony hooks)
-  - **Java / Kotlin / Dart**: `.java`, `.kt`, `.dart`
-  - **Swift**: `.swift` (`extension`, `init`, external/internal labels, `\(ident)` interpolation)
-  - **PHP**: `.php` (PHP 8 promoted constructor properties, `#[Route]` / `Route::get`, `$this->field` state tracking, `{$this->field}` interpolation)
-  - **Ruby**: `.rb` (`def ... rescue ... end` block scoping, `@ivar` state tracking, `#{ident}` interpolation)
-  - **C / C++**: `.c`, `.cpp`, `.cc`, `.h`, `.hpp`
-- **6 Cross-Language Bridge Channels**: `TAURI_IPC`, `RPC_SERVICE` (ConnectRPC/gRPC), `EVENT_BUS_BRIDGE`, `ELECTRON_IPC`, `HTTP_REST_API` (including dynamic route parameter normalization `/api/memos/${id}` ⇄ `/api/memos/{id}`), and `SHARED_CONFIG_BRIDGE` / `ENV_VAR_BRIDGE`.
+  - **Python**: `.py` (FastAPI `APIRouter` mounts, `@*.register*` plugin decorators, indentation bounds, `f"""..."""` balanced interpolation)
+  - **C#**: `.cs` (`unsafe` modifiers, `$@"..."` nested-quote interpolation, `ref`/`out`, delegate/event signatures, Unity/Harmony hooks)
+  - **Java / Kotlin / Dart**: `.java`, `.kt`, `.dart` (Spring/Retrofit annotations, KMP source-set zoning, Dart promoted constructors & `package:` imports)
+  - **Swift**: `.swift` (`extension`, bodyless `protocol`, `init`, metatype defaults, `\(...)` interpolation)
+  - **PHP**: `.php` (PHP 8 promoted constructor properties, `#[Route]` / Laravel `routes/api.php`, `$this->field` state tracking, `{$this->field}` interpolation)
+  - **Ruby**: `.rb` (paren-less `def`, `attr_accessor`, `@@class_var`, `@ivar` state tracking, `#{...}` interpolation)
+  - **C / C++ / CUDA**: `.c`, `.cpp`, `.cc`, `.h`, `.hpp`, `.cu`, `.cuh` (multi-brace initializers, non-`const` ref out-params, atomic/CUDA side-effects, `cpp-httplib` routes)
+- **6 Cross-Language Bridge Channels**: `TAURI_IPC`, `RPC_SERVICE` (ConnectRPC/gRPC), `EVENT_BUS_BRIDGE` (including Socket.io `ws:*`), `ELECTRON_IPC`, `HTTP_REST_API` (dynamic route normalization `/api/memos/${id}` ⇄ `/api/memos/{id}`, OpenAPI SDKs, C++ `ctx_http`), and `SHARED_CONFIG_BRIDGE` / `ENV_VAR_BRIDGE`.
 
 ---
 
-## Real-World Benchmarks (17 Repos · 19,125 Symbols)
+## Real-World Benchmarks (33 Repos · 130,981 Symbols)
 
-| Category | Repositories | Stack | Symbols | Source Reachability | Bridges Linked | Scan Time |
-| :--- | :--- | :--- | :---: | :---: | :---: | :---: |
-| **Full-Stack Production** | **clash-verge-rev** | Rust + TS/React (Tauri) | 1,750 | **97.4%** | `313` | ~420 ms |
-| **Full-Stack Production** | **usememos/memos** | Go + TS/React (ConnectRPC) | 2,135 | **99.5%** | `110` | ~480 ms |
-| **Full-Stack Production** | **Flotsam Launcher** | C# + Rust + Vue 3 (Tauri) | 1,093 | **98.9%** | `31` | ~260 ms |
-| **Open-Source Libraries (14)** | `ripgrep`, `fd`, `zod`, `pinia`, `fastapi`, `httpx`, `gin`, `cobra`, `Polly`, `serilog`, `gson`, `retrofit`, `fmt`, `axum` | Rust / TS / Python / Go / C# / Java / C++ | 14,147 | **99.7% – 100%** | Full export & trait coverage | 40 – 310 ms |
-| **Adversarial Torture & Contract Suite** | **`test/torture-suite.mjs`** | 10-Lang Torture + 8 Fault Mutations + Hook/MCP Contracts | 50 Assertions | **100% Precision & Recall** | All channels + lifecycle hooks | **< 1.1 s** |
+Stress-tested across **33 flagship open-source repositories** (**18,795 source files · 130,981 symbols · 566 cross-language bridges**), achieving **29 / 33 zero-false-positive `PASS`** while catching verified upstream bugs in the remaining 4 (`llama.cpp`, `bruno`, `Dapper`, `pocketbase`):
+
+| Category | Repositories | Stack | Symbols | Source Reachability | Bridges Linked | Highlights |
+| :--- | :--- | :--- | :---: | :---: | :---: | :--- |
+| **Systems & C++/CUDA** | **ggml-org/llama.cpp** | C++ / CUDA (`.cu`/`.cuh`) / Python / Svelte | 29,279 | **99.8%** | `48` (`HTTP_REST` + `ENV_VAR`, 0 broken) | Only 2 `IGNORED_PURE_CALL`s in 29K symbols—both genuine missing `GGML_ASSERT` in `solve_tri.cu` |
+| **Desktop IPC Products** | **clash-verge-rev** / **pot-desktop** / **SwitchHosts** / **bruno** | Rust+TS (Tauri) / Electron+React | 16,660 | **97.4% – 99.6%** | `325` (`TAURI_IPC` / `ELECTRON_IPC`) | 321 connected cleanly; caught 4 genuine orphaned Electron IPC channels in `bruno` |
+| **Full-Stack Web Systems** | **usememos/memos** / **koel** / **uptime-kuma** / **fastapi-template** / **pocketbase** | Go / PHP / Python / Node + React / Vue / Svelte | 18,378 | **99.1% – 99.9%** | `193` (`RPC` / `REST` / `Socket.io`, 0 broken) | Method-aware REST, Laravel/FastAPI sub-routers & Socket.io linked with 0 false breaks |
+| **Specialty & Core Libraries (23)** | `bits-ui` (Svelte 5 Runes), `BepInEx` (Unity/Harmony), `ripgrep`, `axum`, `zod`, `fastapi`, `gin`, `okhttp`, `Alamofire`, `dio`, `sidekiq`, `fmt`, `jq`, etc. | Svelte 5 / C# / Rust / Go / Kotlin / Swift / Dart / Ruby / C | 66,664 | **99.7% – 100%** | Full export, trait & Harmony hook coverage | 22 `PASS` cleanly; caught 3 genuine dead local assignments in `Dapper` |
+| **Adversarial Torture & Contract Suite** | **`test/torture-suite.mjs`** | 11+ Lang Torture + 8 Fault Mutations + Hook/MCP Contracts | 69 Assertions | **100% Precision & Recall** | All channels + lifecycle hooks | **~ 1.2 s** |
 
 ---
 
@@ -141,7 +143,7 @@ node src/server.mjs --cli blueprint /path/to/your-repo ReferenceSymbol
 node src/server.mjs --cli verify /path/to/your-repo
 node src/server.mjs --cli verify /path/to/your-repo --full
 
-# Run the 10-language adversarial torture, mutation fuzzing & contract suite (50 assertions)
+# Run the 11+ language adversarial torture, mutation fuzzing & contract suite (69 assertions)
 npm test
 npm run verify:self
 ```

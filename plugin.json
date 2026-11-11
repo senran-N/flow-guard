@@ -1,7 +1,7 @@
 {
   "name": "flow-guard",
   "displayName": "FlowGuard 链路透视与通水引擎",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "对 AI 特攻的端到端水路（Source ➔ Branch ➔ Sink）透视导航、同类接线蓝图提取与增量通水验收插件，彻底解决半截接入、修改漏支流与死代码堆积。",
   "logo": "assets/logo.svg",
   "author": {

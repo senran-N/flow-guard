@@ -34,9 +34,60 @@ function preserveSwiftParenInterpolation(content, i, len, cleanChars) {
   return 0;
 }
 
-function tryPreserveInterpolation(content, i, len, cleanChars) {
+function scanBalancedBraceExpr(content, openBraceIdx, len, maxSpan, cleanChars) {
+  let depth = 1;
+  let k = openBraceIdx + 1;
+  let inQuote = null;
+  const limit = Math.min(len, openBraceIdx + maxSpan);
+  while (k < limit && content[k] !== "\n" && content[k] !== "\r") {
+    const c = content[k];
+    if (inQuote) {
+      if (c === "\\" && k + 1 < limit) {
+        k += 2;
+        continue;
+      }
+      if (c === inQuote) inQuote = null;
+    } else if (c === '"' || c === "'") {
+      inQuote = c;
+    } else if (c === "{") {
+      depth++;
+    } else if (c === "}") {
+      depth--;
+      if (depth === 0) {
+        let q = null;
+        for (let p = openBraceIdx + 1; p < k; p++) {
+          const pc = content[p];
+          if (q) {
+            cleanChars[p] = " ";
+            if (pc === "\\" && p + 1 < k) {
+              cleanChars[p + 1] = " ";
+              p++;
+              continue;
+            }
+            if (pc === q) q = null;
+          } else if (pc === '"' || pc === "'") {
+            q = pc;
+            cleanChars[p] = " ";
+          } else {
+            cleanChars[p] = /[A-Za-z0-9_$@().+\-*/%?:,\s]/.test(pc) ? pc : " ";
+          }
+        }
+        cleanChars[k] = " ";
+        return k - openBraceIdx;
+      }
+    }
+    k++;
+  }
+  return 0;
+}
+
+function tryPreserveInterpolation(content, i, len, cleanChars, isBraceInterpolated = false) {
   const ch = content[i];
   const next = i + 1 < len ? content[i + 1] : "";
+  if (ch === "{" && next === "{") {
+    cleanChars[i + 1] = " ";
+    return 1;
+  }
   if (ch === "{" && next !== "{") {
     const sub = content.slice(i + 1, Math.min(len, i + 64));
     const interpM = sub.match(
@@ -47,25 +98,14 @@ function tryPreserveInterpolation(content, i, len, cleanChars) {
       for (let k = 0; k < ident.length; k++) cleanChars[i + 1 + k] = ident[k];
       return ident.length;
     }
-  } else if ((ch === "#" || ch === "$") && next === "{") {
-    let depth = 1;
-    let k = i + 2;
-    const limit = Math.min(len, i + 160);
-    while (k < limit && content[k] !== "\n" && content[k] !== "\r") {
-      if (content[k] === "{") depth++;
-      else if (content[k] === "}") {
-        depth--;
-        if (depth === 0) {
-          cleanChars[i + 1] = " ";
-          for (let p = i + 2; p < k; p++) {
-            cleanChars[p] = /[A-Za-z0-9_$@().+\-*/%?:,\s]/.test(content[p]) ? content[p] : " ";
-          }
-          cleanChars[k] = " ";
-          return k - i;
-        }
-      }
-      k++;
+    if (isBraceInterpolated) {
+      const adv = scanBalancedBraceExpr(content, i, len, 240, cleanChars);
+      if (adv > 0) return adv;
     }
+  } else if ((ch === "#" || ch === "$") && next === "{") {
+    cleanChars[i + 1] = " ";
+    const adv = scanBalancedBraceExpr(content, i + 1, len, 200, cleanChars);
+    if (adv > 0) return adv + 1;
   } else if (ch === "$" && /[a-zA-Z_]/.test(next)) {
     const sub = content.slice(i + 1, Math.min(len, i + 64));
     const interpM = sub.match(/^([a-zA-Z_][a-zA-Z0-9_]*(?:->[a-zA-Z_][a-zA-Z0-9_]*)?)/);
@@ -85,8 +125,29 @@ export function scanTokensAndScopes(content, lang) {
   let regexInCharClass = false;
   let rustRawHashes = 0;
   let isCsharpVerbatim = false;
+  let isBraceInterpolated = false;
   let line = 1;
   let lastNonSpaceChar = ";";
+
+  const hasPyFStringPrefix = (pos) => {
+    if (lang !== "python" || pos <= 0) return false;
+    let p = pos - 1;
+    let sawF = false;
+    let count = 0;
+    while (p >= 0 && count < 2 && /[rRfFbBuU]/.test(content[p])) {
+      if (content[p] === "f" || content[p] === "F") sawF = true;
+      p--;
+      count++;
+    }
+    return sawF && (p < 0 || !/[A-Za-z0-9_]/.test(content[p]));
+  };
+  const hasCsharpInterpPrefix = (pos) =>
+    lang === "csharp" &&
+    pos > 0 &&
+    (content[pos - 1] === "$" ||
+      (pos > 1 &&
+        ((content[pos - 2] === "$" && content[pos - 1] === "@") ||
+          (content[pos - 2] === "@" && content[pos - 1] === "$"))));
 
   const cleanChars = new Array(len);
   const commentlessChars = new Array(len);
@@ -115,6 +176,7 @@ export function scanTokensAndScopes(content, lang) {
       ) {
         state = "CODE";
         regexInCharClass = false;
+        isBraceInterpolated = false;
       }
       continue;
     }
@@ -163,9 +225,10 @@ export function scanTokensAndScopes(content, lang) {
         cleanChars[i + 2] = " ";
         i += 2;
         state = "CODE";
+        isBraceInterpolated = false;
         lastNonSpaceChar = '"';
       } else {
-        i += tryPreserveInterpolation(content, i, len, cleanChars);
+        i += tryPreserveInterpolation(content, i, len, cleanChars, isBraceInterpolated);
       }
       continue;
     }
@@ -185,9 +248,10 @@ export function scanTokensAndScopes(content, lang) {
         cleanChars[i + 2] = " ";
         i += 2;
         state = "CODE";
+        isBraceInterpolated = false;
         lastNonSpaceChar = "'";
       } else {
-        i += tryPreserveInterpolation(content, i, len, cleanChars);
+        i += tryPreserveInterpolation(content, i, len, cleanChars, isBraceInterpolated);
       }
       continue;
     }
@@ -241,7 +305,7 @@ export function scanTokensAndScopes(content, lang) {
         i++;
         continue;
       }
-      const adv = tryPreserveInterpolation(content, i, len, cleanChars);
+      const adv = tryPreserveInterpolation(content, i, len, cleanChars, isBraceInterpolated);
       if (adv > 0) {
         i += adv;
         continue;
@@ -250,6 +314,7 @@ export function scanTokensAndScopes(content, lang) {
         cleanChars[i] = '"';
         state = "CODE";
         isCsharpVerbatim = false;
+        isBraceInterpolated = false;
         lastNonSpaceChar = '"';
       }
       continue;
@@ -267,9 +332,10 @@ export function scanTokensAndScopes(content, lang) {
       } else if (ch === "'") {
         cleanChars[i] = "'";
         state = "CODE";
+        isBraceInterpolated = false;
         lastNonSpaceChar = "'";
       } else {
-        i += tryPreserveInterpolation(content, i, len, cleanChars);
+        i += tryPreserveInterpolation(content, i, len, cleanChars, isBraceInterpolated);
       }
       continue;
     }
@@ -349,6 +415,7 @@ export function scanTokensAndScopes(content, lang) {
 
     // Python / Swift / Dart triple-quoted strings
     if ((lang === "python" || lang === "swift" || lang === "dart") && ch === '"' && next === '"' && next2 === '"') {
+      isBraceInterpolated = hasPyFStringPrefix(i);
       cleanChars[i] = '"';
       cleanChars[i + 1] = " ";
       cleanChars[i + 2] = " ";
@@ -357,6 +424,7 @@ export function scanTokensAndScopes(content, lang) {
       continue;
     }
     if ((lang === "python" || lang === "dart") && ch === "'" && next === "'" && next2 === "'") {
+      isBraceInterpolated = hasPyFStringPrefix(i);
       cleanChars[i] = "'";
       cleanChars[i + 1] = " ";
       cleanChars[i + 2] = " ";
@@ -388,6 +456,7 @@ export function scanTokensAndScopes(content, lang) {
 
     if (ch === '"') {
       isCsharpVerbatim = lang === "csharp" && i > 0 && (content[i - 1] === "@" || (i > 1 && content[i - 2] === "@" && content[i - 1] === "$"));
+      isBraceInterpolated = hasCsharpInterpPrefix(i) || hasPyFStringPrefix(i);
       cleanChars[i] = '"';
       state = "DOUBLE_STR";
       continue;
@@ -398,6 +467,7 @@ export function scanTokensAndScopes(content, lang) {
         lastNonSpaceChar = ch;
         continue;
       }
+      isBraceInterpolated = hasPyFStringPrefix(i);
       cleanChars[i] = "'";
       state = "SINGLE_STR";
       continue;
@@ -651,6 +721,10 @@ export function resolveSymbolBounds(
     (lang === "ts" || lang === "vue") &&
     (decl.kind === "function" || decl.kind === "method") &&
     /^\s*:/.test(cleanCode.slice(searchFromOffset, Math.min(cleanCode.length, searchFromOffset + 40)));
+  const startsCppCtorInit =
+    lang === "cpp" &&
+    (decl.kind === "function" || decl.kind === "method") &&
+    /^\s*:/.test(cleanCode.slice(searchFromOffset, Math.min(cleanCode.length, searchFromOffset + 40)));
   let cursorOffset = searchFromOffset;
   let inCppCtorInit = false;
 
@@ -659,6 +733,17 @@ export function resolveSymbolBounds(
       const betweenCode = cleanCode.slice(cursorOffset, bs.openOffset);
       if (betweenCode.includes(";") || (!hasTsReturnTypeColon && betweenCode.includes("}"))) {
         return { paramSpan, endLine: searchFromLine, hasBraceBody: false, isExpressionBody: false };
+      }
+      // Skip `{...}` nested inside parenthesized expressions in C++ ctor initializers (`: pimpl(new impl{}) {`) or return types
+      if (lang === "cpp" || hasTsReturnTypeColon) {
+        const enclosingPs = parenSpans.find(
+          (ps) => ps.openOffset >= searchFromOffset && ps.openOffset < bs.openOffset && ps.closeOffset > bs.closeOffset
+        );
+        if (enclosingPs) {
+          if (startsCppCtorInit) inCppCtorInit = true;
+          cursorOffset = enclosingPs.closeOffset + 1;
+          continue;
+        }
       }
       // C++ constructor member brace-initializers (`: types_{...}, named_args_{}, parse_funcs_{...} {`)
       if (

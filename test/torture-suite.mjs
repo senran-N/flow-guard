@@ -830,7 +830,7 @@ export function runApp(name: string) {
         process.stdout.write = origWrite;
       }
       const initPayload = JSON.parse(rpcCaptured.join("").trim());
-      assert.equal(initPayload.result?.serverInfo?.version, "0.1.0");
+      assert.equal(initPayload.result?.serverInfo?.version, "0.1.1");
       assert.equal(resolveRoot(), path.resolve(gitDir));
       assertionsCount += 2;
 
@@ -896,6 +896,210 @@ export function runApp(name: string) {
     fs.rmSync(lastWorkspaceCachePath, { force: true });
   }
 }
+
+// ============================================================================
+// Specialty Frontiers Suite: Svelte 5 Runes, Unity/Harmony C#, C++/CUDA & Python Registry
+// ============================================================================
+withTempWorkspace(
+  {
+    "src/floating.svelte.ts": `
+function trackPositionDeps(a: number, b: number) {
+  return [a, b] as const;
+}
+
+export class RootState {
+  sharedOpen = $state(false);
+  abandonedCancelNode = $state<HTMLElement | null>(null);
+  canScrollDown = $state(false);
+  #dimensions = $state({ width: 10, height: 20 });
+
+  constructor(w: number, h: number) {
+    this.#dimensions = { width: w, height: h };
+    this.canScrollDown = h > 10;
+    $effect(() => {
+      trackPositionDeps(w, h);
+      console.log(this.sharedOpen);
+    });
+  }
+
+  readonly props = $derived.by(() => ({
+    style: \`--h: \${this.#dimensions.height}px\`
+  }));
+}
+
+export class TriggerState {
+  readonly root: RootState;
+  constructor(root: RootState, el: HTMLElement | null) {
+    this.root = root;
+    this.root.sharedOpen = true;
+    this.root.abandonedCancelNode = el;
+  }
+}
+`,
+    "src/ScrollBtn.svelte": `
+<script lang="ts">
+  import { RootState } from "./floating.svelte.js";
+  const scrollBtn = new RootState(10, 30);
+  const base = "http://127.0.0.1:8080";
+  async function handlePress() {
+    const res = await fetch(\`\${base}/props\`);
+    console.log(res);
+  }
+</script>
+{#if scrollBtn.canScrollDown}
+  <button onclick={handlePress}>Down</button>
+{/if}
+`,
+    ".storybook/PreviewDecorator.svelte": `
+<script lang="ts">
+  function storyOnlyHelper() {
+    return 42;
+  }
+</script>
+<div>Story</div>
+`,
+    "src/Chainloader.cs": `
+using System;
+using System.Reflection;
+using HarmonyLib;
+
+internal static unsafe class DobbyLib {
+  [HarmonyFinalizer]
+  static void Finalizer(Exception __exception) {
+    Console.WriteLine("finalized");
+  }
+}
+
+public class Chainloader {
+  public static string ConvertToWWWFormat(string path) => $"file://{path.Replace('\\\\', '/')}";
+
+  public static void InitLoader(string pluginInfo, string[] rawList) {
+    AppDomain.CurrentDomain.AssemblyResolve += LocalResolve;
+    var converter = new ConverterHolder { ConvertToString = RectToString };
+    var incompatiblePlugins = string.Concat(rawList);
+    var msg = $@"Could not load [{pluginInfo}] incompatible with: {string.Join(", ", incompatiblePlugins)}";
+    Console.WriteLine(msg + converter);
+  }
+
+  private static Assembly LocalResolve(object sender, ResolveEventArgs args) {
+    Console.WriteLine(args.Name);
+    return null;
+  }
+
+  private static string RectToString(object o, Type type) {
+    return o.ToString();
+  }
+}
+`,
+    "src/cuda_solver.cu": `
+bool ggml_is_contiguous(const float * tensor) {
+  return tensor != nullptr;
+}
+
+static long atomic_fetch_add_explicit(int * ptr, int inc) {
+  return InterlockedExchangeAdd(ptr, inc);
+}
+
+class Preset {
+public:
+  bool get_option(const std::string & env, std::string & value) const {
+    if (env.empty()) return false;
+    value = env;
+    return true;
+  }
+};
+
+class CommonInit {
+public:
+  CommonInit(Preset & preset, bool model_only) :
+      pimpl(new Impl{}) {
+    if (model_only) {
+      return;
+    }
+    std::string hf_file;
+    preset.get_option("HF", hf_file);
+    int counter = 0;
+    atomic_fetch_add_explicit(&counter, 1);
+    printf("%s %d\\n", hf_file.c_str(), counter);
+  }
+};
+
+export void solve_tri_entry(const float * src0) {
+  ggml_is_contiguous(src0);
+  printf("%p\\n", src0);
+}
+
+int main() {
+  Preset p;
+  CommonInit init(p, false);
+  ctx_http.get ("/props", handle_props);
+  float x = 1.0f;
+  solve_tri_entry(&x);
+  return 0;
+}
+`,
+    "src/converter_plugin.py": `
+@ModelBase.register_hparams_loader("chatterbox")
+def _load_chatterbox_hparams(model_dir):
+    print(model_dir)
+    return {"ok": True}
+`
+  },
+  (specDir) => {
+    const specOverview = generateFlowOverview(specDir, false);
+    const specVerify = verifyWorkspaceFlow(specDir, { fullScan: true });
+
+    // 1. C++ ctx_http.get("/props") <-> Svelte fetch(`${base}/props`) HTTP bridge connected
+    assert.ok(
+      specOverview.crossLanguageBridges.some(
+        (b) => b.kind === "HTTP_REST_API" && b.contract === "GET /props" && b.status === "CONNECTED"
+      ),
+      "Failed to connect C++ ctx_http.get('/props') with Svelte template fetch(`${base}/props`)"
+    );
+
+    // 2. .storybook classified as sandbox, Python @ModelBase.register_* & Svelte onclick={handlePress} wired -> 0 unwired pipes
+    assert.equal(
+      specVerify.unwiredOrDeadPipes.length,
+      0,
+      `Expected 0 unwired pipes in specialty suite, got: ${JSON.stringify(specVerify.unwiredOrDeadPipes)}`
+    );
+
+    // 3. Zero false DEAD_INPUT_PARAM or DEAD_LOCAL_ASSIGNMENT across C# interpolation, C# delegates, and C++ pimpl(new Impl{}) ctor
+    const deadInputOrLocal = specVerify.dataFlowBreaks.filter(
+      (b) => b.kind === "DEAD_INPUT_PARAM" || b.kind === "DEAD_LOCAL_ASSIGNMENT"
+    );
+    assert.equal(
+      deadInputOrLocal.length,
+      0,
+      `Expected 0 DEAD_INPUT_PARAM / DEAD_LOCAL_ASSIGNMENT, got: ${JSON.stringify(deadInputOrLocal)}`
+    );
+
+    // 4. C# delegate/event signatures (`LocalResolve.sender`, `RectToString.type`) preserved in reservedContracts
+    assert.ok(
+      specVerify.reservedContracts.some((r) => r.symbol.includes("LocalResolve")) &&
+        specVerify.reservedContracts.some((r) => r.symbol.includes("RectToString")),
+      "Expected C# event/delegate methods to be protected in reservedContracts"
+    );
+
+    // 5. Svelte `$effect` `trackPositionDeps`, C++ `get_option` ref out-param, and `atomic_fetch_add_explicit` NOT flagged as IGNORED_PURE_CALL, while genuine `ggml_is_contiguous` bug IS caught!
+    const ignoredPure = specVerify.dataFlowBreaks.filter((b) => b.kind === "IGNORED_PURE_CALL");
+    assert.equal(
+      ignoredPure.length,
+      1,
+      `Expected exactly 1 genuine IGNORED_PURE_CALL (ggml_is_contiguous), got: ${JSON.stringify(ignoredPure)}`
+    );
+    assert.ok(ignoredPure[0].callee.includes("ggml_is_contiguous"));
+
+    // 6. Svelte `#dimensions`, `sharedOpen`, and `.svelte` template `canScrollDown` NOT flagged as write-only, while genuine `abandonedCancelNode` IS caught!
+    const deadStates = specVerify.writeOnlyDeadEndStates.map((s) => s.field);
+    assert.ok(!deadStates.includes("#dimensions"), "#dimensions read in $derived.by initializer must not be flagged");
+    assert.ok(!deadStates.includes("sharedOpen"), "sharedOpen written via this.root and read in RootState must not be flagged");
+    assert.ok(!deadStates.includes("canScrollDown"), "canScrollDown read in Svelte {#if} template must not be flagged");
+    assert.ok(deadStates.includes("abandonedCancelNode"), "Genuine write-only abandonedCancelNode must still be caught");
+
+    assertionsCount += 10;
+  }
+);
 
 const elapsedMs = Math.round(performance.now() - t0);
 console.log(

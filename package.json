@@ -1,6 +1,6 @@
 {
   "name": "flow-guard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "End-to-End Causality Flow (Source ➔ Branch ➔ Sink) Architecture Vision, Polyglot Bridge Linker & Incremental Flow Verifier MCP Plugin for AI Agents",
   "type": "module",
   "main": "src/server.mjs",

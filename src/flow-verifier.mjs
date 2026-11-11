@@ -108,7 +108,7 @@ export function verifyWorkspaceFlow(workspaceRoot, options = {}) {
     if (
       nonFrameworkUnusedParams.length > 0 &&
       sym.name !== "main" &&
-      !/^(Prefix|Postfix|Transpiler)$/.test(sym.name)
+      !/^(Prefix|Postfix|Transpiler|Finalizer)$/.test(sym.name)
     ) {
       dataFlowBreaks.push({
         kind: "DEAD_INPUT_PARAM",

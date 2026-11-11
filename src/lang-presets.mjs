@@ -304,6 +304,42 @@ export function extractPromotedParamNames(lang, sigText) {
   return promoted;
 }
 
+export function extractRefOutParamNames(lang, sigText) {
+  if (lang !== "cpp" && lang !== "csharp" && lang !== "php") return [];
+  let inner = sigText.trim();
+  if (inner.startsWith("(") && inner.endsWith(")")) {
+    inner = inner.slice(1, -1).trim();
+  } else {
+    const openIdx = inner.indexOf("(");
+    const closeIdx = inner.lastIndexOf(")");
+    if (openIdx < 0 || closeIdx <= openIdx) return [];
+    inner = inner.slice(openIdx + 1, closeIdx).trim();
+  }
+  if (!inner) return [];
+
+  const outNames = [];
+  for (const raw of splitTopLevelByChar(inner, ",")) {
+    const beforeDefault = splitTopLevelByChar(stripLeadingAttributesAndAnnotations(raw.trim(), lang), "=")[0].trim();
+    if (!beforeDefault) continue;
+    let isRefOut = false;
+    if (lang === "cpp") {
+      const ampIdx = beforeDefault.search(/(?<!&)&(?!&)/);
+      if (ampIdx >= 0 && !/\bconst\b/.test(beforeDefault.slice(0, ampIdx))) {
+        isRefOut = true;
+      }
+    } else if (lang === "csharp") {
+      isRefOut = /\b(?:ref|out)\s+/.test(beforeDefault);
+    } else if (lang === "php") {
+      isRefOut = /&\$[A-Za-z_]/.test(beforeDefault);
+    }
+    if (isRefOut) {
+      const clean = cleanParamName(raw, lang, false);
+      if (clean && !clean.startsWith("_")) outNames.push(clean);
+    }
+  }
+  return outNames;
+}
+
 export function matchSymbolDeclaration(lang, line, inClassScope = false, inVueOptionsScope = false) {
   if (lang === "dart") {
     const extM = line.match(/^\s*extension\s+([A-Za-z_][A-Za-z0-9_]*)\s+on\b/);
@@ -360,7 +396,7 @@ export function matchSymbolDeclaration(lang, line, inClassScope = false, inVueOp
 
   if (lang === "csharp" || lang === "java" || lang === "kotlin") {
     const classM = line.match(
-      /^\s*(?:(?:public|internal|private|protected|static|sealed|abstract|partial|final|open|data|readonly|ref)\s+)*(class|struct|interface|record|enum)\s+([A-Za-z_][A-Za-z0-9_]*)/
+      /^\s*(?:(?:public|internal|private|protected|static|sealed|abstract|partial|final|open|data|readonly|ref|unsafe)\s+)*(class|struct|interface|record|enum)\s+([A-Za-z_][A-Za-z0-9_]*)/
     );
     if (classM) {
       return {
@@ -376,8 +412,8 @@ export function matchSymbolDeclaration(lang, line, inClassScope = false, inVueOp
       if (ktM) return { name: ktM[1], kind: "method", isPublicApi: !/\b(private|internal)\b/.test(line) };
     }
 
-    // Constructor (`public Foo(` or `private Foo(`)
-    const ctorM = line.match(/^\s*(?:public|internal|private|protected)\s+([A-Z][A-Za-z0-9_]*)\s*\(/);
+    // Constructor (`public Foo(`, `private Foo(`, `static Foo(`, `public unsafe Foo(`)
+    const ctorM = line.match(/^\s*(?:(?:public|internal|private|protected|static|unsafe)\s+)+([A-Z][A-Za-z0-9_]*)\s*\(/);
     if (ctorM && !CONTROL_KEYWORDS.test(ctorM[1])) {
       return {
         name: ctorM[1],
@@ -698,10 +734,15 @@ export function isRuntimeEntrySource(lang, fileRel, symName, attrsAndSig, bodyTe
   const normFile = fileRel.replace(/\\/g, "/");
 
   if (lang === "csharp") {
-    if (symName === "Main" || /\[Harmony(Patch|Prefix|Postfix|Transpiler)/.test(attrsAndSig)) {
+    if (symName === "Main" || /\[Harmony(Patch|Prefix|Postfix|Transpiler|Finalizer|ReversePatch)/.test(attrsAndSig)) {
       return true;
     }
-    if (fileHasUnityOrHarmony && /^(Awake|Start|Update|FixedUpdate|LateUpdate|OnGUI|OnDestroy|Prefix|Postfix|Transpiler)$/.test(symName)) {
+    if (
+      fileHasUnityOrHarmony &&
+      /^(Awake|Start|Update|FixedUpdate|LateUpdate|OnGUI|OnDestroy|OnEnable|OnDisable|Prefix|Postfix|Transpiler|Finalizer)$/.test(
+        symName
+      )
+    ) {
       return true;
     }
     if (/\[(HttpGet|HttpPost|HttpPut|HttpDelete|Route|ApiController)\]/.test(attrsAndSig)) {
@@ -760,10 +801,10 @@ export function isRuntimeEntrySource(lang, fileRel, symName, attrsAndSig, bodyTe
       symName === "wsgi_app" ||
       symName === "asgi_app" ||
       symName === "__call__" ||
-      /@(?:[A-Za-z_][A-Za-z0-9_.]*\.)?(?:field_validator|model_validator|root_validator|validator|computed_field)\b/.test(
+      /@(?:[A-Za-z_][A-Za-z0-9_.]*\.)?(?:field_validator|model_validator|root_validator|validator|computed_field|register\w*)\b/.test(
         attrsAndSig
       ) ||
-      /@[A-Za-z_][A-Za-z0-9_.]*\.(get|post|put|delete|patch|route|websocket|command|group|action|on_\w+|before_request|after_request|teardown_request)/.test(
+      /@[A-Za-z_][A-Za-z0-9_.]*\.(get|post|put|delete|patch|route|websocket|command|group|action|on_\w+|before_request|after_request|teardown_request|register\w*)/.test(
         attrsAndSig
       )
     );

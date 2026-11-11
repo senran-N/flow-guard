@@ -30,6 +30,7 @@ function cloneParsedFile(raw) {
       localVars: [...(s.localVars || [])],
       calls: [...(s.calls || [])],
       writes: [...(s.writes || [])],
+      delegatedWrites: [...(s.delegatedWrites || [])],
       reads: [...(s.reads || [])]
     }))
   };
@@ -437,7 +438,7 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     if (!containerName) return null;
     let curr = containerName;
     const visited = new Set([curr]);
-    for (let hop = 0; hop < 4; hop++) {
+    for (let hop = 0; hop < 8; hop++) {
       const cSyms = containersByName.get(curr) || [];
       const baseWithContainer = cSyms
         .flatMap((c) => c.baseTypes || [])
@@ -478,6 +479,7 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
         field,
         qualifiedField: key,
         isPrivate,
+        hasDelegatedWrite: false,
         writers: [],
         readers: []
       });
@@ -485,12 +487,18 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     return stateOwnership.get(key);
   };
 
+  const containerMethodKeys = new Set();
   for (const sym of symbolById.values()) {
     if (sym.zone !== "prod") continue;
     const rawContainer = sym.kind === "class" || sym.kind === "struct" ? sym.name : sym.parentContainerName;
     const scope = rootContainerOf(rawContainer);
+    if (scope && sym.kind === "method") {
+      containerMethodKeys.add(`${scope}::${sym.name}`);
+    }
+    const delSet = new Set(sym.delegatedWrites || []);
     for (const w of sym.writes) {
       const entry = ensureStateEntry(scope, w);
+      if (delSet.has(w)) entry.hasDelegatedWrite = true;
       if (!entry.writers.includes(sym.id)) entry.writers.push(sym.id);
       recordSymStateKey(sym.id, entry.key);
     }
@@ -501,10 +509,11 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     }
   }
 
-  // Reconcile non-private container fields read by same-file standalone functions or cross-file `.prop` consumers
+  // Reconcile non-private container fields read by same-file standalone/sibling consumers or cross-file `.prop` consumers
   const prodFilesForReads = files.filter((f) => f.zone === "prod");
   for (const st of stateOwnership.values()) {
     if (!st.scope || st.isPrivate || st.writers.length === 0) continue;
+    const isFieldCallbackProp = !containerMethodKeys.has(`${st.scope}::${st.field}`);
     for (const wId of st.writers) {
       const wSym = symbolById.get(wId);
       if (!wSym) continue;
@@ -513,9 +522,27 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
       const wDir = path.dirname(wSym.file);
       const wImportedStems = new Set(wFileObj?.importedStems || []);
 
-      // 3a. Same-file non-container functions reading `instance.field`
+      // 3a. Same-file non-container functions & sibling composite state classes (`this.root.field` / callback props)
       for (const s of wFileObj?.symbols || []) {
-        if (s.zone === "prod" && !s.parentContainerName && s.reads.includes(st.field)) {
+        if (s.zone !== "prod") continue;
+        const sRawCont = s.kind === "class" || s.kind === "struct" ? s.name : s.parentContainerName;
+        const sScope = rootContainerOf(sRawCont);
+        const sOwnEntry = sScope ? stateOwnership.get(`${sScope}.${st.field}`) : null;
+        const sHasNoOwnWriter = !sOwnEntry || sOwnEntry.writers.length === 0;
+        const readsField = s.reads.includes(st.field);
+        const invokesCallbackProp =
+          isFieldCallbackProp &&
+          s.name !== st.field &&
+          (s.calls.includes(st.field) ||
+            (s.qualifiedCalls || []).some(
+              (qc) => qc.member === st.field && qc.receiver !== "this" && qc.receiver !== "self"
+            ));
+        if (
+          (!s.parentContainerName && readsField) ||
+          (st.hasDelegatedWrite && (readsField || invokesCallbackProp)) ||
+          (sScope && sScope !== st.scope && sHasNoOwnWriter && (readsField || invokesCallbackProp)) ||
+          (sScope === st.scope && invokesCallbackProp)
+        ) {
           if (!st.readers.includes(s.id)) st.readers.push(s.id);
           recordSymStateKey(s.id, st.key);
         }
@@ -880,6 +907,12 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
           reserved.push({
             param: pName,
             kind: sym.isFeatureGated ? "FEATURE_GATED_SIGNATURE" : "OVERRIDABLE_EXTENSION_HOOK",
+            contract: sym.parentContainerName || sym.name
+          });
+        } else if (sym.isCallbackRef) {
+          reserved.push({
+            param: pName,
+            kind: "DELEGATE_OR_CALLBACK_SIGNATURE",
             contract: sym.parentContainerName || sym.name
           });
         } else {

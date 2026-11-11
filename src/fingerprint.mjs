@@ -43,10 +43,10 @@ export function classifyZone(relPath) {
     return "test";
   }
   if (
-    /(^|\/)(scratch|lab|experiments?|evals?|evaluations?|examples?(?:[-_][a-z0-9_-]+)?|samples?(?:[-_][a-z0-9_-]+)?|playground|tmp|sandbox|docs(?:[-_][a-z0-9_-]+)?|documentation|website|benchmarks?|benches|bench|metrics|scripts\/profile|public\/libs?|\.configs?)(\/|$)/.test(
+    /(^|\/)(scratch|lab|experiments?|evals?|evaluations?|examples?(?:[-_][a-z0-9_-]+)?|samples?(?:[-_][a-z0-9_-]+)?|playground|tmp|sandbox|docs(?:[-_][a-z0-9_-]+)?|documentation|website|benchmarks?|benches|bench|metrics|scripts\/profile|public\/libs?|\.configs?|\.storybook|stories)(\/|$)/.test(
       norm
     ) ||
-    /(^|\/)eval[-_][^/]+\.[a-z0-9]+$|\.eval\.[a-z0-9]+$/.test(norm)
+    /(^|\/)eval[-_][^/]+\.[a-z0-9]+$|\.(?:eval|stories)\.[a-z0-9]+$/.test(norm)
   ) {
     return "sandbox";
   }
