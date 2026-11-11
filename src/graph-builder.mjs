@@ -27,6 +27,7 @@ function cloneParsedFile(raw) {
       roles: [...(s.roles || [])],
       unusedParams: [...(s.unusedParams || [])],
       reservedParams: [...(s.reservedParams || [])],
+      localVars: [...(s.localVars || [])],
       calls: [...(s.calls || [])],
       writes: [...(s.writes || [])],
       reads: [...(s.reads || [])]
@@ -84,7 +85,13 @@ export function buildWorkspaceFlowGraph(workspaceRoot, forceRebuild = false) {
       if (ent.isDirectory()) {
         walk(full);
       } else if (ent.isFile()) {
-        if (ent.name.endsWith(".d.ts") || ent.name.endsWith(".min.js") || ent.name.endsWith(".bundle.js")) continue;
+        if (
+          ent.name.endsWith(".d.ts") ||
+          ent.name.endsWith(".min.js") ||
+          ent.name.endsWith(".bundle.js") ||
+          ent.name.endsWith(".wasm.js")
+        )
+          continue;
         const ext = path.extname(ent.name).toLowerCase();
         if (EXT_LANG[ext]) {
           const fileStat = fs.statSync(full);
@@ -140,7 +147,7 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
         if (!containersByName.has(s.name)) containersByName.set(s.name, []);
         containersByName.get(s.name).push(s);
       }
-      if (s.isTauriCommand) tauriCommands.set(s.name, s);
+      if (s.isTauriCommand && s.zone === "prod") tauriCommands.set(s.name, s);
     }
   }
 
@@ -209,7 +216,8 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
   // Propagate 1-hop C++ header includes & multi-hop Barrel Re-Exports (`export * from`, `export { x } from`, `pub mod/use`, `__init__.py`)
   const filesByStem = new Map();
   const filesByNoExt = new Map();
-  const stripCodeExt = (p) => p.replace(/\.(?:[cm]?[jt]sx?|vue|svelte|py|rs|php|rb|h|hpp|cuh|cpp|cc|cxx|c|go|cs|java|kt|swift)$/i, "");
+  const stripCodeExt = (p) =>
+    p.replace(/\.(?:[cm]?[jt]sx?|vue|svelte|py|rs|php|rb|h|hpp|cuh|cpp|cc|cxx|c|go|cs|java|kt|swift|dart)$/i, "");
   for (const f of files) {
     const stem = path.basename(f.file, path.extname(f.file));
     if (!filesByStem.has(stem)) filesByStem.set(stem, []);
@@ -249,6 +257,8 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
       const stripped = stripCodeExt(rawSpec.slice(2));
       addCandidates(stripped);
       addCandidates(`src/${stripped}`);
+    } else if (lang === "dart" && !rawSpec.startsWith("dart:")) {
+      addCandidates(stripCodeExt(rawSpec));
     }
     return Array.from(results);
   }
@@ -353,8 +363,12 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
         if (t.id === sym.id) continue;
         const targetStem = path.basename(t.file, path.extname(t.file));
 
-        // Never link `prod` to `test`/`sandbox` unless `prod` explicitly imports (or transitively barrel-imports) that non-prod path
+        // Never link `prod` to `test`/`sandbox` unless `prod` explicitly imports (or transitively barrel-imports) an external non-prod file
         if (sym.zone === "prod" && t.zone !== "prod") {
+          const tFileObj = fileByPath.get(t.file);
+          if (!tFileObj || tFileObj.zone === "prod") {
+            continue;
+          }
           const tDir = path.dirname(t.file).replace(/\\/g, "/");
           const matchesTargetImport =
             resolvedImportFiles.has(t.file) ||
@@ -552,7 +566,9 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
         const sameLang =
           wSym.lang === rSym.lang ||
           (wSym.lang === "vue" && rSym.lang === "ts") ||
-          (wSym.lang === "ts" && rSym.lang === "vue");
+          (wSym.lang === "ts" && rSym.lang === "vue") ||
+          (wSym.lang === "java" && rSym.lang === "kotlin") ||
+          (wSym.lang === "kotlin" && rSym.lang === "java");
         if (!sameLang) continue;
         if (
           st.scope ||
@@ -754,7 +770,20 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     }
   }
 
-  // 6. Reconcile Polymorphic Contracts, Subclassed Base Hooks, and `#[cfg]` Platform Twins
+  // 6. Reconcile Polymorphic Contracts, Subclassed Base Hooks, `#[cfg]` Platform Twins, and Callback Dispatch Signatures
+  const origUnusedBySym = new Map();
+  const prodFnsByFile = new Map();
+  const prodFnsByDir = new Map();
+  for (const s of symbolById.values()) {
+    if (s.zone !== "prod" || (s.kind !== "function" && s.kind !== "method")) continue;
+    origUnusedBySym.set(s.id, new Set(s.unusedParams));
+    if (!prodFnsByFile.has(s.file)) prodFnsByFile.set(s.file, []);
+    prodFnsByFile.get(s.file).push(s);
+    const sDir = path.dirname(s.file);
+    if (!prodFnsByDir.has(sDir)) prodFnsByDir.set(sDir, []);
+    prodFnsByDir.get(sDir).push(s);
+  }
+
   for (const sym of symbolById.values()) {
     if (sym.zone !== "prod" || (sym.kind !== "function" && sym.kind !== "method")) continue;
     const isSubclassedBaseMethod =
@@ -776,15 +805,55 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     if (sym.unusedParams.length > 0) {
       const stillUnused = [];
       const reserved = [];
+      const handlerPrefixMatch = sym.name.match(/^(bind|register|handle|on|cmd_|f_)[A-Za-z0-9_]/);
+      const handlerPrefix = handlerPrefixMatch ? handlerPrefixMatch[1] : null;
+      const sameFileFns = prodFnsByFile.get(sym.file) || [];
+      const sameDirFns = handlerPrefix ? prodFnsByDir.get(path.dirname(sym.file)) || [] : [];
+
       for (const pName of sym.unusedParams) {
         const pIdx = sym.params.indexOf(pName);
         const consumingPeer =
           pIdx >= 0
             ? peers.find((peer) => {
                 const peerParam = peer.params[pIdx];
-                return peerParam && !peer.unusedParams.includes(peerParam);
+                return peerParam && !origUnusedBySym.get(peer.id)?.has(peerParam);
               })
             : null;
+
+        let dispatchConsumingPeer = null;
+        if (!consumingPeer && pIdx >= 0) {
+          if (sym.isReferencedInFile) {
+            const cbPeers = sameFileFns.filter(
+              (p) => p.id !== sym.id && p.isReferencedInFile && p.params[pIdx] === pName
+            );
+            if (cbPeers.length >= 2) {
+              dispatchConsumingPeer = cbPeers.find((p) => !origUnusedBySym.get(p.id)?.has(pName)) || null;
+            }
+          }
+          if (!dispatchConsumingPeer && handlerPrefix) {
+            const prefixPeers = sameDirFns.filter(
+              (p) =>
+                p.id !== sym.id &&
+                p.name.startsWith(handlerPrefix) &&
+                p.params.length === sym.params.length &&
+                p.params[pIdx] === pName
+            );
+            if (prefixPeers.length >= 2) {
+              dispatchConsumingPeer = prefixPeers.find((p) => !origUnusedBySym.get(p.id)?.has(pName)) || null;
+            }
+          }
+        }
+
+        let interfaceContractPeers = [];
+        if (!consumingPeer && !dispatchConsumingPeer && pIdx >= 0 && sym.parentContainerName && !isConstructorName) {
+          interfaceContractPeers = peers.filter(
+            (p) =>
+              p.parentContainerName &&
+              p.parentContainerName !== sym.parentContainerName &&
+              p.params[pIdx] === pName
+          );
+        }
+
         if (consumingPeer) {
           const peerLabel = consumingPeer.parentContainerName
             ? `${consumingPeer.parentContainerName}.${consumingPeer.name}`
@@ -793,6 +862,19 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
             param: pName,
             kind: "POLYMORPHIC_OR_PLATFORM_TWIN",
             peer: `${consumingPeer.file}:${consumingPeer.startLine} (${peerLabel})`
+          });
+        } else if (dispatchConsumingPeer) {
+          reserved.push({
+            param: pName,
+            kind: "CALLBACK_DISPATCH_SIGNATURE",
+            peer: `${dispatchConsumingPeer.file}:${dispatchConsumingPeer.startLine} (${dispatchConsumingPeer.name})`
+          });
+        } else if (interfaceContractPeers.length >= 2) {
+          const samplePeer = interfaceContractPeers[0];
+          reserved.push({
+            param: pName,
+            kind: "INTERFACE_CONTRACT_SIGNATURE",
+            peer: `${samplePeer.file}:${samplePeer.startLine} (${samplePeer.parentContainerName}.${samplePeer.name})`
           });
         } else if (sym.isExtensionHook || isSubclassedBaseMethod || sym.isFeatureGated) {
           reserved.push({

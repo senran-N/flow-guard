@@ -15,6 +15,40 @@ import {
 } from "./lang-presets.mjs";
 import { scanTokensAndScopes, resolveSymbolBounds } from "./lexer.mjs";
 
+function makeIdentRegex(ident, flags = "", lang = "") {
+  const esc = ident.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const allowLeadingDollarSigil =
+    (lang === "php" || lang === "kotlin" || lang === "dart") && !ident.startsWith("$") && !ident.startsWith("#");
+  const left = ident.startsWith("#")
+    ? "(?<![A-Za-z0-9_#])"
+    : allowLeadingDollarSigil
+      ? "(?<![A-Za-z0-9_])"
+      : "(?<![A-Za-z0-9_$])";
+  const right = "(?![A-Za-z0-9_$])";
+  return new RegExp(`${left}${esc}${right}`, flags);
+}
+
+function stripNestedClosureBodies(code) {
+  if (!code || (!code.includes("=>") && !code.includes("function"))) return code;
+  const chars = code.split("");
+  const closureHeadRe = /(?:=>|\bfunction(?:\s+[A-Za-z_$][A-Za-z0-9_$]*)?\s*\([^;{}]*\))\s*\{/g;
+  let m;
+  while ((m = closureHeadRe.exec(code)) !== null) {
+    const openIdx = m.index + m[0].lastIndexOf("{");
+    let depth = 1;
+    let k = openIdx + 1;
+    while (k < chars.length && depth > 0) {
+      if (code[k] === "{") depth++;
+      else if (code[k] === "}") depth--;
+      if (depth > 0 && chars[k] !== "\n" && chars[k] !== "\r") {
+        chars[k] = " ";
+      }
+      k++;
+    }
+  }
+  return chars.join("");
+}
+
 function extractBaseTypes(lang, line) {
   const bases = new Set();
   if (lang === "python") {
@@ -32,12 +66,12 @@ function extractBaseTypes(lang, line) {
       const base = m[1].split("::").pop();
       if (base && !/^(Object|BasicObject|StandardError|RuntimeError)$/.test(base)) bases.add(base);
     }
-  } else if (lang === "ts" || lang === "vue" || lang === "java" || lang === "php") {
-    const m = line.match(/\b(?:extends|implements)\s+([^{]+)/);
+  } else if (lang === "ts" || lang === "vue" || lang === "java" || lang === "dart" || lang === "php") {
+    const m = line.match(/\b(?:extends|implements|with|on)\s+([^{]+)/);
     if (m) {
       const stripped = m[1].replace(/<[^>]*>/g, " ");
       for (const id of stripped.match(/\b[A-Z][A-Za-z0-9_]*\b/g) || []) {
-        if (!/^(extends|implements|Object|Error|Exception|Array|Map|Set)$/.test(id)) bases.add(id);
+        if (!/^(extends|implements|with|on|Object|Error|Exception|Array|Map|Set)$/.test(id)) bases.add(id);
       }
     }
   } else if (lang === "csharp" || lang === "cpp" || lang === "kotlin" || lang === "swift") {
@@ -165,51 +199,56 @@ function extractDataFlowAndTouches({
     /\bclick\.(?:Context|Option|Parameter)\b/.test(sigHeader) ||
     /^__(?:exit|init_subclass|missing|get|set|delete|repr|str|format|getattr)__$/.test(decl.name);
 
-  // 1. Check which input parameters are actually consumed in fullLexicalInnerBody (or C#/C++ `: base(...)` / `: member(...)` ctor initializer)
+  // 1. Check which input parameters are actually consumed in fullLexicalInnerBody (or C#/C++/Dart `: base(...)` / `: member(...)` ctor initializer)
   const ctorInitSlice =
-    (decl.isConstructor || lang === "cpp" || lang === "csharp") && bounds?.paramSpan
+    (decl.isConstructor || lang === "cpp" || lang === "csharp" || lang === "dart") && bounds?.paramSpan
       ? cleanCode.slice(bounds.paramSpan.closeOffset + 1, bounds.braceSpan ? bounds.braceSpan.openOffset : bounds.paramSpan.closeOffset + 200)
       : "";
   const paramSearchText = ctorInitSlice ? `${ctorInitSlice}\n${fullLexicalInnerBody}` : fullLexicalInnerBody;
   const promotedParamSet = new Set(promotedParams);
+  const isStandardJsonReplacer =
+    params.length === 2 && params[0] === "key" && params[1] === "value" && /^replacer/i.test(decl.name);
   const unusedParams = [];
   if (
     isFnOrMethod &&
     hasRealBody &&
     !bounds?.isTruncatedOrUncertain &&
     !isOverrideOrHook &&
+    !isStandardJsonReplacer &&
     paramSearchText.trim().length > 0 &&
     !isIntentionalStubBody(fullLexicalInnerBody)
   ) {
     for (const p of params) {
       if (promotedParamSet.has(p)) continue;
-      const esc = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const re = new RegExp(`\\b${esc}\\b`);
-      if (!re.test(paramSearchText)) unusedParams.push(p);
+      if (!makeIdentRegex(p, "", lang).test(paramSearchText)) unusedParams.push(p);
     }
   }
 
-  // 2. Check if function returns or yields a non-void value
+  // 2. Check if function returns or yields a non-void value (excluding returns inside nested anonymous closures)
+  const outerControlBody = stripNestedClosureBodies(innerBody);
   const isVoidMethod =
     ((lang === "csharp" || lang === "java" || lang === "cpp") && /\bvoid\b/.test(sigHeader)) ||
+    (lang === "dart" && /\b(?:void|Future\s*<\s*void\s*>)\b/.test(sigHeader)) ||
+    (lang === "kotlin" && /:\s*Unit\b/.test(sigHeader)) ||
     (lang === "php" && /:\s*void\b/.test(sigHeader)) ||
     ((lang === "ts" || lang === "vue") && /:\s*(?:void\b|Promise\s*<\s*(?:void|undefined)\s*>)/.test(sigHeader));
-  const isThrowExpression = /^\s*throw\b/.test(innerBody.trim());
+  const isThrowExpression = /^\s*throw\b/.test(outerControlBody.trim());
   const hasExplicitReturn =
     !isVoidMethod &&
-    (/\breturn[ \t]+[^\n;\s}#]+/.test(innerBody) ||
-      (lang === "python" && /\byield\b/.test(innerBody)) ||
+    (/\breturn[ \t]+[^\n;\s}#]+/.test(outerControlBody) ||
+      (lang === "python" && /\byield\b/.test(outerControlBody)) ||
       (lang === "ruby" &&
         !decl.isConstructor &&
-        innerBody.replace(/\bend\s*$/, "").trim().length > 0 &&
-        !/^\s*(?:puts|print|p|pp|warn|raise)\b/.test(innerBody.trim())));
+        outerControlBody.replace(/\bend\s*$/, "").trim().length > 0 &&
+        !/^\s*(?:puts|print|p|pp|warn|raise)\b/.test(outerControlBody.trim())));
   const hasExprReturn =
     Boolean(bounds?.isExpressionBody) &&
     !isVoidMethod &&
     !isThrowExpression &&
-    !/^(?:set[A-Z_][A-Za-z0-9_]*|[A-Za-z0-9_.]+\.(?:set|update|dispatch|emit|send|write|push|add|remove|delete|clear))\s*\(/.test(
+    !/^(?:set[A-Z_][A-Za-z0-9_]*|[A-Za-z0-9_.]+\.(?:set|update|dispatch|emit|send|write|push|add|remove|delete|clear|wait|notify|notifyAll))\s*\(/.test(
       innerBody.trim()
     ) &&
+    !/\.(?:wait|notify|notifyAll)\s*\(\s*\)\s*;?$/.test(innerBody.trim()) &&
     (lang === "ts" || lang === "vue" || lang === "python" || !/^[A-Za-z0-9_.]+\s*\([^)]*\)\s*;?$/.test(innerBody.trim()));
   const hasRustOrSwiftReturnType =
     (lang === "rust" || lang === "swift") && /->\s*(?!\(\s*\)|!|Void\b)[A-Za-z0-9_&*'\[\](<]/.test(sigHeader);
@@ -220,16 +259,16 @@ function extractDataFlowAndTouches({
     /\b(?:assert(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?|assert!(?:_eq|_ne)?|debug_assert!(?:_eq|_ne)?)\s*\(/.test(innerBody);
   const isPreconditionGuard =
     hasAssertionGuard ||
-    (/\b(?:throw|raise|panic!)\b/.test(innerBody) &&
+    (/\b(?:throw|raise|panic!)\b/.test(outerControlBody) &&
       (params.some((p) => {
         const esc = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        return new RegExp(`\\breturn\\s+${esc}\\s*;?`).test(innerBody);
+        return new RegExp(`\\breturn\\s+${esc}\\s*;?`).test(outerControlBody);
       }) ||
-        /^(?:against|check|ensure|require|validate|assert|verify)[A-Z_]/i.test(decl.name)));
+        /^(?:against|check|ensure|require|validate|assert|verify|handle)[A-Z_]/i.test(decl.name)));
 
   const canIgnoreReturnValue =
     /@CanIgnoreReturnValue|#\[allow\(unused_must_use\)\]/.test(prevLines) ||
-    /\breturn[ \t]+(?:this|self)\b/.test(innerBody) ||
+    /\breturn[ \t]+(?:this|self)\b/.test(outerControlBody) ||
     isPreconditionGuard;
 
   // 3. Bare statement calls (`foo(bar);`) and dead local variable assignments (`const x = foo(bar);`)
@@ -237,6 +276,16 @@ function extractDataFlowAndTouches({
   const deadLocalVars = [];
 
   if (isFnOrMethod && hasRealBody && !bounds?.isExpressionBody) {
+    let lastCodeLineIdx = -1;
+    if ((lang === "swift" && hasRustOrSwiftReturnType) || lang === "ruby") {
+      for (let sIdx = ownCleanLines.length - 1; sIdx >= Math.max(1, bodyStartLineOffset); sIdx--) {
+        const t = ownCleanLines[sIdx].trim();
+        if (t && t !== "}" && t !== "end") {
+          lastCodeLineIdx = sIdx;
+          break;
+        }
+      }
+    }
     let prevNonEmptyLine = "";
     for (let idx = Math.max(1, bodyStartLineOffset); idx < ownCleanLines.length; idx++) {
       const line = ownCleanLines[idx].trim();
@@ -252,15 +301,26 @@ function extractDataFlowAndTouches({
       }
 
       const isContinuation =
-        /(?:[(,=+\-*/%?:&|^.\\]|->|=>|=\{|\breturn|\bthrow|\bawait)$/.test(prevNonEmptyLine) ||
-        /^(?:[?.:&|+\-*/%]|==|!=|<=|>=|\bin\b|\binstanceof\b)/.test(nextNonEmptyLine);
+        /(?:[(,=\[+\-*/%?:&|^.\\]|->|=>|=\{|\breturn|\bthrow|\bawait)$/.test(prevNonEmptyLine) ||
+        /^(?:[\]?.:&|+\-*/%]|==|!=|<=|>=|\bin\b|\binstanceof\b)/.test(nextNonEmptyLine);
 
       if (!isContinuation) {
         const bareM = line.match(
           /^(?:([A-Za-z_][A-Za-z0-9_]*)(?:\.|::))?([A-Za-z_][A-Za-z0-9_]*)\s*\(([^()]*)\)\s*(;)?$/
         );
+        const isImplicitFinalReturn =
+          ((lang === "swift" && hasRustOrSwiftReturnType) || lang === "ruby") &&
+          idx === lastCodeLineIdx &&
+          !bareM?.[4];
+        const isImplicitBlockExprValue =
+          ((lang === "kotlin" || lang === "rust" || lang === "ruby") &&
+            !bareM?.[4] &&
+            nextNonEmptyLine.startsWith("}")) ||
+          (lang === "ruby" && !bareM?.[4] && /^(?:end|rescue|else|elsif|ensure)\b/.test(nextNonEmptyLine));
         if (
           bareM &&
+          !isImplicitFinalReturn &&
+          !isImplicitBlockExprValue &&
           (lang !== "rust" || Boolean(bareM[4])) &&
           !/^(if|for|foreach|while|switch|catch|return|throw|await|lock|using|super|base|this|assert|panic|unreachable|todo|unimplemented)$/.test(
             bareM[2]
@@ -289,8 +349,9 @@ function extractDataFlowAndTouches({
             const restText = sameLineAfterSemi + lexLines.slice(idx + 1).join("\n");
             const beforeText = lexLines.slice(1, idx).join("\n");
             const esc = varName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            const varRe = new RegExp(`\\b${esc}\\b`);
-            const earlierDeclRe = new RegExp(`\\b(?:const|let|var|auto)\\s+${esc}\\b|\\b${esc}\\s*:=`);
+            const varRe = makeIdentRegex(varName, "", lang);
+            const rightBound = "(?![A-Za-z0-9_$])";
+            const earlierDeclRe = new RegExp(`\\b(?:const|let|var|auto)\\s+${esc}${rightBound}|(?<![A-Za-z0-9_$])${esc}\\s*:=`);
             const usedInClosureBefore = !earlierDeclRe.test(beforeText) && varRe.test(beforeText);
             if (!varRe.test(restText) && !usedInClosureBefore) {
               deadLocalVars.push({ varName, callee, lineOffset: idx });
@@ -307,10 +368,10 @@ function extractDataFlowAndTouches({
   const branchMatches = fullBody.match(/\b(?:if|else\s+if|case|switch|match)\b/g);
   const conditionalCount = branchMatches ? branchMatches.length : 0;
 
-  // 5. Qualified member calls (`obj.method(`, `this.#method(`, `a.b.method(`, `obj->method(`, or `Type::method(`)
+  // 5. Qualified member calls (`obj.method(`, `obj?.method(`, `this.#method(`, `a.b.method(`, `obj->method(`, or `Type::method(`)
   const qualifiedCalls = [];
   const qualCallRe =
-    /(?:\b|\$)([A-Za-z_][A-Za-z0-9_]*)(?:(?:\.|->)(#?[A-Za-z_][A-Za-z0-9_]*))*(?:\.|->|::)(#?[A-Za-z_][A-Za-z0-9_]*)\s*\(/g;
+    /(?:\b|\$)([A-Za-z_][A-Za-z0-9_]*)(?:(?:\??\.|->)(#?[A-Za-z_][A-Za-z0-9_]*))*(?:\??\.|->|::)(#?[A-Za-z_][A-Za-z0-9_]*)\s*\(/g;
   let m;
   while ((m = qualCallRe.exec(fullBody)) !== null) {
     qualifiedCalls.push({
@@ -354,10 +415,17 @@ function extractDataFlowAndTouches({
     }
   }
 
+  const aliasRefVars = new Set();
+  const aliasRefRe =
+    /\b(?:const|let|var)\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*(?:[A-Za-z_$][A-Za-z0-9_$]*\.value\b|(?:this|self|state|store)\.)/g;
+  while ((m = aliasRefRe.exec(innerBody)) !== null) {
+    aliasRefVars.add(m[1]);
+  }
+
   const isNonLocalTarget = (recv) => {
     if (!recv) return false;
     if (/^(?:this|self|state|store|\$this)(?:\.|->|$)/.test(recv) || recv.startsWith("_")) return true;
-    return !localVars.has(recv) || paramSet.has(recv);
+    return !localVars.has(recv) || paramSet.has(recv) || aliasRefVars.has(recv);
   };
 
   for (const qc of qualifiedCalls) {
@@ -367,13 +435,39 @@ function extractDataFlowAndTouches({
   }
 
   let hasInternalMutation =
-    /(?:<<<|\b(?:this|self|state|store)(?:\.|->)#?[A-Za-z_][A-Za-z0-9_]*\s*(?:=|\+=|-=|\*=|\+\+|--)|\$this->[A-Za-z_][A-Za-z0-9_]*\s*(?:=|\+=|-=|\*=|\+\+|--)|(?<!@)@[a-zA-Z_][a-zA-Z0-9_]*\s*(?:=|\+=|-=)(?!=)|\b_[a-zA-Z0-9_]+\s*(?:=|\+=|-=|\+\+|--)(?!=)|\*[a-zA-Z_][a-zA-Z0-9_]*\s*=(?!=)|(?:\.|->)(?:Write|WriteLine|Send|Emit|Flush|Close|Dispose|Save|Execute|Commit|Publish|Broadcast|Dispatch|write|send|emit|flush|close|dispose|save|commit|publish|broadcast|dispatch|postMessage|setItem|removeItem)(?:\s*<[^>]*>)?\s*\(|\b(?:swrMutate|mutate|revalidate\w*|invalidate\w*|on[A-Z]\w*|set[A-Z]\w*|handle[A-Z]\w*|clearTimeout|clearInterval|setTimeout|setInterval|appendFileSync|writeFileSync|execFileSync|execSync|spawnSync|mkdirSync|rmSync|unlinkSync|copyFileSync|GetProcAddress|LoadLibrary\w*|SetProcessInformation|SetProcessDpiAwarenessContext|SetThreadDescription|ShellExecute\w*|CreateProcess\w*)(?:\s*<[^>]*>)?\s*\()/.test(
+    /(?:<<<|\b(?:this|self|state|store)(?:\.|->)#?[A-Za-z_][A-Za-z0-9_]*\s*(?:=|\+=|-=|\*=|\+\+|--)|\$this->[A-Za-z_][A-Za-z0-9_]*\s*(?:=|\+=|-=|\*=|\+\+|--)|(?<!@)@[a-zA-Z_][a-zA-Z0-9_]*\s*(?:=|\+=|-=)(?!=)|\b_[a-zA-Z0-9_]+\s*(?:=|\+=|-=|\+\+|--)(?!=)|\*[a-zA-Z_][a-zA-Z0-9_]*\s*=(?!=)|(?:\??\.|->)(?:Write|WriteLine|Send|Emit|Flush|Close|Dispose|Save|Execute|Commit|Publish|Broadcast|Dispatch|write|send|emit|flush|close|dispose|save|commit|publish|broadcast|dispatch|postMessage|setItem|removeItem|wait|notify|notifyAll|lock|unlock|signal|signalAll|focus|blur|hide|show|open|toggle|error|warn|info|debug|fatal|skip|readByte|readShort|readInt|readLong|go|back|forward|perform)(?:\s*<[^>]*>)?\s*\(|\b(?:emit|dispatch|go|resolve|reject|swrMutate|mutate|revalidate\w*|invalidate\w*|(?:on|set|handle|show|toast|open|close|hide|skip|notify|toggle)(?:[A-Z]|_[a-z])\w*|focus|blur|readByte|readShort|readInt|readLong|clearTimeout|clearInterval|setTimeout|setInterval|appendFileSync|writeFileSync|execFileSync|execSync|spawnSync|mkdirSync|rmSync|unlinkSync|copyFileSync|GetProcAddress|LoadLibrary\w*|SetProcessInformation|SetProcessDpiAwarenessContext|SetThreadDescription|ShellExecute\w*|CreateProcess\w*|SetEnvironmentVariable\w*|putenv|_putenv\w*|setenv|unsetenv)(?:\s*<[^>]*>)?\s*\()/.test(
       innerBody
-    );
+    ) ||
+    (lang === "ruby" &&
+      (/(?:\.[a-z_][a-z0-9_]*!\s*(?:\(|$)|\b[a-zA-Z_][a-zA-Z0-9_]*\s*<<\s*\S)/m.test(innerBody) ||
+        /\byield\b/.test(innerBody))) ||
+    params.some((p) => {
+      if (p.length <= 1) return false;
+      const esc = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp(`(?<![A-Za-z0-9_$.])${esc}\\s*\\(`).test(innerBody);
+    });
 
   if (!hasInternalMutation) {
+    const objAssignRe = /\bObject\.assign\s*\(\s*([A-Za-z_$][A-Za-z0-9_$]*)/g;
+    while ((m = objAssignRe.exec(innerBody)) !== null) {
+      if (isNonLocalTarget(m[1])) {
+        hasInternalMutation = true;
+        break;
+      }
+    }
+  }
+  if (!hasInternalMutation) {
+    const propMutRe = /\b([A-Za-z_$][A-Za-z0-9_$]*)(?:\.[A-Za-z_$][A-Za-z0-9_$]*)+\s*(?:=|\+=|-=|\*=|\+\+|--)(?!=)/g;
+    while ((m = propMutRe.exec(innerBody)) !== null) {
+      if (isNonLocalTarget(m[1])) {
+        hasInternalMutation = true;
+        break;
+      }
+    }
+  }
+  if (!hasInternalMutation) {
     const collMutRe =
-      /((?:(?:this|self)(?:\.|->)|\$this->)?[A-Za-z_$][A-Za-z0-9_$]*)(?:\.|->)(?:Add|Remove|Clear|Insert|Push|Pop|Set|Delete|Append|add|remove|clear|insert|push|pop|set|delete|append|splice|shift|unshift|sort|reverse)(?:\s*<[^>]*>)?\s*\(/g;
+      /((?:(?:this|self)(?:\.|->)|\$this->)?[A-Za-z_$][A-Za-z0-9_$]*)(?:\??\.|->)(?:Add|Remove|Clear|Insert|Push|Pop|Set|Delete|Append|add|remove|clear|insert|push|pop|set|delete|append|splice|shift|unshift|sort|reverse|concat|replace|merge|update|delete_if|keep_if)(?:\s*<[^>]*>)?\s*(?:\(|\{|\bdo\b)/g;
     while ((m = collMutRe.exec(innerBody)) !== null) {
       if (isNonLocalTarget(m[1])) {
         hasInternalMutation = true;
@@ -415,10 +509,14 @@ function extractDataFlowAndTouches({
     lang !== "ruby" &&
     lang !== "php"
   ) {
-    const outerAssignRe = /^\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*(?:=|\+=|-=)(?![=>])[^,\n]*;\s*$/gm;
+    const outerAssignRe = /(?:^\s*|[({\s;])([A-Za-z_$][A-Za-z0-9_$]*)\s*(?:=|\+=|-=)(?![=>])[^,\n;]*(?:;|\)|\s*$)/gm;
     while ((m = outerAssignRe.exec(innerBody)) !== null) {
       const lhs = m[1];
-      if (!/^(?:return|case|default|throw)$/.test(lhs) && !localVars.has(lhs) && !paramSet.has(lhs)) {
+      if (
+        !/^(?:return|case|default|throw|const|let|var|auto|mut|val|if|while|for)$/.test(lhs) &&
+        !localVars.has(lhs) &&
+        !paramSet.has(lhs)
+      ) {
         hasInternalMutation = true;
         break;
       }
@@ -479,6 +577,7 @@ function extractDataFlowAndTouches({
     hasInternalMutation,
     bareIgnoredCalls,
     deadLocalVars,
+    localVars,
     conditionalCount,
     qualifiedCalls,
     writes: Array.from(writes),
@@ -655,6 +754,37 @@ function extractFileImports(lang, content, relPath = "") {
       const base = path.basename(m[1], path.extname(m[1]));
       if (base) importedStems.add(base);
     }
+  } else if (lang === "dart") {
+    const re = /\b(import|export|part)\s+["']([^"']+)["']/g;
+    while ((m = re.exec(content)) !== null) {
+      const spec = m[2].startsWith("package:") ? m[2].replace(/^package:[^/]+\//, "lib/") : m[2];
+      importedPaths.push(spec);
+      if (m[1] === "export" || m[1] === "part") reExportedPaths.push(spec);
+      const base = path.basename(spec, path.extname(spec));
+      if (base) {
+        importedStems.add(base);
+        if (m[1] === "export" || m[1] === "part") reExportedStems.add(base);
+      }
+    }
+  } else if (lang === "java" || lang === "kotlin") {
+    const re = /\bimport\s+(?:static\s+)?((?:[A-Za-z0-9_]+\.)+)([A-Za-z0-9_*]+)(?:\s+as\s+([A-Za-z0-9_]+))?/g;
+    while ((m = re.exec(content)) !== null) {
+      if (m[2] && m[2] !== "*") {
+        importedStems.add(m[2]);
+        if (m[3]) importAliases[m[3]] = m[2];
+      } else if (m[1]) {
+        const pkgParts = m[1].replace(/\.$/, "").split(".");
+        if (pkgParts[pkgParts.length - 1]) importedStems.add(pkgParts[pkgParts.length - 1]);
+      }
+    }
+  } else if (lang === "csharp") {
+    const re = /\busing\s+(?:static\s+)?(?:([A-Za-z_][A-Za-z0-9_]*)\s*=\s*)?(?:[A-Za-z0-9_]+\.)*([A-Za-z0-9_]+)\s*;/g;
+    while ((m = re.exec(content)) !== null) {
+      if (m[2]) {
+        importedStems.add(m[2]);
+        if (m[1]) importAliases[m[1]] = m[2];
+      }
+    }
   }
   return {
     importedStems: Array.from(importedStems),
@@ -688,6 +818,29 @@ export function parseSourceFile(absPath, relPath) {
   );
   const fileHasUnityOrHarmony =
     lang === "csharp" && /\b(?:UnityEngine|MonoBehaviour|BaseUnityPlugin|HarmonyLib|HarmonyPatch)\b/.test(content);
+
+  // Detect Vue Options API object brace scopes (`export default { mounted() {}, methods: { submit() {} } }`)
+  const vueOptionBraceIndices = new Set();
+  if (ext === ".vue") {
+    for (let bIdx = 0; bIdx < braceSpans.length; bIdx++) {
+      const bs = braceSpans[bIdx];
+      const prefix = cleanCode.slice(Math.max(0, bs.openOffset - 60), bs.openOffset);
+      if (/\bexport\s+default\s*$|defineComponent\s*\(\s*$/.test(prefix)) {
+        vueOptionBraceIndices.add(bIdx);
+      }
+    }
+    if (vueOptionBraceIndices.size > 0) {
+      for (let bIdx = 0; bIdx < braceSpans.length; bIdx++) {
+        const bs = braceSpans[bIdx];
+        if (vueOptionBraceIndices.has(bs.parentIdx)) {
+          const prefix = cleanCode.slice(Math.max(0, bs.openOffset - 40), bs.openOffset);
+          if (/\b(?:methods|computed|watch)\s*:\s*$/.test(prefix)) {
+            vueOptionBraceIndices.add(bIdx);
+          }
+        }
+      }
+    }
+  }
 
   // Detect Rust inline `#[cfg(test)]` block ranges so inline unit test modules are marked as `test` zone
   const inlineTestRanges = [];
@@ -731,11 +884,27 @@ export function parseSourceFile(absPath, relPath) {
       inClassScope = !deeperBrace;
     }
 
+    let inVueOptionsScope = false;
+    if (vueOptionBraceIndices.size > 0 && !inClassScope) {
+      let innermostIdx = -1;
+      for (let bIdx = 0; bIdx < braceSpans.length; bIdx++) {
+        const bs = braceSpans[bIdx];
+        if (bs.openLine < currentLine && bs.closeLine >= currentLine) {
+          if (innermostIdx === -1 || bs.openOffset > braceSpans[innermostIdx].openOffset) {
+            innermostIdx = bIdx;
+          }
+        }
+      }
+      if (innermostIdx >= 0 && vueOptionBraceIndices.has(innermostIdx)) {
+        inVueOptionsScope = true;
+      }
+    }
+
     const declLineText =
       (lang === "ts" || lang === "vue") && /=\s*(?:async\s*)?(?:<[^>]*>\s*)?\([^;]*$/.test(cleanLines[i])
         ? cleanLines.slice(i, Math.min(cleanLines.length, i + 8)).join(" ")
         : cleanLines[i];
-    const decl = matchSymbolDeclaration(lang, declLineText, inClassScope);
+    const decl = matchSymbolDeclaration(lang, declLineText, inClassScope, inVueOptionsScope);
     if (!decl) continue;
 
     const startLine = currentLine;
@@ -942,13 +1111,40 @@ export function parseSourceFile(absPath, relPath) {
 
     for (const qc of df.qualifiedCalls) {
       if (!/^(this|self|super|base)$/.test(qc.receiver)) {
-        calls.add(qc.receiver);
         calls.add(qc.member);
-        fileCalls.add(qc.receiver);
         fileCalls.add(qc.member);
-        if (importAliases[qc.receiver]) {
-          calls.add(importAliases[qc.receiver]);
-          fileCalls.add(importAliases[qc.receiver]);
+        if (
+          !qc.isLocal &&
+          !params.includes(qc.receiver) &&
+          (/^[A-Z]/.test(qc.receiver) || importedStems.includes(qc.receiver) || Boolean(importAliases[qc.receiver]))
+        ) {
+          calls.add(qc.receiver);
+          fileCalls.add(qc.receiver);
+          if (importAliases[qc.receiver]) {
+            calls.add(importAliases[qc.receiver]);
+            fileCalls.add(importAliases[qc.receiver]);
+          }
+        }
+      }
+    }
+
+    // First-class callback & handler references passed without `()` (e.g. Go `sub.POST("", backupCreate)`, Python `[_default_ctx]`)
+    const cbRefRe = /(?:[,(\[]\s*|:\s*)([a-zA-Z_][a-zA-Z0-9_]{2,})\s*(?=[,)\]}])/g;
+    while ((m = cbRefRe.exec(ownCleanBodyText)) !== null) {
+      const refName = m[1];
+      if (
+        refName !== decl.name &&
+        !df.localVars.has(refName) &&
+        !params.includes(refName) &&
+        !/^(?:true|false|null|None|nil|undefined|self|this|super|err|error|ctx|req|res|int|str|bool|string|number|object|any|void)$/.test(
+          refName
+        )
+      ) {
+        calls.add(refName);
+        fileCalls.add(refName);
+        if (importAliases[refName]) {
+          calls.add(importAliases[refName]);
+          fileCalls.add(importAliases[refName]);
         }
       }
     }
@@ -1001,9 +1197,10 @@ export function parseSourceFile(absPath, relPath) {
       endLine,
       isEntrySource,
       roles: isEntrySource ? ["source"] : [],
-      isTauriCommand: lang === "rust" && /#\[(?:tauri::)?command\s*\]|#\[specta::specta\b/.test(prevLines),
+      isTauriCommand: lang === "rust" && /#\[(?:tauri::)?command(?:\s*\([^)]*\))?\s*\]|#\[specta::specta\b/.test(prevLines),
       paired: detectPairedKind(decl.name),
       params,
+      localVars: Array.from(df.localVars),
       unusedParams: df.unusedParams,
       reservedParams: [],
       hasReturnValue: df.hasReturnValue,
@@ -1020,6 +1217,35 @@ export function parseSourceFile(absPath, relPath) {
       snippet: rawLines.slice(Math.max(0, i - 1), Math.min(rawLines.length, i + 14)).join("\n"),
       shingles: buildShingleSet(normFinger)
     });
+  }
+
+  // Ruby `attr_reader` / `attr_accessor` / `attr_writer` expose `@ivar` state reads/writes on enclosing class
+  if (lang === "ruby" && symbols.length > 0) {
+    for (let lnIdx = 0; lnIdx < cleanLines.length; lnIdx++) {
+      const attrM = cleanLines[lnIdx].match(/^\s*attr_(reader|writer|accessor)\b([^\n;#]+)/);
+      if (!attrM) continue;
+      const mode = attrM[1];
+      const line1 = lnIdx + 1;
+      const enc = containerRanges.filter((c) => line1 >= c.startLine && line1 <= c.endLine).pop();
+      const targetSym =
+        (enc && symbols.find((s) => s.id === enc.symbolId)) ||
+        symbols.find((s) => s.parentContainerName === enc?.name) ||
+        symbols[0];
+      if (!targetSym) continue;
+      let symM;
+      const symTokRe = /:([a-zA-Z_][a-zA-Z0-9_]*)/g;
+      while ((symM = symTokRe.exec(attrM[2])) !== null) {
+        const fld = symM[1];
+        if (fld.length > 1) {
+          if ((mode === "reader" || mode === "accessor") && !targetSym.reads.includes(fld)) {
+            targetSym.reads.push(fld);
+          }
+          if ((mode === "writer" || mode === "accessor") && !targetSym.writes.includes(fld)) {
+            targetSym.writes.push(fld);
+          }
+        }
+      }
+    }
   }
 
   // Reconcile member field reads across the same file (`this.field = x` in constructor/setter, bare `field` or `obj.field` read in methods)
@@ -1156,9 +1382,7 @@ export function parseSourceFile(absPath, relPath) {
       s.isReferencedInFile = true;
       continue;
     }
-    const esc = s.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const leftBound = s.name.startsWith("#") ? "(?<![A-Za-z0-9_])" : "\\b";
-    const refRe = new RegExp(`${leftBound}${esc}\\b`);
+    const refRe = makeIdentRegex(s.name, "", lang);
     const useRawLines = lang === "rust";
     const beforeSym = (useRawLines ? rawOutsideLines : cleanLines).slice(0, s.startLine - 1).join("\n");
     const afterSym = (useRawLines ? rawOutsideLines : cleanLines).slice(s.endLine).join("\n");
@@ -1302,6 +1526,30 @@ export function parseSourceFile(absPath, relPath) {
     });
   }
 
+  // Socket.io / WebSocket Event Bus (`socket.emit("evt")` <-> `socket.on("evt")`)
+  const sockEmitRe = /\b(?:this\.)?\$?(?:socket|io)\.(?:volatile\.)?emit\s*\(\s*["']([a-zA-Z][a-zA-Z0-9_.:/-]{1,})["']/g;
+  while ((m = sockEmitRe.exec(commentStripped)) !== null) {
+    if (!/^(?:connect|disconnect|disconnecting|error|connection|reconnect|ping|pong)$/i.test(m[1])) {
+      const wsTopic = `ws:${m[1]}`;
+      addUnique(bridgeSignals.eventTouches, `EVT:${wsTopic}:emit`, {
+        topic: wsTopic,
+        mode: "emit",
+        line: offsetToLine(m.index)
+      });
+    }
+  }
+  const sockOnRe = /\b(?:this\.)?\$?(?:socket|io)\.on\s*\(\s*["']([a-zA-Z][a-zA-Z0-9_.:/-]{1,})["']/g;
+  while ((m = sockOnRe.exec(commentStripped)) !== null) {
+    if (!/^(?:connect|disconnect|disconnecting|error|connection|reconnect|ping|pong)$/i.test(m[1])) {
+      const wsTopic = `ws:${m[1]}`;
+      addUnique(bridgeSignals.eventTouches, `EVT:${wsTopic}:listen`, {
+        topic: wsTopic,
+        mode: "listen",
+        line: offsetToLine(m.index)
+      });
+    }
+  }
+
   if (lang === "ts" || lang === "vue") {
     if (!/\b(?:function\s+invoke|(?:const|let|var)\s+invoke\s*=)\b/.test(cleanCode)) {
       const invRe = /\b(?:__TAURI_INVOKE|TAURI_INVOKE|invoke)\s*(?:<[^>]*>)?\s*\(\s*["']([a-z_][a-z0-9_]+)["']/g;
@@ -1325,8 +1573,12 @@ export function parseSourceFile(absPath, relPath) {
     while ((m = elHandleRe.exec(commentStripped)) !== null) {
       addUnique(bridgeSignals.electronHandles, `ELHND:${m[1]}`, { channel: m[1], line: offsetToLine(m.index) });
     }
-    const httpRe = /\b(?:(fetch)|axios\.(get|post|put|delete|patch))\s*\(\s*["'`](\/api\/[^"'`?\s]+)/g;
+    const httpRe =
+      /\b(?:(fetch)|(?:axios|http|ky|api)\.(get|post|put|delete|patch))\s*(?:<[^>]*>)?\s*\(\s*["'`](\/?(?:api\/|[a-z][a-z0-9_-]*\/)[a-zA-Z0-9_/${}.:-]*|[a-z][a-z0-9_-]{2,})["'`]/g;
     while ((m = httpRe.exec(commentStripped)) !== null) {
+      const rawPath = m[3];
+      // Bare fetch("foo") without leading `/api/` is skipped unless called via explicit HTTP client wrapper (`axios/http/ky/api.*`)
+      if (m[1] && !rawPath.startsWith("/api/")) continue;
       let method = m[2] ? m[2].toUpperCase() : "GET";
       if (m[1]) {
         const openParenIdx = commentStripped.indexOf("(", m.index);
@@ -1348,7 +1600,18 @@ export function parseSourceFile(absPath, relPath) {
         const methodM = optsSlice.match(/\bmethod\s*:\s*["']([A-Za-z]+)["']/);
         if (methodM) method = methodM[1].toUpperCase();
       }
-      const apiPath = m[3];
+      const apiPath = rawPath.startsWith("/") ? rawPath : `/api/${rawPath}`;
+      addUnique(bridgeSignals.httpCalls, `HTTPCALL:${method}:${apiPath}`, {
+        method,
+        path: apiPath,
+        line: offsetToLine(m.index)
+      });
+    }
+    const openApiSdkRe =
+      /(?:\b(?:client|request)|\))\.(get|post|put|delete|patch)\s*(?:<[^>{]{0,220}>)?\s*\(\s*\{[^{}]{0,240}?\burl\s*:\s*["'`](\/[^"'`?\s]+)["'`]/g;
+    while ((m = openApiSdkRe.exec(commentStripped)) !== null) {
+      const method = m[1].toUpperCase();
+      const apiPath = m[2];
       addUnique(bridgeSignals.httpCalls, `HTTPCALL:${method}:${apiPath}`, {
         method,
         path: apiPath,
@@ -1357,11 +1620,26 @@ export function parseSourceFile(absPath, relPath) {
     }
   }
 
+  const filePrefixM =
+    commentStripped.match(/\bAPIRouter\s*\([^)]*\bprefix\s*=\s*["'](\/[^"']+)["']/) ||
+    commentStripped.match(/@RequestMapping\s*\(\s*(?:value\s*=\s*)?["'](\/[^"']+)["']/);
+  const fileRoutePrefix = filePrefixM ? filePrefixM[1].replace(/\/+$/, "") : "";
+  const isApiRoutesFile = /(?:^|\/)routes\/api[^/]*\.php$/i.test(relPath.replace(/\\/g, "/"));
+
   const routeRe =
-    /(#\[(?:get|post|put|delete|patch|Route)|@(?:app|router|bp|GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping|RequestMapping)(?:\.(?:get|post|put|delete|patch|route))?|\[Http(?:Get|Post|Put|Delete|Patch)|\bRoute::(?:get|post|put|delete|patch)|\b(?:app|router|mux|r|e)\.(?:get|post|put|delete|patch|GET|POST|PUT|DELETE|PATCH|HandleFunc))\s*\(\s*["'](\/[^"']+)["']/g;
+    /(#\[(?:get|post|put|delete|patch|Route)|@(?:app|router|bp|GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping|RequestMapping)(?:\.(?:get|post|put|delete|patch|route))?|\[Http(?:Get|HttpPost|Put|Delete|Patch|Post)|\bRoute::(?:get|post|put|delete|patch)|\b(?:app|router|mux|r|e|sub|rg)\.(?:get|post|put|delete|patch|GET|POST|PUT|DELETE|PATCH|HandleFunc))\s*\(\s*["']([^"']*)["']/g;
   while ((m = routeRe.exec(commentStripped)) !== null) {
     const rawHead = m[1];
-    const rtPath = m[2];
+    const rawRtPath = m[2];
+    const isLaravelRoute = rawHead.startsWith("Route::");
+    if (!rawRtPath && !fileRoutePrefix) continue;
+    if (!rawRtPath.startsWith("/") && !isLaravelRoute && !fileRoutePrefix) continue;
+    let rtPath = rawRtPath.startsWith("/") ? rawRtPath : `/${rawRtPath}`;
+    if (fileRoutePrefix && !rtPath.startsWith(fileRoutePrefix)) {
+      rtPath = `${fileRoutePrefix}${rtPath === "/" ? "" : rtPath}`;
+    } else if (isLaravelRoute && isApiRoutesFile && !rtPath.startsWith("/api/")) {
+      rtPath = `/api${rtPath}`;
+    }
     let method = "ANY";
     if (/(?:get|GetMapping|HttpGet)\b/i.test(rawHead) && !/RequestMapping|Route$|route$|HandleFunc$/.test(rawHead)) {
       method = "GET";
@@ -1385,6 +1663,18 @@ export function parseSourceFile(absPath, relPath) {
       path: rtPath,
       line: offsetToLine(m.index)
     });
+  }
+  if (lang === "ruby") {
+    const sinatraRe = /^\s*(get|post|put|delete|patch)\s+["'](\/[^"']+)["']\s+do\b/gm;
+    while ((m = sinatraRe.exec(commentStripped)) !== null) {
+      const method = m[1].toUpperCase();
+      const rtPath = m[2];
+      addUnique(bridgeSignals.httpRoutes, `HTTPROUTE:${method}:${rtPath}`, {
+        method,
+        path: rtPath,
+        line: offsetToLine(m.index)
+      });
+    }
   }
 
   if (symbols.length === 0) {

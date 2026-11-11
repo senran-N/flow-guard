@@ -42,7 +42,7 @@ export const EXT_LANG = {
   ".java": "java",
   ".kt": "kotlin",
   ".swift": "swift",
-  ".dart": "java",
+  ".dart": "dart",
   ".php": "php",
   ".c": "cpp",
   ".cpp": "cpp",
@@ -59,7 +59,7 @@ const CONTROL_KEYWORDS =
 const GO_BUILTIN_TYPES =
   /^(int|int8|int16|int32|int64|uint|uint8|uint16|uint32|uint64|uintptr|float32|float64|complex64|complex128|byte|rune|string|bool|error|any)$/;
 
-function stripLeadingAttributesAndAnnotations(raw) {
+function stripLeadingAttributesAndAnnotations(raw, lang = "") {
   let s = raw.trim();
   // Strip C# `[Attr(...)]` or `[Attr]`
   while (s.startsWith("[")) {
@@ -81,9 +81,13 @@ function stripLeadingAttributesAndAnnotations(raw) {
       break;
     }
   }
-  // Strip Java/TS `@Annotation(...)` or `@Annotation`
-  while (s.startsWith("@")) {
-    s = s.replace(/^@[A-Za-z0-9_$.]+(?:\s*\([^)]*\))?\s*/, "").trim();
+  // Strip Java/TS/Dart `@Annotation(...)` or `@Annotation` (never Ruby `@ivar` / `@@cvar`)
+  if (lang !== "ruby") {
+    while (s.startsWith("@") && !s.startsWith("@@")) {
+      const next = s.replace(/^@[A-Za-z_][A-Za-z0-9_$.]*(?:\s*\([^)]*\))?\s*/, "").trim();
+      if (next === s) break;
+      s = next;
+    }
   }
   return s;
 }
@@ -126,7 +130,7 @@ function cleanParamName(rawParam, lang, hasTypedSubsequentParam = false) {
     return null;
   }
 
-  s = stripLeadingAttributesAndAnnotations(s);
+  s = stripLeadingAttributesAndAnnotations(s, lang);
   if (!s || s === "self" || s === "&self" || s === "&mut self" || s === "mut self" || s === "this") return null;
 
   // Strip top-level default value `= ...`
@@ -138,6 +142,23 @@ function cleanParamName(rawParam, lang, hasTypedSubsequentParam = false) {
     return phpM ? phpM[1] : null;
   }
 
+  if (lang === "dart") {
+    s = s.replace(/^\b(?:required|covariant|final|const|var)\s+/g, "").trim();
+    const dartFieldM = s.match(/\b(?:this|super)\.([a-zA-Z_][a-zA-Z0-9_]*)\s*$/);
+    if (dartFieldM) return dartFieldM[1];
+    const fnParamM = s.match(/\bFunction\s*(?:<[^>]*>)?\s*\([^)]*\)\??\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*$/);
+    if (fnParamM) return fnParamM[1];
+    const tokens = s.split(/\s+/).filter(Boolean);
+    if (tokens.length >= 2) {
+      const candidate = tokens[tokens.length - 1].replace(/\?$/, "");
+      return /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(candidate) ? candidate : null;
+    }
+    if (tokens.length === 1 && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tokens[0])) {
+      return tokens[0];
+    }
+    return null;
+  }
+
   if (
     lang === "ts" ||
     lang === "vue" ||
@@ -147,8 +168,12 @@ function cleanParamName(rawParam, lang, hasTypedSubsequentParam = false) {
     lang === "kotlin" ||
     lang === "swift"
   ) {
+    // Swift phantom metatype witness (`of type: T.Type = T.self`) is for generic type inference, not runtime body reads
+    if (lang === "swift" && /:\s*[A-Za-z0-9_.<>?]+\.(?:Type|Protocol)\b/.test(s)) {
+      return null;
+    }
     const lhs = splitTopLevelByChar(s, ":")[0].trim();
-    if (!lhs || lhs.includes("(") || lhs.includes("{") || lhs.includes("[")) return null;
+    if (!lhs || lhs.includes("(") || lhs.includes("{") || lhs.includes("[") || lhs.startsWith("@")) return null;
     const colonParts = lhs.split(/\s+/);
     const candidate = colonParts[colonParts.length - 1]
       .replace(/^(?:\.\.\.|\*\*|\*|[&?])+/, "")
@@ -202,7 +227,21 @@ export function extractParamNames(lang, sigText) {
   }
   if (!inner) return [];
 
-  const rawList = splitTopLevelByChar(inner, ",");
+  const topChunks = splitTopLevelByChar(inner, ",");
+  const rawList = [];
+  for (const chunk of topChunks) {
+    const trimmed = chunk.trim();
+    if (
+      lang === "dart" &&
+      ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]")))
+    ) {
+      for (const sub of splitTopLevelByChar(trimmed.slice(1, -1), ",")) {
+        if (sub.trim()) rawList.push(sub);
+      }
+    } else {
+      rawList.push(chunk);
+    }
+  }
   const names = [];
   for (let i = 0; i < rawList.length; i++) {
     let hasTypedNext = false;
@@ -221,7 +260,7 @@ export function extractParamNames(lang, sigText) {
 }
 
 export function extractPromotedParamNames(lang, sigText) {
-  if (lang !== "ts" && lang !== "vue" && lang !== "php") return [];
+  if (lang !== "ts" && lang !== "vue" && lang !== "php" && lang !== "dart") return [];
   let inner = sigText.trim();
   if (inner.startsWith("(") && inner.endsWith(")")) {
     inner = inner.slice(1, -1).trim();
@@ -233,10 +272,29 @@ export function extractPromotedParamNames(lang, sigText) {
   }
   if (!inner) return [];
 
-  const rawList = splitTopLevelByChar(inner, ",");
+  const topChunks = splitTopLevelByChar(inner, ",");
+  const rawList = [];
+  for (const chunk of topChunks) {
+    const trimmed = chunk.trim();
+    if (
+      lang === "dart" &&
+      ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]")))
+    ) {
+      for (const sub of splitTopLevelByChar(trimmed.slice(1, -1), ",")) {
+        if (sub.trim()) rawList.push(sub);
+      }
+    } else {
+      rawList.push(chunk);
+    }
+  }
   const promoted = [];
   for (const raw of rawList) {
-    const beforeDefault = splitTopLevelByChar(stripLeadingAttributesAndAnnotations(raw.trim()), "=")[0].trim();
+    if (lang === "dart") {
+      const dartM = splitTopLevelByChar(raw.trim(), "=")[0].match(/\b(?:this|super)\.([a-zA-Z_][a-zA-Z0-9_]*)\s*$/);
+      if (dartM && !dartM[1].startsWith("_")) promoted.push(dartM[1]);
+      continue;
+    }
+    const beforeDefault = splitTopLevelByChar(stripLeadingAttributesAndAnnotations(raw.trim(), lang), "=")[0].trim();
     const headerPart = lang === "php" ? beforeDefault : splitTopLevelByChar(beforeDefault, ":")[0].trim();
     if (/\b(?:public|private|protected|readonly|override)\b/.test(headerPart)) {
       const clean = cleanParamName(raw, lang, false);
@@ -246,7 +304,60 @@ export function extractPromotedParamNames(lang, sigText) {
   return promoted;
 }
 
-export function matchSymbolDeclaration(lang, line, inClassScope = false) {
+export function matchSymbolDeclaration(lang, line, inClassScope = false, inVueOptionsScope = false) {
+  if (lang === "dart") {
+    const extM = line.match(/^\s*extension\s+([A-Za-z_][A-Za-z0-9_]*)\s+on\b/);
+    if (extM) {
+      return { name: extM[1], kind: "impl", isTraitImpl: false, isPublicApi: !extM[1].startsWith("_") };
+    }
+    const clsM = line.match(
+      /^\s*(?:(?:abstract|base|interface|final|sealed|mixin)\s+)*(class|mixin|enum)\s+([A-Za-z_][A-Za-z0-9_]*)/
+    );
+    if (clsM) {
+      const name = clsM[2];
+      return {
+        name,
+        kind: "class",
+        isInterface: clsM[1] === "mixin" || /\b(?:abstract|interface)\b/.test(line),
+        isPublicApi: !name.startsWith("_")
+      };
+    }
+    const firstParen = line.indexOf("(");
+    if (firstParen < 0) return null;
+    const prefixBeforeParen = line.slice(0, firstParen);
+    if (
+      prefixBeforeParen.includes("=") ||
+      prefixBeforeParen.includes(";") ||
+      /\b(?:return|throw|new|await|case|super|this)\b/.test(prefixBeforeParen)
+    ) {
+      return null;
+    }
+    if (inClassScope) {
+      const ctorM = line.match(/^\s*(?:(?:const|factory)\s+)?([A-Z][A-Za-z0-9_]*)(?:\.([a-zA-Z_][a-zA-Z0-9_]*))?\s*\(/);
+      if (ctorM && !CONTROL_KEYWORDS.test(ctorM[1])) {
+        const name = ctorM[2] || ctorM[1];
+        return {
+          name,
+          kind: "method",
+          isConstructor: true,
+          isPublicApi: !name.startsWith("_")
+        };
+      }
+    }
+    const dartFnM = line.match(
+      /^\s*(?:@[A-Za-z0-9_$.]+(?:\([^)]*\))?\s*)*(?:(?:static|external|covariant|late|final|const)\s+)*(?:[A-Za-z_][A-Za-z0-9_<>,.?\[\]\s]*?\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:<[^>{;()]+>\s*)?\(/
+    );
+    if (dartFnM && !CONTROL_KEYWORDS.test(dartFnM[1])) {
+      const name = dartFnM[1];
+      return {
+        name,
+        kind: inClassScope ? "method" : "function",
+        isPublicApi: !name.startsWith("_")
+      };
+    }
+    return null;
+  }
+
   if (lang === "csharp" || lang === "java" || lang === "kotlin") {
     const classM = line.match(
       /^\s*(?:(?:public|internal|private|protected|static|sealed|abstract|partial|final|open|data|readonly|ref)\s+)*(class|struct|interface|record|enum)\s+([A-Za-z_][A-Za-z0-9_]*)/
@@ -345,17 +456,17 @@ export function matchSymbolDeclaration(lang, line, inClassScope = false) {
       return { name: fnM[1], kind: "function", isPublicApi: /^\s*export\b/.test(line) };
     }
 
-    if (inClassScope) {
+    if (inClassScope || inVueOptionsScope) {
       const firstParen = line.indexOf("(");
       if (firstParen > 0) {
         const beforeParen = line.slice(0, firstParen);
-        if (!beforeParen.includes("=") && !beforeParen.includes(";") && !beforeParen.includes(".")) {
+        if (!beforeParen.includes("=") && !beforeParen.includes(";") && !beforeParen.includes(".") && !beforeParen.includes(":")) {
           const mthM = line.match(
             /^\s*(?:(?:public|private|protected|static|readonly|abstract|override|async|get|set)\s+)*(#?[a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?:<[^>{;()]*>\s*)?\(/
           );
           if (mthM && !CONTROL_KEYWORDS.test(mthM[1])) {
             const name = mthM[1];
-            const isPrivate = name.startsWith("#") || name.startsWith("_") || /\bprivate\b/.test(beforeParen);
+            const isPrivate = !inVueOptionsScope && (name.startsWith("#") || name.startsWith("_") || /\bprivate\b/.test(beforeParen));
             return {
               name: name === "constructor" ? "constructor" : name,
               kind: "method",
@@ -365,19 +476,21 @@ export function matchSymbolDeclaration(lang, line, inClassScope = false) {
           }
         }
       }
-      const arrowMthM = line.match(
-        /^\s*(?:(?:public|private|protected|static|readonly|override)\s+)*(#?[a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::[^=]+)?=\s*(?:async\s*)?(?:function\b|(?:<[^>]*>\s*)?\((?:[^()]|\([^()]*\))*\)\s*(?::[^=]+)?=>|[a-zA-Z_$][a-zA-Z0-9_$]*\s*=>)/
-      );
-      if (arrowMthM && !CONTROL_KEYWORDS.test(arrowMthM[1])) {
-        const name = arrowMthM[1];
-        const beforeEq = line.slice(0, line.indexOf("="));
-        const isPrivate = name.startsWith("#") || name.startsWith("_") || /\bprivate\b/.test(beforeEq);
-        return {
-          name,
-          kind: "method",
-          isConstructor: false,
-          isPublicApi: !isPrivate
-        };
+      if (inClassScope) {
+        const arrowMthM = line.match(
+          /^\s*(?:(?:public|private|protected|static|readonly|override)\s+)*(#?[a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::[^=]+)?=\s*(?:async\s*)?(?:function\b|(?:<[^>]*>\s*)?\((?:[^()]|\([^()]*\))*\)\s*(?::[^=]+)?=>|[a-zA-Z_$][a-zA-Z0-9_$]*\s*=>)/
+        );
+        if (arrowMthM && !CONTROL_KEYWORDS.test(arrowMthM[1])) {
+          const name = arrowMthM[1];
+          const beforeEq = line.slice(0, line.indexOf("="));
+          const isPrivate = name.startsWith("#") || name.startsWith("_") || /\bprivate\b/.test(beforeEq);
+          return {
+            name,
+            kind: "method",
+            isConstructor: false,
+            isPublicApi: !isPrivate
+          };
+        }
       }
     }
     return null;
@@ -600,7 +713,7 @@ export function isRuntimeEntrySource(lang, fileRel, symName, attrsAndSig, bodyTe
     return (
       symName === "main" ||
       symName === "run" ||
-      /#\[(?:tauri::)?command\s*\]|#\[specta::specta\b/.test(attrsAndSig) ||
+      /#\[(?:tauri::)?command(?:\s*\([^)]*\))?\s*\]|#\[specta::specta\b/.test(attrsAndSig) ||
       /#\[(get|post|put|delete|patch|tokio::main|actix_web::main)\]/.test(attrsAndSig) ||
       (/(^|\/)lib\.rs$/.test(normFile) && /^\s*pub\s+fn\b/.test(attrsAndSig))
     );
@@ -609,6 +722,10 @@ export function isRuntimeEntrySource(lang, fileRel, symName, attrsAndSig, bodyTe
     return (
       symName === "main" ||
       symName === "fetch" ||
+      (lang === "vue" &&
+        /^(?:data|setup|created|beforeCreate|beforeMount|mounted|beforeUpdate|updated|beforeUnmount|unmounted|activated|deactivated|install|render)$/.test(
+          symName
+        )) ||
       normFile.endsWith("App.vue") ||
       normFile.endsWith("App.svelte") ||
       (/(^|\/)index\.(ts|tsx|js|mjs)$/.test(normFile) && /\bexport\b/.test(attrsAndSig)) ||
@@ -616,6 +733,9 @@ export function isRuntimeEntrySource(lang, fileRel, symName, attrsAndSig, bodyTe
       /@(click|submit|change|input|keydown)|on(Click|Submit|Change)\s*=/.test(bodyText) ||
       /ipcMain\.(handle|on)\s*\(|process\.stdin\.on\s*\(/.test(bodyText)
     );
+  }
+  if (lang === "dart") {
+    return symName === "main" || /^(?:build|initState|didChangeDependencies|dispose)$/.test(symName);
   }
   if (lang === "swift") {
     return (
@@ -640,7 +760,10 @@ export function isRuntimeEntrySource(lang, fileRel, symName, attrsAndSig, bodyTe
       symName === "wsgi_app" ||
       symName === "asgi_app" ||
       symName === "__call__" ||
-      /@[A-Za-z_][A-Za-z0-9_.]*\.(get|post|put|delete|route|websocket|command|group|action|on_\w+|before_request|after_request|teardown_request)/.test(
+      /@(?:[A-Za-z_][A-Za-z0-9_.]*\.)?(?:field_validator|model_validator|root_validator|validator|computed_field)\b/.test(
+        attrsAndSig
+      ) ||
+      /@[A-Za-z_][A-Za-z0-9_.]*\.(get|post|put|delete|patch|route|websocket|command|group|action|on_\w+|before_request|after_request|teardown_request)/.test(
         attrsAndSig
       )
     );

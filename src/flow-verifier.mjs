@@ -131,7 +131,20 @@ export function verifyWorkspaceFlow(workspaceRoot, options = {}) {
 
     // 4d. Ignored Pure Function Call (`fn()` called as bare statement, discarding return value when `fn` has no side effects)
     for (const bare of sym.bareIgnoredCalls) {
-      const candidates = (graph.symbolsByName.get(bare.callee) || []).filter((t) => t.zone === "prod");
+      if (!bare.qualifier && (sym.params.includes(bare.callee) || (sym.localVars || []).includes(bare.callee))) {
+        continue;
+      }
+      const symOutEdges = graph.outEdges.get(sym.id) || new Set();
+      const candidates = (graph.symbolsByName.get(bare.callee) || []).filter(
+        (t) =>
+          t.zone === "prod" &&
+          symOutEdges.has(t.id) &&
+          (t.lang === sym.lang ||
+            (sym.lang === "vue" && t.lang === "ts") ||
+            (sym.lang === "ts" && t.lang === "vue") ||
+            (sym.lang === "java" && t.lang === "kotlin") ||
+            (sym.lang === "kotlin" && t.lang === "java"))
+      );
       if (candidates.length === 1) {
         const target = candidates[0];
         const targetStem = path.basename(target.file, path.extname(target.file));
@@ -203,12 +216,15 @@ export function verifyWorkspaceFlow(workspaceRoot, options = {}) {
     }
   }
 
+  const isBlockingBreak = (d) => d.kind === "DEAD_LOCAL_ASSIGNMENT" || d.kind === "IGNORED_PURE_CALL";
+  dataFlowBreaks.sort((a, b) => Number(isBlockingBreak(b)) - Number(isBlockingBreak(a)));
+
   const antiPatterns = gitStatus.addedAntiPatterns;
   const blockingCount =
     brokenBridges.length +
     sandboxViolations.length +
     antiPatterns.length +
-    dataFlowBreaks.filter((d) => d.kind === "DEAD_LOCAL_ASSIGNMENT" || d.kind === "IGNORED_PURE_CALL").length;
+    dataFlowBreaks.filter(isBlockingBreak).length;
 
   return {
     status: blockingCount === 0 ? "PASS" : "ISSUES_FOUND",

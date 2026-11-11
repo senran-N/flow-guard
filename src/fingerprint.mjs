@@ -32,18 +32,18 @@ const KEYWORDS_RE =
 export function classifyZone(relPath) {
   const norm = relPath.replace(/\\/g, "/").toLowerCase();
   if (
-    /(^|\/)(tests?|__tests__|specs?|testing|testdata|fixtures?|protocol\.tests|fuzz|mocks?|test[-_]?helpers?|test[-_]?utils?|test[-_]?support)(\/|$)/.test(
+    /(^|\/)(tests?|__tests__|test[-_]?dts|specs?|testing|testdata|fixtures?|protocol\.tests|fuzz|mocks?|__mocks__|mockwebserver(?:[-_][a-z0-9_-]+)?|[^/]+[-_]testing[-_]support|test[-_]?helpers?|test[-_]?utils?|test[-_]?support|(?:common|jvm|js|native|apple|ios|macos|linux|mingw|wasm[a-z0-9]*|android(?:host|instrumented|unit)?|desktop)tests?)(\/|$)/.test(
       norm
     ) ||
-    /\.(test|spec|bench|d)\.[a-z0-9]+$/.test(norm) ||
-    /(\.pb\.go|\.pb\.gw\.go|\.connect\.go|_pb\.ts|_connect\.ts|\.g\.cs|\.generated\.cs|_tests?\.rs|tests?\.cs|_test\.go|(^|\/)test_[^/]+\.(py|go)|_test\.py|test\.java|tests\.java)$/.test(
+    /\.(test|test-d|spec|bench|d)\.[a-z0-9]+$/.test(norm) ||
+    /(\.pb\.go|\.pb\.gw\.go|\.connect\.go|_pb\.ts|_connect\.ts|\.g\.cs|\.generated\.cs|\.g\.dart|\.freezed\.dart|_tests?\.rs|tests?\.cs|_test\.go|(^|\/)test_[^/]+\.(py|go)|_test\.py|tests?\.java|tests?\.kt|tests?\.swift|_test\.dart|_spec\.rb)$/.test(
       norm
     )
   ) {
     return "test";
   }
   if (
-    /(^|\/)(scratch|lab|experiments?|evals?|evaluations?|examples?|samples?|playground|tmp|sandbox|docs|documentation|website|benchmarks?|benches|bench|metrics|scripts\/profile|\.configs?)(\/|$)/.test(
+    /(^|\/)(scratch|lab|experiments?|evals?|evaluations?|examples?(?:[-_][a-z0-9_-]+)?|samples?(?:[-_][a-z0-9_-]+)?|playground|tmp|sandbox|docs(?:[-_][a-z0-9_-]+)?|documentation|website|benchmarks?|benches|bench|metrics|scripts\/profile|public\/libs?|\.configs?)(\/|$)/.test(
       norm
     ) ||
     /(^|\/)eval[-_][^/]+\.[a-z0-9]+$|\.eval\.[a-z0-9]+$/.test(norm)

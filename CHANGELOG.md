@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed & Hardened (30-Repository Real-World Stress-Test Sweep)
+- **Ruby `@@class_var` Infinite Loop Fix (`src/lang-presets.mjs`)**: Fixed a P0 non-terminating loop in `stripLeadingAttributesAndAnnotations` when encountering Ruby `@@config` class variables (`sidekiq`), adding strict `lang !== "ruby"` and non-progress loop guards.
+- **Dedicated Dart Language Support & Polyglot Lexer Precision (`src/lang-presets.mjs`, `src/lexer.mjs`, `src/file-parser.mjs`, `src/graph-builder.mjs`)**:
+  - Dedicated `dart` family (`{required T x}` / `[T? y]` parameter groups, `this.field` / `super.field` promoted constructors, `package:` import resolution, and `"""` triple-quoted strings).
+  - Full expression token preservation inside `${...}`, `#{...}`, and Swift `\(... )` string interpolations; C++ multi-brace member initializer chains (`: types_{...}, named_args_{}`); Swift bodyless `protocol` bounds, implicit returns, and `T.Type = T.self` metatype parameters; Ruby paren-less `def`, `attr_reader` / `attr_accessor`, block-mutating `.delete_if { ... }`, and implicit returns before `end`/`rescue`/`else`.
+- **Zero-Noise Control/Data-Flow & Side-Effect Precision (`src/file-parser.mjs`, `src/flow-verifier.mjs`)**:
+  - `$`-aware identifier boundaries (`makeIdentRegex`) supporting JS/TS `$id`/`$`/`$tooltip` alongside PHP `$var` and Kotlin/Dart `"$tag"`.
+  - Nested closure body stripping (`stripNestedClosureBodies`) so inner `.map(() => { return x; })` returns never leak `hasReturnValue = true` to outer throwing/void functions (`uptime-kuma`).
+  - Optional-chaining (`?.`) member calls, non-local `Object.assign` / property / reactive `.value` alias mutations, callback parameter invocations, `[` subscript continuations, and call-graph-scoped (`outEdges` + `sameLangFamily`) `IGNORED_PURE_CALL` verification.
+- **Inline `#[cfg(test)]` & Multiplatform Zone Isolation (`src/fingerprint.mjs`, `src/graph-builder.mjs`, `src/bridge-linker.mjs`)**:
+  - Prevents `prod` Rust modules and cross-boundary bridges from linking to inline `#[cfg(test)] mod tests` symbols (`axum`, `SwitchHosts`) while preserving `prod -> sandbox/test` file leak detection.
+  - Classifies KMP `*Test` source sets, `test-dts` / `.test-d.ts`, `mockwebserver*`, `*-testing-support`, `docs_src/`, and `example_*` accurately.
+- **Expanded Full-Stack Bridges & Dispatch Contract Reconciliation (`src/file-parser.mjs`, `src/bridge-linker.mjs`, `src/graph-builder.mjs`)**:
+  - Parameterized `#[tauri::command(async)]`, Socket.io `socket.emit` ⇄ `socket.on` (`ws:*`), Vue Options API `methods: {}`, Laravel `routes/api.php`, FastAPI `APIRouter(prefix=...)` + OpenAPI SDK `{ url: "/api/v1/..." }` sub-router mount matching, plus `CALLBACK_DISPATCH_SIGNATURE` and `INTERFACE_CONTRACT_SIGNATURE` protection.
+
 ### Added & Improved
 - **Transitive Barrel Re-Export & Import Alias Resolution (`src/file-parser.mjs`, `src/graph-builder.mjs`)**: Multi-hop resolution across JS/TS/Vue `export * from` / `export { a } from`, Rust `pub mod` / `pub use`, Python `__init__.py`, and `import { orig as alias }` bindings.
 - **Container-Scoped & ES2022 `#private` State Ownership SSOT (`src/file-parser.mjs`, `src/graph-builder.mjs`, `src/flow-tools.mjs`)**: Isolates `Container.field` and `#private` fields per class/hierarchy while reconciling cross-file public `.prop` reads; recognizes ES2022 `#private` arrow methods and TypeScript multi-property object return types (`: Promise<{ a: T; b: U }> {`).

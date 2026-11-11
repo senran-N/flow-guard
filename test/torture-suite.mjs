@@ -175,15 +175,37 @@ export function main() {
 }
 `,
 
-  // 2. Rust: #[command] + #[specta::specta], r#"..."# raw string interpolation {var}, #[cfg] platform twins with unused param on Windows
+  // 2. Rust: #[command] + #[tauri::command(async)], r#"..."# raw string interpolation {var}, #[cfg] platform twins, and inline #[cfg(test)] isolation
+  "src-tauri/src/routing.rs": `
+pub fn merge(route: &str) -> String {
+    format!("merged:{route}")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn merge() {
+        assert_eq!(super::merge("/"), "merged:/");
+    }
+}
+`,
   "src-tauri/src/lib.rs": `
+mod routing;
+
 #[command]
 #[specta::specta]
 pub async fn sync_vault(label: String) -> Result<String, String> {
     let evt = "verge://refresh-verge-config";
     let html = format!(r#"<div class="badge" data-evt="{evt}">v{label}</div>"#);
-    let p = PlatformEntry::from_path(&html, 3);
+    let routed = routing::merge(&html);
+    let p = PlatformEntry::from_path(&routed, 3);
     Ok(p)
+}
+
+#[tauri::command(async)]
+pub fn reload_hotkey(shortcut: String) -> String {
+    format!("hotkey:{shortcut}")
 }
 
 pub struct PlatformEntry;
@@ -228,7 +250,27 @@ func Run() {
 }
 `,
 
-  // 4. Python: triple-quoted f-string interpolation, generator yield, base class extension hook, FastAPI dynamic route
+  // 4. Python: triple-quoted f-string interpolation, generator yield, base class extension hook, FastAPI dynamic route + APIRouter(prefix=...) + Pydantic @field_validator
+  "app/users_router.py": `
+from fastapi import APIRouter
+from pydantic import BaseModel, field_validator
+
+router = APIRouter(prefix="/users", tags=["users"])
+
+class UserPayload(BaseModel):
+    username: str
+
+    @field_validator("username")
+    @classmethod
+    def normalize_username(cls, v: str) -> str:
+        return v.strip()
+
+@router.get(
+    "/{user_id}",
+)
+def read_user_by_id(user_id: str):
+    return f"user:{user_id}"
+`,
   "app/engine.py": `
 class BaseApp:
     def get_max_age(self, filename: str) -> int:
@@ -259,7 +301,7 @@ def main():
         print(chunk)
 `,
 
-  // 5. C# / Kotlin / C++: C# $@"..." verbatim interpolation + : base(arg) + Guard precondition, Kotlin = expr, C++ : member_{...}
+  // 5. C# / Kotlin / C++: C# $@"..." verbatim interpolation + : base(arg) + Guard precondition, Kotlin = expr + block implicit expr, C++ multi-brace ctor initializer + C callback dispatch table
   "native/Runtime.cs": `
 using System;
 
@@ -288,34 +330,67 @@ public class RuntimeService : BaseService {
 class Helper {
     fun formatTag(tag: String) = "[$tag]"
     fun main() {
-        println(formatTag("ok"))
+        val list = listOf("ok").mapNotNull { item ->
+            try {
+                formatTag(item)
+            } catch (_: Exception) {
+                null
+            }
+        }
+        println(list)
     }
 }
 `,
   "native/formatter.cpp": `
 #include <cstdio>
 
+struct jq_state { int debug; };
+
+static int f_debug(jq_state* jq, int x) {
+    return jq->debug + x;
+}
+
+static int f_abs(jq_state* jq, int x) {
+    return x < 0 ? -x : x;
+}
+
+static int f_neg(jq_state* jq, int x) {
+    return -x;
+}
+
 class Formatter {
+    int types_[2];
+    int named_args_[1];
     int mode_;
 public:
-    Formatter(int mode, const char* label) : mode_{mode} {
-        std::printf("%s: %d\\n", label, mode_);
+    Formatter(int mode, const char* label) : types_{1, 2}, named_args_{0}, mode_{mode} {
+        std::printf("%s: %d %d %d\\n", label, mode_, types_[0], named_args_[0]);
     }
 };
 
 int main() {
-    Formatter f(1, "init");
+    jq_state st{1};
+    int (*dispatch_table[])(jq_state*, int) = { f_debug, f_abs, f_neg };
+    Formatter f(dispatch_table[0](&st, 2), "init");
     return 0;
 }
 `,
-  // 6. Swift / PHP / Ruby: Swift extension + \(interp) + external/internal labels, PHP 8 promoted ctor + $this->field, Ruby rescue + #{interp} + @ivar
+  // 6. Swift / Dart / PHP / Ruby / Vue Options API + Socket.io + JS $ identifiers & nested closure return
   "ios/VaultBridge.swift": `
-struct VaultBadge {
+protocol RequestConvertible {
+    func asURLRequest() -> String
+}
+
+struct VaultBadge: RequestConvertible {
     let prefix: String
+
+    func asURLRequest() -> String {
+        prefix
+    }
 }
 
 extension VaultBadge {
-    func format(for user: String, _ retries: Int = 2) -> String {
+    func format<T>(for user: String, of type: T.Type = T.self, _ retries: Int = 2) -> String {
         return "\\(prefix):\\(user)#\\(retries)"
     }
 }
@@ -324,8 +399,81 @@ extension VaultBadge {
 struct VaultApp {
     static func main() {
         let badge = VaultBadge(prefix: "v1")
-        print(badge.format(for: "alice"))
+        print(badge.asURLRequest())
+        print(badge.format(for: "alice", of: String.self))
     }
+}
+`,
+  "mobile/client.dart": `
+class DioClient {
+  final String endpoint;
+
+  DioClient(this.endpoint);
+
+  String _encode(String raw) => raw.trim();
+
+  String buildUrl({required String name, int retries = 1}) {
+    return "https://$endpoint/\${_encode(name)}?r=\${(retries * 2)}";
+  }
+}
+
+void main() {
+  final client = DioClient("api.local");
+  print(client.buildUrl(name: "ping"));
+}
+`,
+  "src/OptionsPanel.vue": `
+<template>
+  <button @click="pingServer">{{ statusText }}</button>
+</template>
+<script>
+export default {
+  data() {
+    return { statusText: "ready" };
+  },
+  mounted() {
+    this.pingServer();
+  },
+  methods: {
+    pingServer() {
+      socket.emit("kuma:heartbeat", this.statusText);
+    }
+  }
+};
+</script>
+`,
+  "src/dollar_and_closures.ts": `
+import { invoke } from "@tauri-apps/api/core";
+
+const curriedJoin = (prefix: string) => (item: string) => \`\${prefix}:\${item}\`;
+
+function throwFormattedAxiosError(errs: string[]): void {
+  const formatted = errs.map((m) => {
+    return m.trim();
+  });
+  throw new Error(formatted.join(","));
+}
+
+function applyPatch($store: { $id: string; ready?: boolean }, patch: Record<string, unknown>) {
+  const $ = $store.$id;
+  $store.ready = Boolean($);
+  Object.assign($store, patch);
+}
+
+export function bootRealtimeMonitor(client: { get: <A, B, C>(opts: Record<string, unknown>) => Promise<unknown> }, dropdownRef: { current?: { hide: () => void } }) {
+  socket.on("kuma:heartbeat", (msg: string) => {
+    const stateObj: { $id: string; ready?: boolean } = { $id: curriedJoin("store")(msg) };
+    applyPatch(stateObj, { updated: true });
+    dropdownRef.current?.hide();
+    if (!stateObj.ready) {
+      throwFormattedAxiosError([msg]);
+    }
+  });
+  void invoke("reload_hotkey", { shortcut: "Alt+Space" });
+  void (client ?? client).get<string, Error, true>({
+    responseType: "json",
+    url: "/api/v1/users/{user_id}"
+  });
 }
 `,
   "web/MemoController.php": `
@@ -344,9 +492,26 @@ class MemoController {
 `,
   "worker/job.rb": `
 class JobWorker
+  @@config = { retries: 3 }
+  attr_reader :last_job
+
+  def args
+    @args ||= ["default"]
+  end
+
+  def remove_entry(entries, target)
+    entries.delete_if { |item| item == target }
+  end
+
+  def format_done(tag)
+    "done:#{tag}:#{@@config[:retries]}"
+  end
+
   def call(payload)
     @last_job = payload
-    "done:#{payload}:#{@last_job}"
+    list = args + [payload]
+    remove_entry(list, "none")
+    format_done(list.first)
   rescue StandardError => err
     "err:#{err}"
   end
@@ -380,21 +545,34 @@ withTempWorkspace(CLEAN_TORTURE_FILES, (dir) => {
   assert.equal(overloadEntries.length, 1, "Overloaded public API signatures should be deduplicated in flow_blueprint");
   assertionsCount += 2;
 
-  // Assert Tauri bridge (__TAURI_INVOKE("sync_vault") -> #[command] fn sync_vault), RPC bridge (memoServiceClient.createMemo -> APIService.CreateMemo), and Event Bus bridge ("verge://refresh-verge-config") are all CONNECTED with exact symbol attribution
-  const tauriBridge = overview.crossLanguageBridges.find((b) => b.kind === "TAURI_IPC");
+  // Assert Tauri bridge (__TAURI_INVOKE("sync_vault") -> #[command] fn sync_vault), parameterized #[tauri::command(async)], RPC bridge, Socket.io & Event Bus bridges, and OpenAPI sub-router HTTP bridge are all CONNECTED
+  const tauriBridge = overview.crossLanguageBridges.find((b) => b.kind === "TAURI_IPC" && b.toSymbol === "sync_vault");
   assert.ok(tauriBridge && tauriBridge.status === "CONNECTED");
   assert.equal(tauriBridge.fromSymbol, "TortureViewer");
   assert.equal(tauriBridge.toSymbol, "sync_vault");
+
+  const asyncTauriBridge = overview.crossLanguageBridges.find((b) => b.kind === "TAURI_IPC" && b.toSymbol === "reload_hotkey");
+  assert.ok(asyncTauriBridge && asyncTauriBridge.status === "CONNECTED", "Parameterized #[tauri::command(async)] should connect");
+  assert.equal(asyncTauriBridge.fromSymbol, "bootRealtimeMonitor");
 
   const rpcBridge = overview.crossLanguageBridges.find((b) => b.kind === "RPC_SERVICE");
   assert.ok(rpcBridge && rpcBridge.status === "CONNECTED");
   assert.equal(rpcBridge.fromSymbol, "TortureViewer");
   assert.equal(rpcBridge.toSymbol, "APIService.CreateMemo");
 
-  const evtBridge = overview.crossLanguageBridges.find((b) => b.kind === "EVENT_BUS_BRIDGE");
+  const evtBridge = overview.crossLanguageBridges.find(
+    (b) => b.kind === "EVENT_BUS_BRIDGE" && b.contract === "verge://refresh-verge-config"
+  );
   assert.ok(evtBridge && evtBridge.status === "CONNECTED");
   assert.equal(evtBridge.fromSymbol, "sync_vault");
   assert.equal(evtBridge.toSymbol, "TortureViewer");
+
+  const socketBridge = overview.crossLanguageBridges.find(
+    (b) => b.kind === "EVENT_BUS_BRIDGE" && b.contract === "ws:kuma:heartbeat"
+  );
+  assert.ok(socketBridge && socketBridge.status === "CONNECTED", "Socket.io emit <-> on bridge should be CONNECTED");
+  assert.equal(socketBridge.fromSymbol, "pingServer");
+  assert.equal(socketBridge.toSymbol, "bootRealtimeMonitor");
 
   const restGetBridge = overview.crossLanguageBridges.find(
     (b) => b.kind === "HTTP_REST_API" && b.fromSymbol === "TortureViewer" && b.contract.startsWith("GET ")
@@ -407,7 +585,16 @@ withTempWorkspace(CLEAN_TORTURE_FILES, (dir) => {
   );
   assert.ok(restDeleteBridge && restDeleteBridge.status === "CONNECTED", "DELETE /api/memos/:param bridge should be CONNECTED without overwriting GET");
   assert.equal(restDeleteBridge.toSymbol, "delete_memo_detail");
-  assertionsCount += 13;
+
+  const openApiSubRouterBridge = overview.crossLanguageBridges.find(
+    (b) => b.kind === "HTTP_REST_API" && b.fromSymbol === "bootRealtimeMonitor"
+  );
+  assert.ok(
+    openApiSubRouterBridge && openApiSubRouterBridge.status === "CONNECTED",
+    "OpenAPI SDK /api/v1/users/{user_id} -> APIRouter(prefix='/users') should be CONNECTED"
+  );
+  assert.equal(openApiSubRouterBridge.toSymbol, "read_user_by_id");
+  assertionsCount += 20;
 
   // Assert Barrel Re-Export (`export * from "./pages.js"`) + `import { barrelTool as aliasedBarrelTool }` links TortureViewer -> barrelTool
   const barrelTrace = traceSymbolFlow(dir, "barrelTool");
@@ -422,15 +609,20 @@ withTempWorkspace(CLEAN_TORTURE_FILES, (dir) => {
   assert.ok(vueTrace.traces[0]?.roles.includes("source") && vueTrace.traces[0]?.roles.includes("sink"), "Vue SFC @click handler should be wired Source -> Sink");
   assertionsCount++;
 
-  // Assert dedicated Swift extension, PHP 8 promoted ctor + $this->field, and Ruby rescue + @ivar parsers extract clean symbols
+  // Assert dedicated Dart, Swift protocol/extension, PHP 8 promoted ctor + $this->field, and Ruby @@cvar + attr_reader + rescue parsers extract clean symbols
+  assert.ok(traceSymbolFlow(dir, "buildUrl").matchCount >= 1, "Dart DioClient.buildUrl not parsed");
   assert.ok(traceSymbolFlow(dir, "format").matchCount >= 1, "Swift extension method VaultBadge.format not parsed");
   assert.ok(traceSymbolFlow(dir, "check").matchCount >= 1, "PHP MemoController.check not parsed");
   assert.ok(traceSymbolFlow(dir, "JobWorker").matchCount >= 1, "Ruby JobWorker.call not parsed");
-  assertionsCount += 3;
+  assertionsCount += 4;
 
-  // Assert reserved contracts (Rust #[cfg] twin `from_path(depth)` + Python BaseApp hook `get_max_age(filename)`) are protected
-  assert.ok(verify.reservedContracts.length >= 2, `Expected >=2 reservedContracts, got: ${JSON.stringify(verify.reservedContracts)}`);
-  assertionsCount++;
+  // Assert reserved contracts (Rust #[cfg] twin `from_path(depth)`, Python BaseApp hook `get_max_age(filename)`, and C callback dispatch signature `f_abs(jq)`) are protected
+  assert.ok(verify.reservedContracts.length >= 4, `Expected >=4 reservedContracts, got: ${JSON.stringify(verify.reservedContracts)}`);
+  assert.ok(
+    verify.reservedContracts.some((r) => r.reservedParams?.some((p) => p.kind === "CALLBACK_DISPATCH_SIGNATURE" && p.param === "jq")),
+    "C callback dispatch table signature `jq` parameter should be protected as CALLBACK_DISPATCH_SIGNATURE"
+  );
+  assertionsCount += 2;
 });
 
 // ============================================================================

@@ -12,6 +12,28 @@
  * - `{ident}` / `{ident()}` (Python f-strings, Rust format!/raw strings, C# $"..."/$@"...")
  * - `$ident` / `${ident}` (Kotlin "$foo", JS/TS/Bash/PHP)
  */
+function preserveSwiftParenInterpolation(content, i, len, cleanChars) {
+  let depth = 1;
+  let k = i + 2;
+  const limit = Math.min(len, i + 160);
+  while (k < limit && content[k] !== "\n" && content[k] !== "\r") {
+    if (content[k] === "(") depth++;
+    else if (content[k] === ")") {
+      depth--;
+      if (depth === 0) {
+        cleanChars[i + 1] = " ";
+        for (let p = i + 2; p < k; p++) {
+          cleanChars[p] = /[A-Za-z0-9_$().+\-*/%?:,\s]/.test(content[p]) ? content[p] : " ";
+        }
+        cleanChars[k] = " ";
+        return k - i;
+      }
+    }
+    k++;
+  }
+  return 0;
+}
+
 function tryPreserveInterpolation(content, i, len, cleanChars) {
   const ch = content[i];
   const next = i + 1 < len ? content[i + 1] : "";
@@ -26,13 +48,23 @@ function tryPreserveInterpolation(content, i, len, cleanChars) {
       return ident.length;
     }
   } else if ((ch === "#" || ch === "$") && next === "{") {
-    const sub = content.slice(i + 2, Math.min(len, i + 66));
-    const interpM = sub.match(/^(@?[a-zA-Z_][a-zA-Z0-9_.]*(?:\(\))?)(?:[^}\n]*)?\}/);
-    if (interpM) {
-      cleanChars[i + 1] = " ";
-      const ident = interpM[1];
-      for (let k = 0; k < ident.length; k++) cleanChars[i + 2 + k] = ident[k];
-      return ident.length + 1;
+    let depth = 1;
+    let k = i + 2;
+    const limit = Math.min(len, i + 160);
+    while (k < limit && content[k] !== "\n" && content[k] !== "\r") {
+      if (content[k] === "{") depth++;
+      else if (content[k] === "}") {
+        depth--;
+        if (depth === 0) {
+          cleanChars[i + 1] = " ";
+          for (let p = i + 2; p < k; p++) {
+            cleanChars[p] = /[A-Za-z0-9_$@().+\-*/%?:,\s]/.test(content[p]) ? content[p] : " ";
+          }
+          cleanChars[k] = " ";
+          return k - i;
+        }
+      }
+      k++;
     }
   } else if (ch === "$" && /[a-zA-Z_]/.test(next)) {
     const sub = content.slice(i + 1, Math.min(len, i + 64));
@@ -112,13 +144,9 @@ export function scanTokensAndScopes(content, lang) {
     if (state === "TRIPLE_DOUBLE_STR") {
       cleanChars[i] = " ";
       if (lang === "swift" && ch === "\\" && next === "(") {
-        const sub = content.slice(i + 2, Math.min(len, i + 66));
-        const swM = sub.match(/^([a-zA-Z_][a-zA-Z0-9_.]*(?:\(\))?)\)/);
-        if (swM) {
-          cleanChars[i + 1] = " ";
-          const ident = swM[1];
-          for (let k = 0; k < ident.length; k++) cleanChars[i + 2 + k] = ident[k];
-          i += ident.length + 1;
+        const adv = preserveSwiftParenInterpolation(content, i, len, cleanChars);
+        if (adv > 0) {
+          i += adv;
           continue;
         }
       }
@@ -193,13 +221,9 @@ export function scanTokensAndScopes(content, lang) {
     if (state === "DOUBLE_STR") {
       cleanChars[i] = " ";
       if (lang === "swift" && ch === "\\" && next === "(") {
-        const sub = content.slice(i + 2, Math.min(len, i + 66));
-        const swM = sub.match(/^([a-zA-Z_][a-zA-Z0-9_.]*(?:\(\))?)\)/);
-        if (swM) {
-          cleanChars[i + 1] = " ";
-          const ident = swM[1];
-          for (let k = 0; k < ident.length; k++) cleanChars[i + 2 + k] = ident[k];
-          i += ident.length + 1;
+        const adv = preserveSwiftParenInterpolation(content, i, len, cleanChars);
+        if (adv > 0) {
+          i += adv;
           continue;
         }
       }
@@ -323,8 +347,8 @@ export function scanTokensAndScopes(content, lang) {
       continue;
     }
 
-    // Python / Swift triple-quoted strings
-    if ((lang === "python" || lang === "swift") && ch === '"' && next === '"' && next2 === '"') {
+    // Python / Swift / Dart triple-quoted strings
+    if ((lang === "python" || lang === "swift" || lang === "dart") && ch === '"' && next === '"' && next2 === '"') {
       cleanChars[i] = '"';
       cleanChars[i + 1] = " ";
       cleanChars[i + 2] = " ";
@@ -332,7 +356,7 @@ export function scanTokensAndScopes(content, lang) {
       state = "TRIPLE_DOUBLE_STR";
       continue;
     }
-    if (lang === "python" && ch === "'" && next === "'" && next2 === "'") {
+    if ((lang === "python" || lang === "dart") && ch === "'" && next === "'" && next2 === "'") {
       cleanChars[i] = "'";
       cleanChars[i + 1] = " ";
       cleanChars[i + 2] = " ";
@@ -498,8 +522,9 @@ export function resolveSymbolBounds(
     if (fnPos >= 0) nameSearchStart = fnPos + 2;
   }
   const nameEsc = decl.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const nameLeftBound = decl.name.startsWith("#") ? "(?<![A-Za-z0-9_])" : "\\b";
-  const nameRelMatch = lineText.slice(nameSearchStart).match(new RegExp(`${nameLeftBound}${nameEsc}\\b`));
+  const nameLeftBound = decl.name.startsWith("#") || decl.name.startsWith("$") ? "(?<![A-Za-z0-9_$#])" : "\\b";
+  const nameRightBound = decl.name.endsWith("$") ? "(?![A-Za-z0-9_$])" : "\\b";
+  const nameRelMatch = lineText.slice(nameSearchStart).match(new RegExp(`${nameLeftBound}${nameEsc}${nameRightBound}`));
   const nameEndOffset = nameRelMatch
     ? lineStart + nameSearchStart + nameRelMatch.index + decl.name.length
     : lineStart;
@@ -512,7 +537,15 @@ export function resolveSymbolBounds(
     for (const ps of parenSpans) {
       if (ps.openOffset >= afterGenericOffset && ps.openLine >= declLine1 && ps.openLine <= maxHeaderLine) {
         const between = cleanCode.slice(afterGenericOffset, ps.openOffset);
-        if (!between.includes("{") && !between.includes(";")) {
+        if ((lang === "ruby" || lang === "python") && (ps.openLine !== declLine1 || between.includes("\n"))) {
+          break;
+        }
+        if (
+          !between.includes("{") &&
+          !between.includes("}") &&
+          !between.includes(";") &&
+          !/\b(?:end|def|fn|func|fun|class|struct|protocol|interface)\b/.test(between)
+        ) {
           paramSpan = ps;
         }
         break;
@@ -528,10 +561,10 @@ export function resolveSymbolBounds(
     return { paramSpan, endLine: searchFromLine, hasBraceBody: false, isExpressionBody: false };
   }
 
-  // Check for expression-bodied arrow functions / C# `=> expr` / Kotlin `= expr` methods without `{ ... }` body
+  // Check for expression-bodied arrow functions / C# `=> expr` / Dart `=> expr` / Kotlin `= expr` methods without `{ ... }` body
   if (
     (decl.kind === "function" || decl.kind === "method") &&
-    (lang === "ts" || lang === "vue" || lang === "csharp" || lang === "kotlin" || lang === "java")
+    (lang === "ts" || lang === "vue" || lang === "csharp" || lang === "kotlin" || lang === "java" || lang === "dart")
   ) {
     const tailSlice = cleanCode.slice(searchFromOffset, Math.min(cleanCode.length, searchFromOffset + 240));
     const arrowMatch =
@@ -543,16 +576,34 @@ export function resolveSymbolBounds(
         const firstTokAfterArrow = arrowMatch[1];
         if (firstTokAfterArrow !== "{") {
           const exprStartOffset = searchFromOffset + arrowMatch.index + arrowMatch[0].length - 1;
-          // If wrapped in `(...)`, span to matching `)`
+          // If wrapped in `(...)`, span to matching `)` unless it is a curried parameter list `(...) => ...` or chained call
           for (const ps of parenSpans) {
             if (ps.openOffset === exprStartOffset) {
-              return {
-                paramSpan,
-                endLine: ps.closeLine,
-                hasBraceBody: false,
-                isExpressionBody: true,
-                exprStartOffset
-              };
+              const afterParen = cleanCode.slice(ps.closeOffset + 1, Math.min(cleanCode.length, ps.closeOffset + 120));
+              const curriedBraceM = afterParen.match(/^\s*(?::[^={;]+)?=>\s*\{/);
+              if (curriedBraceM) {
+                const braceOpenOff = ps.closeOffset + 1 + curriedBraceM[0].lastIndexOf("{");
+                const bs = braceSpans.find((b) => b.openOffset === braceOpenOff && b.closeOffset > b.openOffset);
+                if (bs) {
+                  return {
+                    paramSpan,
+                    endLine: bs.closeLine,
+                    hasBraceBody: true,
+                    isExpressionBody: false,
+                    braceSpan: bs
+                  };
+                }
+              }
+              if (!/^\s*(?:(?::[^={;]+)?=>|\.|\[|\+|\-|\*|\?|&&|\|\|)/.test(afterParen)) {
+                return {
+                  paramSpan,
+                  endLine: ps.closeLine,
+                  hasBraceBody: false,
+                  isExpressionBody: true,
+                  exprStartOffset
+                };
+              }
+              break;
             }
           }
           // Otherwise expression-bodied arrow/method ending at statement semicolon (respecting balanced parens, brackets, and braces)
@@ -576,7 +627,7 @@ export function resolveSymbolBounds(
                 const currLineText = (cleanLines[exprEndLine - 1] || "").trim();
                 const nextLineText = (cleanLines[exprEndLine] || "").trim();
                 const continuesAtEnd = /[+\-*?:,&|=(.[{]$|=>$/.test(currLineText);
-                const continuesAtStart = /^[.?+&:|-]/.test(nextLineText);
+                const continuesAtStart = /^[.?+&:|-]|^=>/.test(nextLineText);
                 if (currLineText && !continuesAtEnd && !continuesAtStart) break;
               }
               exprEndLine++;
@@ -601,17 +652,26 @@ export function resolveSymbolBounds(
     (decl.kind === "function" || decl.kind === "method") &&
     /^\s*:/.test(cleanCode.slice(searchFromOffset, Math.min(cleanCode.length, searchFromOffset + 40)));
   let cursorOffset = searchFromOffset;
+  let inCppCtorInit = false;
 
   for (const bs of braceSpans) {
     if (bs.openLine >= searchFromLine && bs.openOffset >= cursorOffset && bs.closeOffset > bs.openOffset) {
       const betweenCode = cleanCode.slice(cursorOffset, bs.openOffset);
-      if (betweenCode.includes(";")) {
+      if (betweenCode.includes(";") || (!hasTsReturnTypeColon && betweenCode.includes("}"))) {
         return { paramSpan, endLine: searchFromLine, hasBraceBody: false, isExpressionBody: false };
       }
-      // C++ constructor member brace-initializers (`: types_{...}, context_(fmt) {`)
-      if (lang === "cpp" && /^\s*:/.test(betweenCode) && /[A-Za-z0-9_>]\s*$/.test(betweenCode)) {
-        cursorOffset = bs.closeOffset + 1;
-        continue;
+      // C++ constructor member brace-initializers (`: types_{...}, named_args_{}, parse_funcs_{...} {`)
+      if (
+        lang === "cpp" &&
+        (inCppCtorInit ? /^\s*,/.test(betweenCode) : /^\s*:/.test(betweenCode)) &&
+        /[A-Za-z0-9_>]\s*$/.test(betweenCode)
+      ) {
+        const afterInitClose = cleanCode.slice(bs.closeOffset + 1, Math.min(cleanCode.length, bs.closeOffset + 80));
+        if (/^\s*[,{]/.test(afterInitClose)) {
+          inCppCtorInit = true;
+          cursorOffset = bs.closeOffset + 1;
+          continue;
+        }
       }
       // TypeScript return type object literal (`: Promise<{ a: number; b: string }> {`, `: { a: number; b: string } | null {`)
       if (hasTsReturnTypeColon) {
@@ -624,8 +684,13 @@ export function resolveSymbolBounds(
           continue;
         }
       }
-      // In TS/JS semi-less code, ensure we don't jump across a blank line or another declaration to steal a later `{`
-      if (bs.openLine > searchFromLine + 3 && /\b(const|let|var|function|class|export|def|fn|func)\b/.test(betweenCode)) {
+      // Ensure bodyless declarations (Swift protocol / Kotlin interface / TS semi-less) never steal a subsequent declaration's `{`
+      if (
+        bs.openLine > searchFromLine &&
+        /^\s*(?:public|private|internal|open|fileprivate|protected|override|static|mutating|async|inline|suspend|export|const|let|var|function|fun|func|fn|def|class|struct|enum|protocol|extension|interface|impl|trait)\b/m.test(
+          betweenCode
+        )
+      ) {
         return { paramSpan, endLine: searchFromLine, hasBraceBody: false, isExpressionBody: false };
       }
       return {

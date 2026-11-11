@@ -20,7 +20,7 @@ function findSymbolAtLine(fileObj, line, preferDecoratedTarget = false) {
       preferDecoratedTarget &&
       (s.kind === "function" || s.kind === "method") &&
       s.startLine > line &&
-      s.startLine <= line + 6
+      s.startLine <= line + 12
     ) {
       if (!decoratedFn || s.startLine < decoratedFn.startLine) decoratedFn = s;
     }
@@ -28,11 +28,14 @@ function findSymbolAtLine(fileObj, line, preferDecoratedTarget = false) {
   if (bestFn) return bestFn;
   if (decoratedFn) return decoratedFn;
   if (bestContainer) return bestContainer;
-  // If line is in top-level script / IIFE listener outside named functions, attribute to the file's primary entry/router symbol rather than a tiny utility helper on line 1
+  // If line is in top-level script / IIFE listener outside named functions, attribute to the file's primary prod entry/router symbol rather than a tiny utility helper or inline test
+  const candidates =
+    fileObj.zone === "prod" ? fileObj.symbols.filter((s) => s.zone === "prod") : fileObj.symbols;
   return (
-    fileObj.symbols.find((s) => s.isEntrySource) ||
-    fileObj.symbols.find((s) => /^(?:send|dispatch|postMessage|onMessage|route|main|init|setup|App)$/i.test(s.name)) ||
-    fileObj.symbols[0]
+    candidates.find((s) => s.isEntrySource) ||
+    candidates.find((s) => /^(?:send|dispatch|postMessage|onMessage|route|main|init|setup|App)$/i.test(s.name)) ||
+    candidates[0] ||
+    null
   );
 }
 
@@ -46,8 +49,9 @@ export function linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbo
       const cmdName = typeof item === "string" ? item : item.cmd;
       const line = typeof item === "object" ? item.line : 1;
       const callerSym = findSymbolAtLine(f, line);
+      if (callerSym && callerSym.zone !== "prod") continue;
       const rustTarget = tauriCommands.get(cmdName);
-      if (rustTarget && callerSym) {
+      if (rustTarget && rustTarget.zone === "prod" && callerSym) {
         addSymEdge(callerSym.id, rustTarget.id);
         crossBridges.push({
           kind: "TAURI_IPC",
@@ -76,6 +80,7 @@ export function linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbo
   for (const f of prodFiles) {
     for (const rpc of f.bridgeSignals.rpcCalls || []) {
       const callerSym = findSymbolAtLine(f, rpc.line);
+      if (!callerSym || callerSym.zone !== "prod") continue;
       const pascalMethod = rpc.method[0].toUpperCase() + rpc.method.slice(1);
       const snakeMethod = rpc.method.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
       const candidates = [
@@ -83,7 +88,7 @@ export function linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbo
         ...(symbolsByName.get(snakeMethod) || [])
       ].filter((s) => s.zone === "prod" && s.file !== f.file && s.lang !== f.lang);
 
-      if (candidates.length > 0 && callerSym) {
+      if (candidates.length > 0) {
         // Prefer primary service implementation (`APIService`, `*Service`, `*Server`, `*Handler`)
         const primary =
           candidates.find((c) => c.parentContainerName && /Service$/i.test(c.parentContainerName)) ||
@@ -105,13 +110,13 @@ export function linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbo
     }
   }
 
-  // 3. Cross-Language Event Bus / Custom URI Topic Bridge (`"verge://..."` emit <-> listen)
+  // 3. Cross-Language Event Bus / Custom URI Topic Bridge (`"verge://..."` & Socket.io emit <-> listen)
   const eventEmitters = new Map();
   const eventListeners = new Map();
   for (const f of prodFiles) {
     for (const ev of f.bridgeSignals.eventTouches || []) {
       const sym = findSymbolAtLine(f, ev.line);
-      if (!sym) continue;
+      if (!sym || sym.zone !== "prod") continue;
       const map = ev.mode === "emit" ? eventEmitters : eventListeners;
       if (!map.has(ev.topic)) map.set(ev.topic, []);
       map.get(ev.topic).push({ file: f.file, sym });
@@ -143,7 +148,9 @@ export function linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbo
     for (const item of f.bridgeSignals.electronHandles || []) {
       const ch = typeof item === "string" ? item : item.channel;
       const line = typeof item === "object" ? item.line : 1;
-      electronHandlers.set(ch, { fileObj: f, sym: findSymbolAtLine(f, line) });
+      const sym = findSymbolAtLine(f, line);
+      if (sym && sym.zone !== "prod") continue;
+      electronHandlers.set(ch, { fileObj: f, sym });
     }
   }
   for (const f of prodFiles) {
@@ -151,6 +158,7 @@ export function linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbo
       const ch = typeof item === "string" ? item : item.channel;
       const line = typeof item === "object" ? item.line : 1;
       const callerSym = findSymbolAtLine(f, line);
+      if (callerSym && callerSym.zone !== "prod") continue;
       const target = electronHandlers.get(ch);
       if (target && callerSym && target.sym) {
         addSymEdge(callerSym.id, target.sym.id);
@@ -177,16 +185,19 @@ export function linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbo
     }
   }
 
-  // 5. HTTP REST API: fetch/axios("/api/...") -> Backend Route ("/api/...") with HTTP Method + dynamic param matching
+  // 5. HTTP REST API: fetch/axios("/api/...") -> Backend Route ("/api/...") with HTTP Method + dynamic param + sub-router mount matching
   const normalizeHttpRoute = (p) =>
     String(p || "")
       .replace(/\$\{[^}]+\}|:[A-Za-z_][A-Za-z0-9_]*|\{[A-Za-z_][A-Za-z0-9_:]*\}|<[^>]+>/g, ":param")
       .replace(/\/+$/, "");
+  const stripApiPrefix = (p) => String(p || "").replace(/^\/api(?:\/v\d+)?(?=\/)/i, "");
 
   const routeHandlers = new Map();
-  const pushRouteHandler = (key, entry) => {
-    if (!routeHandlers.has(key)) routeHandlers.set(key, []);
-    const list = routeHandlers.get(key);
+  const strippedRouteHandlers = new Map();
+  const pushToRouteMap = (map, key, entry) => {
+    if (!key) return;
+    if (!map.has(key)) map.set(key, []);
+    const list = map.get(key);
     if (!list.some((e) => e.sym?.id === entry.sym?.id && e.method === entry.method)) {
       list.push(entry);
     }
@@ -197,9 +208,16 @@ export function linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbo
       const rt = typeof item === "string" ? item : item.path;
       const method = (typeof item === "object" && item.method ? item.method : "ANY").toUpperCase();
       const line = typeof item === "object" ? item.line : 1;
-      const entry = { method, fileObj: f, sym: findSymbolAtLine(f, line, true), rawRoute: rt };
-      pushRouteHandler(rt, entry);
-      pushRouteHandler(normalizeHttpRoute(rt), entry);
+      const sym = findSymbolAtLine(f, line, true);
+      if (sym && sym.zone !== "prod") continue;
+      const entry = { method, fileObj: f, sym, rawRoute: rt };
+      const normRt = normalizeHttpRoute(rt);
+      pushToRouteMap(routeHandlers, rt, entry);
+      pushToRouteMap(routeHandlers, normRt, entry);
+      const strippedRt = stripApiPrefix(normRt);
+      if (strippedRt && strippedRt.length > 1) {
+        pushToRouteMap(strippedRouteHandlers, strippedRt, entry);
+      }
     }
   }
   for (const f of prodFiles) {
@@ -208,9 +226,17 @@ export function linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbo
       const callMethod = (typeof item === "object" && item.method ? item.method : "GET").toUpperCase();
       const line = typeof item === "object" ? item.line : 1;
       const callerSym = findSymbolAtLine(f, line);
+      if (callerSym && callerSym.zone !== "prod") continue;
+      const normCall = normalizeHttpRoute(apiPath);
       const exactList = routeHandlers.get(apiPath) || [];
-      const normList = routeHandlers.get(normalizeHttpRoute(apiPath)) || [];
-      const candidates = exactList.length > 0 ? exactList : normList;
+      const normList = routeHandlers.get(normCall) || [];
+      let candidates = exactList.length > 0 ? exactList : normList;
+      if (candidates.length === 0) {
+        const strippedCall = stripApiPrefix(normCall);
+        if (strippedCall && strippedCall.length > 1) {
+          candidates = routeHandlers.get(strippedCall) || strippedRouteHandlers.get(strippedCall) || [];
+        }
+      }
       const matchedHandlers = candidates.filter(
         (h) => h.method === callMethod || h.method === "ANY" || callMethod === "ANY"
       );
@@ -237,7 +263,7 @@ export function linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbo
   for (const f of prodFiles) {
     for (const c of f.bridgeSignals.configTouches || []) {
       const sym = findSymbolAtLine(f, c.line);
-      if (!sym) continue;
+      if (!sym || sym.zone !== "prod") continue;
       const map = c.mode === "write" ? writers : readers;
       if (!map.has(c.file)) map.set(c.file, []);
       map.get(c.file).push({ file: f.file, sym });
