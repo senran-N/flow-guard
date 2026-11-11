@@ -8,6 +8,8 @@ import { generateFlowOverview, traceSymbolFlow, generateWiringBlueprint } from "
 import { verifyWorkspaceFlow } from "../src/flow-verifier.mjs";
 import { runHook } from "../src/hook-runner.mjs";
 import { resolveRoot, handleRpcMessage } from "../src/server.mjs";
+import { getFlowGuardDataDir, getWorkspaceKeyHash } from "../src/graph-diff.mjs";
+import { clearActiveWiringPlan } from "../src/wiring-contract.mjs";
 
 function withTempWorkspace(filesMap, fn) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "flow-guard-torture-"));
@@ -19,6 +21,11 @@ function withTempWorkspace(filesMap, fn) {
     }
     return fn(dir);
   } finally {
+    clearActiveWiringPlan(dir);
+    fs.rmSync(
+      path.join(getFlowGuardDataDir(), `flowguard-baseline-${getWorkspaceKeyHash(dir)}.json`),
+      { force: true }
+    );
     fs.rmSync(dir, { recursive: true, force: true });
   }
 }
@@ -830,7 +837,7 @@ export function runApp(name: string) {
         process.stdout.write = origWrite;
       }
       const initPayload = JSON.parse(rpcCaptured.join("").trim());
-      assert.equal(initPayload.result?.serverInfo?.version, "0.1.1");
+      assert.equal(initPayload.result?.serverInfo?.version, "0.2.0");
       assert.equal(resolveRoot(), path.resolve(gitDir));
       assertionsCount += 2;
 

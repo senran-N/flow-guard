@@ -11,7 +11,7 @@ let cachedAtMs = 0;
 let cachedStamps = null;
 const perFileParseCache = new Map();
 
-function cloneParsedFile(raw) {
+export function cloneParsedFile(raw) {
   return {
     ...raw,
     importedStems: [...(raw.importedStems || [])],
@@ -24,10 +24,17 @@ function cloneParsedFile(raw) {
       ...s,
       parentContainerId: s.parentContainerId,
       isPublicApi: s.isPublicApi,
+      isPackageEntryExport: Boolean(s.isPackageEntryExport),
+      exposure: s.exposure || null,
       roles: [...(s.roles || [])],
       unusedParams: [...(s.unusedParams || [])],
       reservedParams: [...(s.reservedParams || [])],
       localVars: [...(s.localVars || [])],
+      callSites: (s.callSites || []).map((cs) => ({
+        ...cs,
+        passedArgs: [...(cs.passedArgs || [])]
+      })),
+      upperConstantsRead: [...(s.upperConstantsRead || [])],
       calls: [...(s.calls || [])],
       writes: [...(s.writes || [])],
       delegatedWrites: [...(s.delegatedWrites || [])],
@@ -58,22 +65,11 @@ function isCacheStillFresh(stamps) {
   return true;
 }
 
-export function buildWorkspaceFlowGraph(workspaceRoot, forceRebuild = false) {
+export function scanWorkspaceParsedFiles(workspaceRoot) {
   const normRoot = path.resolve(workspaceRoot);
-  const now = performance.now();
-  if (
-    !forceRebuild &&
-    cachedGraph &&
-    cachedRoot === normRoot &&
-    now - cachedAtMs < 2500 &&
-    isCacheStillFresh(cachedStamps)
-  ) {
-    return cachedGraph;
-  }
-
   const files = [];
   const nextStamps = [];
-  if (perFileParseCache.size > 10000) perFileParseCache.clear();
+  if (perFileParseCache.size > 10000) clearFlowGraphCache();
 
   function walk(dir) {
     if (!fs.existsSync(dir)) return;
@@ -124,14 +120,227 @@ export function buildWorkspaceFlowGraph(workspaceRoot, forceRebuild = false) {
   }
 
   walk(normRoot);
-  cachedGraph = assembleFlowGraph(files, normRoot);
-  cachedRoot = normRoot;
-  cachedAtMs = performance.now();
-  cachedStamps = nextStamps;
-  return cachedGraph;
+  return { normRoot, files, nextStamps };
 }
 
-export function assembleFlowGraph(files, workspaceRoot = "") {
+function collectPackageJsonExportPaths(expVal, outSet) {
+  if (!expVal) return;
+  if (typeof expVal === "string") {
+    const clean = expVal.replace(/^\.\//, "").replace(/\\/g, "/");
+    if (clean && !clean.endsWith(".json")) outSet.add(clean);
+    return;
+  }
+  if (Array.isArray(expVal)) {
+    for (const item of expVal) collectPackageJsonExportPaths(item, outSet);
+    return;
+  }
+  if (typeof expVal === "object") {
+    for (const [k, v] of Object.entries(expVal)) {
+      if (k === "types") continue;
+      collectPackageJsonExportPaths(v, outSet);
+    }
+  }
+}
+
+export function inferWorkspaceProfile(workspaceRoot, files, explicitMode = "auto") {
+  const packageEntryCandidates = new Set();
+  let manifestKind = null;
+  let declaredLibrary = false;
+  let declaredApp = false;
+
+  if (workspaceRoot && fs.existsSync(workspaceRoot)) {
+    const pkgPath = path.join(workspaceRoot, "package.json");
+    if (fs.existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+        manifestKind = "package.json";
+        const rawEntries = new Set();
+        if (typeof pkg.main === "string") collectPackageJsonExportPaths(pkg.main, rawEntries);
+        if (typeof pkg.module === "string") collectPackageJsonExportPaths(pkg.module, rawEntries);
+        if (pkg.exports) collectPackageJsonExportPaths(pkg.exports, rawEntries);
+        if (typeof pkg.bin === "string") collectPackageJsonExportPaths(pkg.bin, rawEntries);
+        else if (pkg.bin && typeof pkg.bin === "object") collectPackageJsonExportPaths(Object.values(pkg.bin), rawEntries);
+
+        for (const raw of rawEntries) {
+          packageEntryCandidates.add(raw);
+          const mappedSrc = raw
+            .replace(/^(?:dist|build|lib|out)\//, "src/")
+            .replace(/\.(?:c?js|mjs)$/, "");
+          for (const ext of [".ts", ".tsx", ".mts", ".js", ".mjs", ".jsx"]) {
+            packageEntryCandidates.add(mappedSrc + ext);
+          }
+        }
+
+        const allDeps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+        const hasAppFramework = Boolean(
+          allDeps["@tauri-apps/api"] ||
+            allDeps["electron"] ||
+            allDeps["next"] ||
+            allDeps["nuxt"] ||
+            allDeps["@sveltejs/kit"] ||
+            fs.existsSync(path.join(workspaceRoot, "index.html")) ||
+            fs.existsSync(path.join(workspaceRoot, "src-tauri"))
+        );
+        if (pkg.exports || (!pkg.private && (pkg.main || pkg.module || pkg.types || pkg.typings) && !hasAppFramework)) {
+          declaredLibrary = true;
+        }
+        if (pkg.private === true || hasAppFramework || pkg.bin) {
+          declaredApp = true;
+        }
+      } catch {
+        // Ignore malformed package.json
+      }
+    }
+
+    const cargoPath = path.join(workspaceRoot, "Cargo.toml");
+    if (fs.existsSync(cargoPath)) {
+      try {
+        const cargo = fs.readFileSync(cargoPath, "utf8");
+        manifestKind = manifestKind || "Cargo.toml";
+        if (/\[lib\]/.test(cargo) || (fs.existsSync(path.join(workspaceRoot, "src/lib.rs")) && !fs.existsSync(path.join(workspaceRoot, "src-tauri")))) {
+          declaredLibrary = true;
+          packageEntryCandidates.add("src/lib.rs");
+        }
+        if (/\[\[bin\]\]/.test(cargo) || fs.existsSync(path.join(workspaceRoot, "src/main.rs")) || fs.existsSync(path.join(workspaceRoot, "src-tauri"))) {
+          declaredApp = true;
+        }
+      } catch {
+        // Ignore read error
+      }
+    }
+
+    const cmakePath = path.join(workspaceRoot, "CMakeLists.txt");
+    if (fs.existsSync(cmakePath)) {
+      try {
+        const cmake = fs.readFileSync(cmakePath, "utf8");
+        manifestKind = manifestKind || "CMakeLists.txt";
+        if (/\badd_library\s*\(/i.test(cmake)) declaredLibrary = true;
+        if (/\badd_executable\s*\(/i.test(cmake)) declaredApp = true;
+      } catch {
+        // Ignore read error
+      }
+    }
+  }
+
+  const prodFiles = files.filter((f) => f.zone === "prod");
+  const fileSet = new Set(prodFiles.map((f) => f.file));
+  const packageEntryFiles = new Set();
+  for (const cand of packageEntryCandidates) {
+    if (fileSet.has(cand)) packageEntryFiles.add(cand);
+  }
+
+  // Root-level canonical package barrels (`src/index.*`, `index.*`, `src/lib.rs`, `include/*.h`) when library or manifestless
+  for (const f of prodFiles) {
+    if (
+      (!declaredApp || declaredLibrary || !manifestKind) &&
+      (/^(?:src\/|lib\/)?(?:index|mod)\.(?:[cm]?[jt]sx?|py|dart)$/i.test(f.file) ||
+        (/^(?:src\/|crates\/[^/]+\/src\/)?lib\.rs$/i.test(f.file) && !f.file.startsWith("src-tauri/")) ||
+        /^include\/.*\.(?:h|hpp|cuh)$/i.test(f.file))
+    ) {
+      packageEntryFiles.add(f.file);
+    }
+  }
+
+  const runtimeLanguages = new Set();
+  const appEntryLanguages = new Set();
+  let hasDynamicPluginLoading = false;
+  for (const f of prodFiles) {
+    const isCanonicalAppFile =
+      /(?:^|\/)(?:main|app|program|index)\.(?:[cm]?[jt]sx?|vue|svelte|rs|py|go|cs|java|kt|swift|dart|cpp|cc|c)$/i.test(
+        f.file
+      ) && !/^(?:src\/|lib\/)?index\.(?:ts|js|mjs)$/i.test(f.file);
+    for (const s of f.symbols) {
+      if (s.isEntrySource) {
+        runtimeLanguages.add(f.lang);
+        if (
+          /^(?:main|Main|WinMain|wmain|run|App)$/.test(s.name) ||
+          isCanonicalAppFile ||
+          declaredApp
+        ) {
+          appEntryLanguages.add(f.lang);
+        }
+      }
+      if (
+        (s.fileCalls || f.fileCalls || []).some((c) =>
+          /^(?:dlopen|LoadLibrary|LoadLibraryA|LoadLibraryW|import_module|registerPlugin|loadPlugin|AssemblyResolve)$/i.test(c)
+        ) ||
+        (f.rawContent || s.snippet || "").includes("AssemblyResolve")
+      ) {
+        hasDynamicPluginLoading = true;
+      }
+    }
+    if (
+      (f.bridgeSignals?.httpRoutes?.length || 0) > 0 ||
+      (f.bridgeSignals?.electronHandles?.length || 0) > 0 ||
+      (f.bridgeSignals?.webview2Touches?.length || 0) > 0
+    ) {
+      runtimeLanguages.add(f.lang);
+      appEntryLanguages.add(f.lang);
+    }
+  }
+
+  let projectMode = "hybrid";
+  if (explicitMode === "app" || explicitMode === "application") {
+    projectMode = "application";
+  } else if (explicitMode === "library" || explicitMode === "lib") {
+    projectMode = "library";
+  } else if (declaredLibrary && !declaredApp) {
+    projectMode = "library";
+  } else if (declaredApp && !declaredLibrary) {
+    projectMode = "application";
+  } else if (!manifestKind && appEntryLanguages.size > 0 && packageEntryFiles.size === 0) {
+    projectMode = "application";
+  } else if (!manifestKind && runtimeLanguages.size === 0) {
+    projectMode = "library";
+  }
+
+  return {
+    projectMode,
+    explicitMode,
+    manifestKind,
+    declaredLibrary,
+    declaredApp,
+    packageEntryFiles,
+    runtimeLanguages,
+    appEntryLanguages,
+    hasDynamicPluginLoading
+  };
+}
+
+export function buildWorkspaceFlowGraph(workspaceRoot, forceRebuild = false, options = {}) {
+  const normRoot = path.resolve(workspaceRoot);
+  const explicitMode = options.projectMode || "auto";
+  const now = performance.now();
+  if (
+    !forceRebuild &&
+    cachedGraph &&
+    cachedRoot === normRoot &&
+    cachedGraph.workspaceProfile?.projectMode &&
+    explicitMode === "auto" &&
+    now - cachedAtMs < 2500 &&
+    isCacheStillFresh(cachedStamps)
+  ) {
+    return cachedGraph;
+  }
+
+  const { files, nextStamps } = scanWorkspaceParsedFiles(normRoot);
+  const graph = assembleFlowGraph(files, normRoot, { projectMode: explicitMode });
+  if (explicitMode === "auto") {
+    cachedGraph = graph;
+    cachedRoot = normRoot;
+    cachedAtMs = performance.now();
+    cachedStamps = nextStamps;
+  }
+  return graph;
+}
+
+function formatSymRef(sym) {
+  const label = sym.parentContainerName ? `${sym.parentContainerName}.${sym.name}` : sym.name;
+  return `${sym.file}:${sym.startLine} (${label})`;
+}
+
+export function assembleFlowGraph(files, workspaceRoot = "", options = {}) {
+  const workspaceProfile = inferWorkspaceProfile(workspaceRoot, files, options.projectMode || "auto");
   const symbolById = new Map();
   const symbolsByName = new Map();
   const containersByName = new Map();
@@ -175,6 +384,10 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
   const outEdges = new Map();
   const inEdges = new Map();
   const callInEdges = new Map();
+  const controlOutEdges = new Map();
+  const outEdgeDetails = new Map();
+  const inEdgeDetails = new Map();
+  const edgeDedupKeys = new Set();
   const fileOutEdges = new Map();
   const fileInEdges = new Map();
 
@@ -182,34 +395,98 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     outEdges.set(id, new Set());
     inEdges.set(id, new Set());
     callInEdges.set(id, new Set());
+    controlOutEdges.set(id, new Set());
+    outEdgeDetails.set(id, []);
+    inEdgeDetails.set(id, []);
   }
   for (const f of files) {
     fileOutEdges.set(f.file, new Set());
     fileInEdges.set(f.file, new Set());
   }
 
-  function addSymEdge(fromId, toId, isStructuralContainerEdge = false) {
+  function addSymEdge(fromId, toId, edgeMetaOrStructural = false) {
     if (fromId === toId) return;
     if (!outEdges.has(fromId) || !inEdges.has(toId)) return;
     const fromSym = symbolById.get(fromId);
     const toSym = symbolById.get(toId);
+
+    const meta =
+      typeof edgeMetaOrStructural === "object" && edgeMetaOrStructural !== null
+        ? edgeMetaOrStructural
+        : {
+            kind: edgeMetaOrStructural === true ? "CONTAINS" : "SEQ_CALL",
+            evidence: {
+              file: fromSym?.file || "",
+              line: fromSym?.startLine || 1,
+              reason: edgeMetaOrStructural === true ? "类/容器成员归属" : "直接符号调用"
+            },
+            resolution: {
+              mode: fromSym && toSym && fromSym.file === toSym.file ? "EXACT_SAME_FILE" : "IMPORT_OR_SCOPE",
+              confidence: "HIGH"
+            }
+          };
+
+    const isStructuralOrStateOnly = meta.kind === "CONTAINS" || meta.kind === "STATE_RW" || meta.kind === "IMPLEMENTS";
     outEdges.get(fromId).add(toId);
     inEdges.get(toId).add(fromId);
-    if (!isStructuralContainerEdge && (!fromSym || fromSym.zone === "prod")) {
+    if (meta.kind !== "STATE_RW") {
+      controlOutEdges.get(fromId).add(toId);
+    }
+    if (!isStructuralOrStateOnly && (!fromSym || fromSym.zone === "prod")) {
       callInEdges.get(toId).add(fromId);
     }
     if (fromSym && toSym && fromSym.file !== toSym.file) {
       fileOutEdges.get(fromSym.file)?.add(toSym.file);
       fileInEdges.get(toSym.file)?.add(fromSym.file);
     }
+
+    const dedupKey = `${fromId}|${toId}|${meta.kind}|${meta.evidence?.line || 0}|${meta.evidence?.stateField || ""}|${meta.evidence?.contract || ""}`;
+    if (!edgeDedupKeys.has(dedupKey)) {
+      edgeDedupKeys.add(dedupKey);
+      const record = {
+        fromId,
+        toId,
+        kind: meta.kind,
+        evidence: meta.evidence || { file: fromSym?.file || "", line: fromSym?.startLine || 1, reason: meta.kind },
+        resolution: meta.resolution || { mode: "IMPORT_OR_SCOPE", confidence: "MEDIUM" }
+      };
+      outEdgeDetails.get(fromId).push(record);
+      inEdgeDetails.get(toId).push(record);
+    }
   }
 
-  // 0. Link Container (Class/Struct) <-> Member Methods (marked as structural edge so `callInEdges` stays pure)
+  // 0. Link Container (Class/Struct) <-> Member Methods (`CONTAINS`) and Base <-> Subclass (`IMPLEMENTS`)
   for (const sym of symbolById.values()) {
     if (sym.parentContainerId && symbolById.has(sym.parentContainerId)) {
       const parentSym = symbolById.get(sym.parentContainerId);
       if (parentSym && (parentSym.zone !== "prod" || sym.zone === "prod")) {
-        addSymEdge(sym.parentContainerId, sym.id, true);
+        addSymEdge(sym.parentContainerId, sym.id, {
+          kind: "CONTAINS",
+          evidence: {
+            file: sym.file,
+            line: sym.startLine,
+            reason: `容器 ${parentSym.name} 包含成员 ${sym.name}`
+          },
+          resolution: { mode: "EXACT_SAME_FILE", confidence: "HIGH" }
+        });
+      }
+    }
+  }
+
+  for (const [baseName, subs] of subclassesByBase.entries()) {
+    const baseContainers = (containersByName.get(baseName) || []).filter((b) => b.zone === "prod");
+    for (const baseSym of baseContainers) {
+      for (const subSym of subs) {
+        addSymEdge(baseSym.id, subSym.id, {
+          kind: "IMPLEMENTS",
+          evidence: {
+            file: subSym.file,
+            line: subSym.startLine,
+            reason: `${subSym.name} 继承/实现契约 ${baseName}`,
+            contract: baseName
+          },
+          resolution: { mode: "CONTAINER_QUALIFIED", confidence: "HIGH" }
+        });
       }
     }
   }
@@ -264,17 +541,23 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     return Array.from(results);
   }
 
-  // Compute transitive resolved target files & stems per file (across C++ headers & multi-hop barrel re-exports)
+  // Compute transitive resolved target files & stems per file + propagate package entry barrel re-exports
   const resolvedImportedFilesByFile = new Map();
+  const directImportedFilesByFile = new Map();
+  const barrelExpandedEntryFiles = new Set(workspaceProfile.packageEntryFiles);
+
   for (const f of files) {
     const expandedStems = new Set(f.importedStems || []);
     const resolvedFiles = new Set();
+    const directFiles = new Set();
+    const isEntryBarrel = barrelExpandedEntryFiles.has(f.file);
 
     if (f.lang === "cpp" && f.importedStems) {
       for (const st of f.importedStems) {
         for (const hdr of filesByStem.get(st) || []) {
           if (hdr.file.endsWith(".h") || hdr.file.endsWith(".hpp") || hdr.file.endsWith(".cuh")) {
             resolvedFiles.add(hdr.file);
+            directFiles.add(hdr.file);
             for (const sub of hdr.importedStems || []) expandedStems.add(sub);
           }
         }
@@ -284,7 +567,13 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     const queue = [];
     for (const spec of f.importedPaths || []) {
       for (const tf of resolveImportTargetFiles(f.file, spec, f.lang)) {
-        queue.push({ tf, depth: 0 });
+        directFiles.add(tf.file);
+        queue.push({ tf, depth: 0, viaReExport: (f.reExportedPaths || []).includes(spec) });
+      }
+    }
+    for (const reSpec of f.reExportedPaths || []) {
+      for (const tf of resolveImportTargetFiles(f.file, reSpec, f.lang)) {
+        queue.push({ tf, depth: 0, viaReExport: true });
       }
     }
     if (f.lang === "rust") {
@@ -292,7 +581,8 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
       for (const st of f.importedStems || []) {
         for (const cand of filesByStem.get(st) || []) {
           if (cand.lang === "rust" && cand.file !== f.file && cand.file.startsWith(fDir === "." ? "" : fDir)) {
-            queue.push({ tf: cand, depth: 0 });
+            directFiles.add(cand.file);
+            queue.push({ tf: cand, depth: 0, viaReExport: (f.reExportedStems || []).includes(st) });
           }
         }
       }
@@ -300,8 +590,11 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
 
     const visitedBarrelFiles = new Set();
     while (queue.length > 0) {
-      const { tf, depth } = queue.shift();
+      const { tf, depth, viaReExport } = queue.shift();
       resolvedFiles.add(tf.file);
+      if (isEntryBarrel && viaReExport) {
+        barrelExpandedEntryFiles.add(tf.file);
+      }
       const tfStem = path.basename(tf.file, path.extname(tf.file));
       if (tfStem) expandedStems.add(tfStem);
       if (depth >= 5 || visitedBarrelFiles.has(tf.file)) continue;
@@ -309,7 +602,7 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
 
       for (const reSpec of tf.reExportedPaths || []) {
         for (const nextTf of resolveImportTargetFiles(tf.file, reSpec, tf.lang)) {
-          queue.push({ tf: nextTf, depth: depth + 1 });
+          queue.push({ tf: nextTf, depth: depth + 1, viaReExport });
         }
       }
       for (const reStem of tf.reExportedStems || []) {
@@ -317,7 +610,7 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
         const tfDir = path.posix.dirname(tf.file.replace(/\\/g, "/"));
         for (const nextTf of filesByStem.get(reStem) || []) {
           if (nextTf.lang === tf.lang && (tfDir === "." || nextTf.file.startsWith(tfDir))) {
-            queue.push({ tf: nextTf, depth: depth + 1 });
+            queue.push({ tf: nextTf, depth: depth + 1, viaReExport });
           }
         }
       }
@@ -325,16 +618,32 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
 
     f.importedStems = Array.from(expandedStems);
     resolvedImportedFilesByFile.set(f.file, resolvedFiles);
+    directImportedFilesByFile.set(f.file, directFiles);
   }
 
-  // 1. Scoped Call Edge Resolution (with explicit import, barrel re-export & module stem binding)
+  for (const sym of symbolById.values()) {
+    if (sym.zone === "prod" && sym.isPublicApi && barrelExpandedEntryFiles.has(sym.file)) {
+      sym.isPackageEntryExport = true;
+    }
+  }
+
+  // 1. Scoped Call Edge Resolution (with explicit call-site evidence, edge kind & ambiguity preservation)
   for (const sym of symbolById.values()) {
     const callerFileObj = fileByPath.get(sym.file);
     const importedSet = new Set(callerFileObj?.importedStems || []);
     const importedPaths = callerFileObj?.importedPaths || [];
     const resolvedImportFiles = resolvedImportedFilesByFile.get(sym.file) || new Set();
+    const directImportFiles = directImportedFilesByFile.get(sym.file) || new Set();
     const callSet = new Set(sym.calls);
     const symDir = path.dirname(sym.file);
+
+    const sitesByCallee = new Map();
+    for (const cs of sym.callSites || []) {
+      for (const key of new Set([cs.callee, cs.rawCallee].filter(Boolean))) {
+        if (!sitesByCallee.has(key)) sitesByCallee.set(key, []);
+        sitesByCallee.get(key).push(cs);
+      }
+    }
 
     const qualifiedReceiversForMember = new Map();
     for (const qc of sym.qualifiedCalls || []) {
@@ -344,9 +653,48 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
       qualifiedReceiversForMember.get(qc.member).add(qc.receiver);
     }
 
+    const buildEdgeMetaFromSites = (targetSym, sites, resolutionMode, confidence, candidatePool = null) => {
+      const primarySite = sites && sites.length > 0 ? sites[0] : null;
+      const isRegistration =
+        Boolean(primarySite?.isRegistrationRef) ||
+        Boolean(targetSym.isCallbackRef && !primarySite) ||
+        (/^(?:register|subscribe|bind|mount|provide)[A-Z_]/i.test(sym.name) && Boolean(primarySite));
+      const isBranch = !isRegistration && Boolean(primarySite?.inConditionalBranch);
+      const kind = isRegistration ? "REGISTRATION" : isBranch ? "BRANCH_DISPATCH" : "SEQ_CALL";
+      const line = primarySite?.line || sym.startLine;
+      const passedArgs = primarySite?.passedArgs || [];
+      const returnFlow = primarySite?.returnFlow || "CONSUMED_EXPR";
+      const branchGroupLine = primarySite?.branchGroupLine || null;
+      const reasonPrefix =
+        kind === "REGISTRATION"
+          ? "注册/挂载引用"
+          : kind === "BRANCH_DISPATCH"
+            ? `条件分支派发 (分支头 L${branchGroupLine || line})`
+            : "顺序调用步骤";
+      const candidates =
+        candidatePool && candidatePool.length > 1 ? candidatePool.map(formatSymRef) : undefined;
+      return {
+        kind,
+        evidence: {
+          file: sym.file,
+          line,
+          reason: `${reasonPrefix}: ${sym.name} ➔ ${targetSym.name}`,
+          ...(passedArgs.length > 0 ? { passedArgs } : {}),
+          returnFlow,
+          ...(branchGroupLine ? { branchGroupLine } : {})
+        },
+        resolution: {
+          mode: resolutionMode,
+          confidence,
+          ...(candidates ? { candidates } : {})
+        }
+      };
+    };
+
     for (const calleeName of sym.calls) {
       if (/^(main|wmain|WinMain|wWinMain|DllMain)$/.test(calleeName)) continue;
       const targets = symbolsByName.get(calleeName) || [];
+      const sites = sitesByCallee.get(calleeName) || [];
       const qualRecvs = qualifiedReceiversForMember.get(calleeName);
       const hasExternalQualifier =
         qualRecvs &&
@@ -356,10 +704,14 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
         (t) => t.file === sym.file && t.id !== sym.id && (sym.zone !== "prod" || t.zone === "prod")
       );
       if (sameFileTargets.length > 0 && !/^[A-Z]/.test(calleeName) && !hasExternalQualifier) {
-        for (const t of sameFileTargets) addSymEdge(sym.id, t.id);
+        const conf = sameFileTargets.length === 1 ? "HIGH" : "AMBIGUOUS";
+        for (const t of sameFileTargets) {
+          addSymEdge(sym.id, t.id, buildEdgeMetaFromSites(t, sites, "EXACT_SAME_FILE", conf, sameFileTargets));
+        }
         continue;
       }
 
+      const matchedCrossTargets = [];
       for (const t of targets) {
         if (t.id === sym.id) continue;
         const targetStem = path.basename(t.file, path.extname(t.file));
@@ -388,7 +740,7 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
         if (!sameLangFamily) continue;
 
         if (t.file === sym.file) {
-          addSymEdge(sym.id, t.id);
+          matchedCrossTargets.push({ target: t, mode: "EXACT_SAME_FILE" });
         } else {
           // Standalone executable entry files (`apps/*`, `tools/*`, `plugins/*` `main.*`) are never imported as libraries by other directories
           const tDirNorm = path.dirname(t.file).replace(/\\/g, "/");
@@ -401,20 +753,55 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
             continue;
           }
 
-          if (
-            resolvedImportFiles.has(t.file) ||
-            importedSet.has(targetStem) ||
-            callSet.has(targetStem) ||
-            (t.parentContainerName && (callSet.has(t.parentContainerName) || importedSet.has(t.parentContainerName))) ||
-            calleeName === targetStem ||
-            ((t.kind === "class" || t.kind === "struct") && (importedSet.size === 0 || importedSet.has(targetStem) || path.dirname(t.file) === symDir)) ||
+          let mode = null;
+          if (directImportFiles.has(t.file)) {
+            mode = "EXACT_IMPORT";
+          } else if (resolvedImportFiles.has(t.file)) {
+            mode = "BARREL_REEXPORT";
+          } else if (
+            t.parentContainerName &&
+            (callSet.has(t.parentContainerName) || importedSet.has(t.parentContainerName))
+          ) {
+            mode = "CONTAINER_QUALIFIED";
+          } else if (importedSet.has(targetStem) || callSet.has(targetStem) || calleeName === targetStem) {
+            mode = "EXACT_IMPORT";
+          } else if (
             (t.lang === "go" && path.dirname(t.file) === symDir) ||
             (t.lang === "cpp" && path.dirname(t.file) === symDir) ||
+            ((t.kind === "class" || t.kind === "struct") && path.dirname(t.file) === symDir)
+          ) {
+            mode = "SAME_PACKAGE_DIR";
+          } else if (
+            ((t.kind === "class" || t.kind === "struct") && importedSet.size === 0) ||
             (importedSet.size === 0 &&
               (t.lang === "csharp" || t.lang === "java" || t.lang === "kotlin" || t.lang === "swift" || t.lang === "cpp"))
           ) {
-            addSymEdge(sym.id, t.id);
+            mode = "HEURISTIC_NAME";
           }
+
+          if (mode) {
+            matchedCrossTargets.push({ target: t, mode });
+          }
+        }
+      }
+
+      if (matchedCrossTargets.length > 0) {
+        // Prefer exact/direct import matches over heuristic name matches if both exist
+        const hasExact = matchedCrossTargets.some(
+          (m) => m.mode === "EXACT_SAME_FILE" || m.mode === "EXACT_IMPORT" || m.mode === "BARREL_REEXPORT" || m.mode === "CONTAINER_QUALIFIED"
+        );
+        const filtered = hasExact
+          ? matchedCrossTargets.filter((m) => m.mode !== "HEURISTIC_NAME")
+          : matchedCrossTargets;
+        const candidateSyms = filtered.map((m) => m.target);
+        for (const { target, mode } of filtered) {
+          const confidence =
+            filtered.length > 1
+              ? "AMBIGUOUS"
+              : mode === "HEURISTIC_NAME" || mode === "SAME_PACKAGE_DIR"
+                ? "MEDIUM"
+                : "HIGH";
+          addSymEdge(sym.id, target.id, buildEdgeMetaFromSites(target, sites, mode, confidence, candidateSyms));
         }
       }
     }
@@ -422,11 +809,14 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
 
   // 2. Cross-Boundary Bridges
   const crossBridges = linkCrossBoundaryBridges(files, tauriCommands, addSymEdge, symbolsByName);
+  const unmatchedEventEmitters = crossBridges.unmatchedEventEmitters || [];
   const bridgeSources = new Set();
   const bridgeSinks = new Set();
   for (const b of crossBridges) {
-    for (const s of symbolsByName.get(b.toSymbol) || []) {
-      if (s.file === b.toFile) bridgeSources.add(s.id);
+    if (b.status === "CONNECTED") {
+      for (const s of symbolsByName.get(b.toSymbol?.split(".").pop() || b.toSymbol) || []) {
+        if (s.file === b.toFile) bridgeSources.add(s.id);
+      }
     }
     for (const s of symbolsByName.get(b.fromSymbol) || []) {
       if (s.file === b.fromFile) bridgeSinks.add(s.id);
@@ -602,13 +992,91 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
           wSym.file === rSym.file ||
           (wSym.parentContainerName && wSym.parentContainerName === rSym.parentContainerName)
         ) {
-          addSymEdge(wId, rId);
+          addSymEdge(wId, rId, {
+            kind: "STATE_RW",
+            evidence: {
+              file: wSym.file,
+              line: wSym.startLine,
+              reason: `状态写读关联 (${st.qualifiedField}): ${wSym.name} 写入 ➔ ${rSym.name} 读取`,
+              stateField: st.qualifiedField
+            },
+            resolution: {
+              mode: st.scope ? "CONTAINER_QUALIFIED" : "EXACT_SAME_FILE",
+              confidence: st.scope ? "HIGH" : "MEDIUM"
+            }
+          });
         }
       }
     }
   }
 
-  // 4. Internal vs. External Symbol Table Diff & Topological Role Assignment
+  // 3c. Field-Level Lifecycle Persistence Symmetry (`Save/Serialize` reads <-> `Load/Deserialize` writes)
+  const fieldLifecycleAsymmetries = [];
+  const persistenceGroupsByScope = new Map();
+  for (const sym of symbolById.values()) {
+    if (sym.zone !== "prod" || !sym.paired) continue;
+    if (!sym.paired.group.startsWith("Save/Load")) continue;
+    const scopeKey = rootContainerOf(sym.parentContainerName) || `FILE:${sym.file}`;
+    if (!persistenceGroupsByScope.has(scopeKey)) {
+      persistenceGroupsByScope.set(scopeKey, { scopeKey, saveSyms: [], loadSyms: [] });
+    }
+    const grp = persistenceGroupsByScope.get(scopeKey);
+    if (sym.paired.side === "left") grp.saveSyms.push(sym);
+    else grp.loadSyms.push(sym);
+  }
+  for (const grp of persistenceGroupsByScope.values()) {
+    if (grp.saveSyms.length === 0 || grp.loadSyms.length === 0) continue;
+    const savedFields = new Set();
+    const loadedFields = new Set();
+    for (const s of grp.saveSyms) {
+      for (const r of s.reads) savedFields.add(r);
+    }
+    for (const l of grp.loadSyms) {
+      for (const w of l.writes) loadedFields.add(w);
+    }
+    // Only enforce field symmetry when Load actually writes at least 1 state field (confirming stateful Load pattern)
+    if (loadedFields.size > 0 && savedFields.size > 0) {
+      const containerScope = grp.scopeKey.startsWith("FILE:") ? null : grp.scopeKey;
+      for (const fld of savedFields) {
+        if (!loadedFields.has(fld)) {
+          const stKey = containerScope ? `${containerScope}.${fld}` : fld;
+          const own = stateOwnership.get(stKey);
+          if (own && own.writers.length > 0) {
+            fieldLifecycleAsymmetries.push({
+              kind: "SAVED_WITHOUT_LOAD_RECOVERY",
+              field: fld,
+              qualifiedField: stKey,
+              saveMethods: grp.saveSyms.map(formatSymRef),
+              loadMethods: grp.loadSyms.map(formatSymRef),
+              files: Array.from(new Set([...grp.saveSyms.map((s) => s.file), ...grp.loadSyms.map((s) => s.file)])),
+              diagnosis: `生命周期不对称：字段 "${stKey}" 在保存侧 [${grp.saveSyms.map((s) => s.name).join(", ")}] 中被持久化读取，但在恢复侧 [${grp.loadSyms.map((s) => s.name).join(", ")}] 中从未写回（重启或读档后将无法恢复）`
+            });
+          }
+        }
+      }
+      for (const fld of loadedFields) {
+        if (!savedFields.has(fld)) {
+          const stKey = containerScope ? `${containerScope}.${fld}` : fld;
+          const own = stateOwnership.get(stKey);
+          // Only flag if there is also a non-Load setter modifying this field at runtime
+          const nonLoadWriters = (own?.writers || []).filter((wId) => !grp.loadSyms.some((l) => l.id === wId));
+          if (nonLoadWriters.length > 0) {
+            fieldLifecycleAsymmetries.push({
+              kind: "LOADED_WITHOUT_SAVE_PERSISTENCE",
+              field: fld,
+              qualifiedField: stKey,
+              saveMethods: grp.saveSyms.map(formatSymRef),
+              loadMethods: grp.loadSyms.map(formatSymRef),
+              files: Array.from(new Set([...grp.saveSyms.map((s) => s.file), ...grp.loadSyms.map((s) => s.file)])),
+              diagnosis: `生命周期不对称：字段 "${stKey}" 有运行期修改且在 [${grp.loadSyms.map((s) => s.name).join(", ")}] 中加载，但未在 [${grp.saveSyms.map((s) => s.name).join(", ")}] 中保存`
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // 4. Internal vs. External Symbol Table Diff & Honest Topological Role Assignment
   const PURE_RECEIVERS =
     /^(?:Math|JSON|Object|Array|Number|String|Boolean|RegExp|Date|Symbol|BigInt|Reflect|Intl|Buffer|path|url|querystring|performance|crypto|strconv|strings|bytes|filepath|unicode|utf8)$/;
   const PURE_MEMBER_METHODS =
@@ -619,6 +1087,7 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
 
   for (const sym of symbolById.values()) {
     const outSet = outEdges.get(sym.id) || new Set();
+    const controlOutSet = controlOutEdges.get(sym.id) || new Set();
     const inSet = inEdges.get(sym.id) || new Set();
     const callInSet = callInEdges.get(sym.id) || new Set();
 
@@ -643,21 +1112,35 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     sym.hasExternalBoundaryEffect = callsExternalBoundary;
 
     const roles = new Set();
+    const isFnOrMethod = sym.kind === "function" || sym.kind === "method";
 
-    const isExposedPublicApi =
-      (sym.isPublicApi || sym.isReferencedInFile) &&
-      (sym.kind === "function" || sym.kind === "method");
+    // Determine exposure surface WITHOUT conflating arbitrary `export` with runtime `source`!
+    if (sym.isEntrySource) {
+      sym.exposure = "RUNTIME_ENTRY";
+    } else if (bridgeSources.has(sym.id)) {
+      sym.exposure = "PROTOCOL_BRIDGE_INBOUND";
+    } else if (sym.isPackageEntryExport) {
+      sym.exposure = "LIBRARY_PACKAGE_ENTRY";
+    } else if (sym.isPublicApi) {
+      sym.exposure = "INTERNAL_MODULE_EXPORT";
+    } else if (sym.isReferencedInFile) {
+      sym.exposure = "SAME_FILE_CALLBACK_OR_TABLE";
+    } else {
+      sym.exposure = "PRIVATE_INTERNAL";
+    }
 
-    if (
-      sym.isEntrySource ||
-      bridgeSources.has(sym.id) ||
-      (isExposedPublicApi && callInSet.size === 0)
-    ) {
+    const isLegitLibraryRootSource =
+      isFnOrMethod &&
+      callInSet.size === 0 &&
+      ((sym.isPackageEntryExport && workspaceProfile.projectMode !== "application") ||
+        (workspaceProfile.projectMode === "library" && sym.isPublicApi));
+
+    if (sym.isEntrySource || bridgeSources.has(sym.id) || isLegitLibraryRootSource) {
       roles.add("source");
     }
     if (
-      (inSet.size > 0 || sym.isEntrySource || isExposedPublicApi) &&
-      ((sym.conditionalCount >= 1 && outSet.size >= 2) || outSet.size >= 3)
+      (inSet.size > 0 || sym.isEntrySource || sym.isPublicApi || sym.isReferencedInFile) &&
+      ((sym.conditionalCount >= 1 && controlOutSet.size >= 2) || controlOutSet.size >= 3)
     ) {
       roles.add("branch");
     }
@@ -673,39 +1156,52 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     sym.roles = Array.from(roles);
   }
 
-  // 5. Bidirectional BFS (Forward from Prod Sources & Public Library Roots, Backward from Prod Sinks)
-  const reachableFromSource = new Set();
-  const sourceQueue = [];
+  // 5. Two-Tier Forward Reachability:
+  //    5a. `reachableFromRuntimeSource`: Strictly from true runtime triggers (`isEntrySource`), incoming protocol bridges, or same-file bootstrap tables
+  const reachableFromRuntimeSource = new Set();
+  const runtimeQueue = [];
   for (const sym of symbolById.values()) {
-    if (sym.zone === "prod" && sym.roles.includes("source")) {
-      reachableFromSource.add(sym.id);
-      sourceQueue.push(sym.id);
+    if (sym.zone !== "prod") continue;
+    if (sym.isEntrySource || bridgeSources.has(sym.id)) {
+      reachableFromRuntimeSource.add(sym.id);
+      runtimeQueue.push(sym.id);
     }
   }
-  while (sourceQueue.length > 0) {
-    const curr = sourceQueue.shift();
-    for (const next of outEdges.get(curr) || []) {
-      if (!reachableFromSource.has(next)) {
-        reachableFromSource.add(next);
-        sourceQueue.push(next);
+  while (runtimeQueue.length > 0) {
+    const curr = runtimeQueue.shift();
+    for (const next of controlOutEdges.get(curr) || []) {
+      if (!reachableFromRuntimeSource.has(next)) {
+        reachableFromRuntimeSource.add(next);
+        runtimeQueue.push(next);
       }
     }
   }
-  // Ensure mutually-recursive exported library APIs (with no uncalled root) are also marked reachable
+
+  //    5b. `reachableFromSource`: Includes `reachableFromRuntimeSource` + legitimate library/package exports (for non-app slices)
+  const reachableFromSource = new Set(reachableFromRuntimeSource);
+  const sourceQueue = Array.from(reachableFromRuntimeSource);
   for (const sym of symbolById.values()) {
-    if (
-      sym.zone === "prod" &&
-      !reachableFromSource.has(sym.id) &&
-      (sym.isPublicApi || sym.isReferencedInFile) &&
-      (sym.kind === "function" || sym.kind === "method")
-    ) {
+    if (sym.zone !== "prod" || reachableFromSource.has(sym.id)) continue;
+    const langHasRuntimeInApp =
+      workspaceProfile.projectMode === "application" &&
+      (workspaceProfile.declaredApp ||
+        workspaceProfile.explicitMode === "application" ||
+        workspaceProfile.explicitMode === "app" ||
+        workspaceProfile.appEntryLanguages?.has(sym.lang) ||
+        (sym.lang === "ts" && workspaceProfile.appEntryLanguages?.has("vue")));
+    const allowAsLibrarySurface =
+      sym.roles.includes("source") ||
+      sym.isPackageEntryExport ||
+      sym.isReferencedInFile ||
+      (!langHasRuntimeInApp && sym.isPublicApi && (sym.kind === "function" || sym.kind === "method"));
+    if (allowAsLibrarySurface) {
       reachableFromSource.add(sym.id);
       sourceQueue.push(sym.id);
     }
   }
   while (sourceQueue.length > 0) {
     const curr = sourceQueue.shift();
-    for (const next of outEdges.get(curr) || []) {
+    for (const next of controlOutEdges.get(curr) || []) {
       if (!reachableFromSource.has(next)) {
         reachableFromSource.add(next);
         sourceQueue.push(next);
@@ -745,7 +1241,6 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
       valSinkQueue.push(sym.id);
     }
   }
-  // If `caller` reaches a sink and calls `callee` to consume its return value (or contract method), `callee`'s output flows into `caller` -> sink
   while (valSinkQueue.length > 0) {
     const curr = valSinkQueue.shift();
     for (const calleeId of outEdges.get(curr) || []) {
@@ -777,6 +1272,9 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
   }
   for (const sym of symbolById.values()) {
     if (sym.zone !== "prod") continue;
+    if (sym.parentContainerId && reachableFromRuntimeSource.has(sym.id)) {
+      reachableFromRuntimeSource.add(sym.parentContainerId);
+    }
     if (sym.parentContainerId && reachableFromSource.has(sym.id)) {
       reachableFromSource.add(sym.parentContainerId);
     }
@@ -926,6 +1424,7 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
 
   return {
     workspaceRoot,
+    workspaceProfile,
     files,
     fileByPath,
     symbolById,
@@ -935,11 +1434,17 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
     outEdges,
     inEdges,
     callInEdges,
+    controlOutEdges,
+    outEdgeDetails,
+    inEdgeDetails,
     fileOutEdges,
     fileInEdges,
     crossBridges,
+    unmatchedEventEmitters,
     stateOwnership,
     stateKeysBySymbol,
+    fieldLifecycleAsymmetries,
+    reachableFromRuntimeSource,
     reachableFromSource,
     reachesSideEffectSink,
     reachesSink
@@ -948,7 +1453,7 @@ export function assembleFlowGraph(files, workspaceRoot = "") {
 
 export function getGitWorkingTreeStatus(workspaceRoot) {
   if (!fs.existsSync(path.join(workspaceRoot, ".git"))) {
-    return { isGitRepo: false, changedFiles: [], addedAntiPatterns: [] };
+    return { isGitRepo: false, changedFiles: [], deletedFiles: [], addedAntiPatterns: [] };
   }
   try {
     const statusOut = execSync("git status --porcelain", {
@@ -956,14 +1461,26 @@ export function getGitWorkingTreeStatus(workspaceRoot) {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"]
     });
-    const changedFiles = statusOut
+    const rawEntries = statusOut
       .split(/\r?\n/)
-      .filter((l) => l.trim().length > 0 && !/^\s*D\s/.test(l))
-      .map((l) => {
-        const raw = l.slice(3).trim();
-        const target = raw.includes(" -> ") ? raw.split(" -> ").pop() : raw;
-        return target.replace(/^"|"$/g, "").replace(/\\/g, "/");
-      });
+      .filter((l) => l.trim().length > 0);
+    const deletedFiles = [];
+    const changedFiles = [];
+    for (const l of rawEntries) {
+      const code = l.slice(0, 2);
+      const raw = l.slice(3).trim();
+      const target = raw.includes(" -> ") ? raw.split(" -> ").pop() : raw;
+      const normTarget = target.replace(/^"|"$/g, "").replace(/\\/g, "/");
+      if (/D/.test(code) && !raw.includes(" -> ")) {
+        deletedFiles.push(normTarget);
+      } else {
+        changedFiles.push(normTarget);
+        if (raw.includes(" -> ")) {
+          const oldPath = raw.split(" -> ")[0].replace(/^"|"$/g, "").replace(/\\/g, "/");
+          deletedFiles.push(oldPath);
+        }
+      }
+    }
 
     const addedAntiPatterns = [];
     if (changedFiles.length > 0) {
@@ -1003,8 +1520,8 @@ export function getGitWorkingTreeStatus(workspaceRoot) {
       }
     }
 
-    return { isGitRepo: true, changedFiles, addedAntiPatterns };
+    return { isGitRepo: true, changedFiles, deletedFiles, addedAntiPatterns };
   } catch {
-    return { isGitRepo: false, changedFiles: [], addedAntiPatterns: [] };
+    return { isGitRepo: false, changedFiles: [], deletedFiles: [], addedAntiPatterns: [] };
   }
 }

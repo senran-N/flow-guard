@@ -4,6 +4,34 @@ All notable changes to **FlowGuard** will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-11
+
+### Added
+- **Shared Task Wiring Plan (`flow_blueprint` ⇄ `flow_verify`, `src/wiring-contract.mjs`, `src/flow-tools.mjs`, `src/flow-verifier.mjs`)**:
+  - `flow_blueprint` now builds and persists a structured `wiringPlan` (`obligations` with target location, reason, expected relation, reference basis, verification method, and `ambiguitiesToConfirm`), accepting `targetSymbol`, `targetField`, `consumerTarget`, and `requirePersistence`.
+  - `flow_verify` evaluates both persisted blueprint obligations and auto-inferred delta obligations (`A1`–`A9`), closing the loop between planning and verification.
+- **3-Tier Evidence Separation (`L1_STRUCTURAL` ➔ `L2_DATA_FLOW` ➔ `L3_BEHAVIORAL`) & Context-Aware `export` Semantics (`src/graph-builder.mjs`, `src/file-parser.mjs`, `src/wiring-contract.mjs`)**:
+  - `inferWorkspaceProfile` distinguishes `application`, `library`, and `hybrid` workspaces with two-tier reachability (`reachableFromRuntimeSource` vs `reachableFromSource`): library exports remain valid external entry points, whereas newly exported symbols in an `application` without runtime entry evidence are flagged as unwired (`unwiredExports`).
+  - Field-level `L2_DATA_FLOW` verification checks that newly added config/protocol fields reach their downstream `consumerTarget` (detecting cases where a setting is saved to config while calculation logic still reads a hardcoded `UPPER_CASE` constant, or where frontend/backend IPC/HTTP payload keys drift) and verifies field-level `Save ⇄ Load` persistence symmetry (`fieldLifecycleAsymmetries`).
+  - Optional `runTestsCommand` parameter executes behavioral test/probe commands for `L3_BEHAVIORAL` evidence while marking static-only behavioral checks `INCONCLUSIVE`.
+- **Typed & Evidenced Graph Relations + 8-Channel Polyglot Bridges (`src/file-parser.mjs`, `src/bridge-linker.mjs`, `src/graph-builder.mjs`, `src/flow-tools.mjs`)**:
+  - Classifies graph relations into `CONTAINS`, `SEQ_CALL`, `BRANCH_DISPATCH`, `REGISTRATION`, `STATE_RW`, `IMPLEMENTS`, and `PROTOCOL_BRIDGE`, recording `file:line`, `passedArgs`, `returnFlow`, `resolution.mode`, and `confidence` (`HIGH | MEDIUM | AMBIGUOUS` with full `candidates` preserved on ambiguous matches).
+  - Separates `siblingBranchesToCheck` (conditional dispatch peers) from `sequentialStepsInCaller` (`authenticate -> validate -> save`) in `flow_trace`.
+  - Adds `WEBVIEW2_IPC` (`window.chrome.webview` ⇄ C++/C# `WebMessageReceived` / `PostWebMessageAsJson`) and `SHARED_MEMORY_IPC` (Win32 `CreateFileMapping` / POSIX `shm_open` ⇄ Python `mmap` / `shared_memory`), RPC client-prefix disambiguation, and IPC/HTTP payload field extraction.
+- **Graph-Diff Incremental Verification (`G_base ➔ G_curr`, `src/graph-diff.mjs`, `src/hook-runner.mjs`, `src/server.mjs`)**:
+  - Supports both `SessionStart` baseline snapshots and arbitrary Git references (`baseRef` / `--base <git-ref>`, reconstructed in-memory via `git diff --name-status` + `git show` without touching the working tree).
+  - Expands verification scope along dependency edges (`impactedUntouchedFiles`) to catch untouched-file regressions (`newlyWriteOnlyStates`, `newlyWriterlessStateReads`, `newlyOrphanedSymbols`, `newlyBrokenPaths`) while isolating `preExistingBrokenBridges` from `newlyBrokenBridges`.
+- **Tri-State Verdicts (`SATISFIED` / `VIOLATED` / `INCONCLUSIVE`), Dead-Code Evidence Grading & Smart `Stop` Hook (`src/flow-verifier.mjs`, `src/hook-runner.mjs`)**:
+  - Reports explicit obligation breakdowns (`headlineSummary`) and separates `CONFIRMED_SAFE_TO_DELETE` private dead pipes from `NO_STATIC_CALLER_EVIDENCE` unwired exports, plus write-only telemetry/audit sink exemptions.
+  - `Stop` hook blocks strictly on newly introduced `VIOLATED` contracts/breaks (never blocking on `INCONCLUSIVE` or historical broken bridges) and supports `FLOWGUARD_MODE=advisory`.
+- **14-Scenario Real-Task Incomplete-Wiring Benchmark Suite (`test/task-benchmark-suite.mjs`)**:
+  - Adds 73 end-to-end assertions across 8 realistic incomplete-wiring tasks (`100%` recall) and 6 legal counterexamples (`0%` false violations), bringing total automated assertions to `142` (`69` torture + `73` task benchmark).
+
+### Changed & Fixed
+- **Honest Similarity & Capability Labeling (`src/flow-tools.mjs`, `src/fingerprint.mjs`, `README.md`)**: Replaced overstated "AST fingerprint" wording with explicit `LEXICAL_SHINGLE_JACCARD` labeling and documented static vs. runtime verification boundaries.
+- **Case-Aware Symmetric Lifecycle Pairs (`src/fingerprint.mjs`)**: Extended `SYMMETRIC_PAIRS` to recognize camelCase and snake_case (`saveConfig`/`loadConfig`, `toJSON`/`fromJSON`, `persist`/`restore`, `save_preferences`/`load_preferences`) in addition to PascalCase.
+- **Parser Edge-Case Fixes (`src/file-parser.mjs`, `src/lang-presets.mjs`)**: Fixed C++ file-local `static` function `isPublicApi` classification, bottom-of-file `export { fn }` false self-reference, shorthand object payload extraction (`{ a, b }`), ternary `? "str"` false EventBus emitter matching, and Windows backslash normalization in `SHARED_MEMORY_IPC`.
+
 ## [0.1.1] - 2026-11-11
 
 ### Fixed & Hardened (33-Repository Real-World Stress-Test Sweep)

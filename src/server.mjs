@@ -14,7 +14,7 @@ const TOOLS = [
   {
     name: "flow_overview",
     description:
-      "【全局架构视野】扫描代码仓库的子系统分层拓扑（architectureDomains）、Top 8 端到端主干因果动脉（backbonePipelines）、高中心度枢纽符号（architecturalHubs）、多态继承与预留契约目录（extensionAndReserveCatalog）、跨语言桥接与状态唯一写入权（SSOT）。",
+      "【全局架构视野】扫描代码仓库的项目模式（application/library/hybrid）、子系统分层拓扑（architectureDomains）、主干因果动脉（backbonePipelines）、高中心度枢纽符号（architecturalHubs）、多态与预留契约目录、跨语言桥接与状态唯一写入权（SSOT）。支持保存任务初始水路基线快照。",
     inputSchema: {
       type: "object",
       properties: {
@@ -25,6 +25,15 @@ const TOOLS = [
         syncToAgentsMd: {
           type: "boolean",
           description: "是否将最新端到端水路 Mermaid 图写入 AGENTS.md 的 <!-- FLOWGUARD:START --> 块中"
+        },
+        saveBaseline: {
+          type: "boolean",
+          description: "是否将当前水路图保存为本次任务的初始基线快照（供后续跨多次修改的增量图差异验收使用）"
+        },
+        projectMode: {
+          type: "string",
+          enum: ["auto", "application", "library", "hybrid"],
+          description: "覆盖工程模式判定（默认 auto 自动从 manifest 与运行入口识别）"
         }
       }
     }
@@ -32,7 +41,7 @@ const TOOLS = [
   {
     name: "flow_trace",
     description:
-      "【改代码前必调】输入任意函数名、类名、文件名或状态字段，透视其所属架构域与签名、修改爆炸半径评估（blastRadius）、入参消费与预留契约矩阵（parameterFlowMatrix）、多态同族实现（polymorphicPeers）、上下游完整因果水路、同级分流支路（防改A漏B）及可复用近似函数。",
+      "【改代码前必调】输入任意函数名、类名、文件名或状态字段，透视带源码行号与置信度证据的有向关系（evidencedRelations：区分 CONTAINS / SEQ_CALL / BRANCH_DISPATCH / REGISTRATION / STATE_RW / IMPLEMENTS / PROTOCOL_BRIDGE）、同级条件分支与顺序职责步骤分离、入参消费矩阵、多态同族与归一化词法 Shingle 近似候选。",
     inputSchema: {
       type: "object",
       properties: {
@@ -43,6 +52,11 @@ const TOOLS = [
         target: {
           type: "string",
           description: "要透视追踪的函数名、类名、状态字段名或文件名"
+        },
+        projectMode: {
+          type: "string",
+          enum: ["auto", "application", "library", "hybrid"],
+          description: "覆盖工程模式判定（默认 auto）"
         }
       },
       required: ["target"]
@@ -51,7 +65,7 @@ const TOOLS = [
   {
     name: "flow_blueprint",
     description:
-      "【新功能/隔离实验代码接入生产前必调】指定参考模块名，生成架构定位档案（所属域、容器继承、公开 API 面、同族可对标实现 peerImplementations、预留签名契约）及四站式施工单（1.构造与注册表挂载 ➔ 2.上游分流入口 ➔ 3.成对对称契约 ➔ 4.下游真实终端与状态落点）。",
+      "【接新功能/改跨层链路前必调】指定参考模块或状态字段，生成架构定位档案、四站式接线位置，并持久化一份与 flow_verify 共享的可追踪接入目标清单（wiringPlan：含 L1 结构接通、L2 数据传递消费、Save⇄Load 对称恢复及待确认歧义项）。",
     inputSchema: {
       type: "object",
       properties: {
@@ -61,7 +75,28 @@ const TOOLS = [
         },
         reference: {
           type: "string",
-          description: "参考的现有同类模块名、类名或文件名"
+          description: "参考的现有同类模块名、类名、状态字段名或文件名"
+        },
+        targetSymbol: {
+          type: "string",
+          description: "本次计划新增或接入的目标函数/类名（可选，传入后 flow_verify 将精确核验其入口与注册）"
+        },
+        targetField: {
+          type: "string",
+          description: "本次计划新增或打通的配置/协议字段名（可选，传入后 flow_verify 将核验该字段是否真正传入下游计算并对称持久化）"
+        },
+        consumerTarget: {
+          type: "string",
+          description: "预期消费 targetField 的核心业务计算函数或类名（可选，用于检测“已写入配置但过滤计算仍读旧常量”）"
+        },
+        requirePersistence: {
+          type: "string",
+          enum: ["auto", "required", "not_required"],
+          description: "该特性是否要求跨重启保存与恢复（Save ⇄ Load），默认 auto 按参考模块契约推断"
+        },
+        savePlan: {
+          type: "boolean",
+          description: "是否持久化该接入清单供后续 flow_verify 自动对照验收（默认 true）"
         }
       },
       required: ["reference"]
@@ -70,7 +105,7 @@ const TOOLS = [
   {
     name: "flow_verify",
     description:
-      "【改完代码交卷前必调】执行端到端通水试验与增量审计：精准区分“预留扩展点/多态对齐/条件编译契约（reservedContracts，严禁误删改签名）”与“真实孤立断流（dataFlowBreaks）/ 零水流死代码废管（unwiredOrDeadPipes）”，并检测跨语言断链、沙盒反向泄漏、只写死水状态与重复造轮子。",
+      "【改完代码交卷前必调】基于共享接入目标清单（wiringPlan）与修改前后水路图差异（Graph Diff：含未修改文件的波及断流），按 L1 结构接通 / L2 数据生效 / L3 行为测试三层证据逐项给出 SATISFIED（满足）/ VIOLATED（违反）/ INCONCLUSIVE（证据不足待确认）三态结论。",
     inputSchema: {
       type: "object",
       properties: {
@@ -80,7 +115,24 @@ const TOOLS = [
         },
         fullScan: {
           type: "boolean",
-          description: "是否强制执行全仓扫描（默认在 Git 工作区存在变更时仅增量审计变更的源码文件）"
+          description: "是否强制执行全仓静态扫描（默认优先对比基线快照或 Git 增量图差异）"
+        },
+        baseRef: {
+          type: "string",
+          description: "指定对比的 Git 基线引用（如 HEAD、HEAD~1、main 或提交 SHA），支持跨多次提交的任务级图差异验收"
+        },
+        projectMode: {
+          type: "string",
+          enum: ["auto", "application", "library", "hybrid"],
+          description: "覆盖工程模式判定（application 模式下未接入入口的新增 export 将判为 VIOLATED；library 模式下包公开导出判为合法入口）"
+        },
+        runTestsCommand: {
+          type: "string",
+          description: "可选测试命令（传入后将实际运行命令以闭环 L3 行为生效证据）"
+        },
+        clearPlan: {
+          type: "boolean",
+          description: "是否在本次验收前清除已保存的旧蓝图接入清单"
         }
       }
     }
@@ -109,13 +161,31 @@ export function executeTool(name, args = {}) {
   const root = resolveRoot(args.workspaceRoot);
   switch (name) {
     case "flow_overview":
-      return generateFlowOverview(root, Boolean(args.syncToAgentsMd));
+      return generateFlowOverview(root, Boolean(args.syncToAgentsMd), {
+        saveBaseline: Boolean(args.saveBaseline),
+        projectMode: args.projectMode
+      });
     case "flow_trace":
-      return traceSymbolFlow(root, args.target);
+      return traceSymbolFlow(root, args.target, {
+        projectMode: args.projectMode
+      });
     case "flow_blueprint":
-      return generateWiringBlueprint(root, args.reference);
+      return generateWiringBlueprint(root, args.reference, {
+        targetSymbol: args.targetSymbol,
+        targetField: args.targetField,
+        consumerTarget: args.consumerTarget,
+        requirePersistence: args.requirePersistence,
+        savePlan: args.savePlan,
+        projectMode: args.projectMode
+      });
     case "flow_verify":
-      return verifyWorkspaceFlow(root, { fullScan: Boolean(args.fullScan) });
+      return verifyWorkspaceFlow(root, {
+        fullScan: Boolean(args.fullScan),
+        baseRef: args.baseRef,
+        projectMode: args.projectMode,
+        runTestsCommand: args.runTestsCommand,
+        clearPlan: Boolean(args.clearPlan)
+      });
     default:
       throw new Error(`Unknown tool: ${name}`);
   }
@@ -160,7 +230,7 @@ export function handleRpcMessage(msg) {
       result: {
         protocolVersion: params?.protocolVersion || "2024-11-05",
         capabilities: { tools: {} },
-        serverInfo: { name: "flow-guard", version: "0.1.1" }
+        serverInfo: { name: "flow-guard", version: "0.2.0" }
       }
     });
     return;
@@ -216,7 +286,16 @@ if (isMainModule) {
     const toolName = toolMap[rawName] || rawName;
     const rawRest = process.argv.slice(4);
     const hasFullFlag = rawRest.includes("--full");
-    const positional = rawRest.filter((arg) => arg !== "--full");
+    let baseRefArg = undefined;
+    const positional = [];
+    for (let i = 0; i < rawRest.length; i++) {
+      if (rawRest[i] === "--full") continue;
+      if (rawRest[i] === "--base" && rawRest[i + 1]) {
+        baseRefArg = rawRest[++i];
+        continue;
+      }
+      positional.push(rawRest[i]);
+    }
     let rawArgs = {};
     if (positional[0]) {
       if (positional[0].trim().startsWith("{")) {
@@ -230,6 +309,7 @@ if (isMainModule) {
       }
     }
     if (hasFullFlag) rawArgs.fullScan = true;
+    if (baseRefArg) rawArgs.baseRef = baseRefArg;
     const result = executeTool(toolName, rawArgs);
     process.stdout.write(JSON.stringify(result, null, 2) + "\n");
     process.exit(0);

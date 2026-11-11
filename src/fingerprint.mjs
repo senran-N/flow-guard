@@ -1,27 +1,27 @@
 const SYMMETRIC_PAIRS = [
   {
-    left: /^(?:Save|Write|Serialize|Encode|Pack|Export)(?:[A-Z_]|$)/,
-    right: /^(?:Load|Read|Deserialize|Decode|Unpack|Import)(?:[A-Z_]|$)/,
+    left: /^(?:[Ss]ave|[Ss]erialize|[Ee]ncode|[Pp]ack|[Pp]ersist|Write|Export|toJSON|to_json)(?:[A-Z_]|$)/,
+    right: /^(?:[Ll]oad|[Dd]eserialize|[Dd]ecode|[Uu]npack|[Rr]estore|[Hh]ydrate|Read|Import|fromJSON|from_json)(?:[A-Z_]|$)/,
     label: "Save/Load (持久化/序列化对称)"
   },
   {
-    left: /^(?:Send|Broadcast|Emit|Publish)(?:[A-Z_]|$)/,
-    right: /^(?:Receive|OnMessage|Consume|Poll)(?:[A-Z_]|$)/,
+    left: /^(?:[Ss]end|[Bb]roadcast|[Ee]mit|[Pp]ublish)(?:[A-Z_]|$)/,
+    right: /^(?:[Rr]eceive|[Oo]nMessage|[Cc]onsume|[Pp]oll)(?:[A-Z_]|$)/,
     label: "Send/Receive (网络/事件收发对称)"
   },
   {
-    left: /^(?:Register|Subscribe|Bind|Attach)(?:[A-Z_]|$)/,
-    right: /^(?:Unregister|Unsubscribe|Unbind|Detach)(?:[A-Z_]|$)/,
+    left: /^(?:[Rr]egister|[Ss]ubscribe|[Bb]ind|[Aa]ttach)(?:[A-Z_]|$)/,
+    right: /^(?:[Uu]nregister|[Uu]nsubscribe|[Uu]nbind|[Dd]etach)(?:[A-Z_]|$)/,
     label: "Register/Unregister (生命周期注册/注销对称)"
   },
   {
-    left: /^(?:Start|Open|Connect|Enable)(?:[A-Z_]|$)/,
-    right: /^(?:Stop|Close|Disconnect|Disable)(?:[A-Z_]|$)/,
+    left: /^(?:[Ss]tart|[Oo]pen|[Cc]onnect|[Ee]nable)(?:[A-Z_]|$)/,
+    right: /^(?:[Ss]top|[Cc]lose|[Dd]isconnect|[Dd]isable)(?:[A-Z_]|$)/,
     label: "Start/Stop (启停与连接生命周期对称)"
   },
   {
-    left: /^(?:Acquire|Lock|Enter)(?:[A-Z_]|$)/,
-    right: /^(?:Release|Unlock|Leave)(?:[A-Z_]|$)/,
+    left: /^(?:[Aa]cquire|[Ll]ock|[Ee]nter)(?:[A-Z_]|$)/,
+    right: /^(?:[Rr]elease|[Uu]nlock|[Ll]eave)(?:[A-Z_]|$)/,
     label: "Acquire/Release (资源获取/释放对称)"
   }
 ];

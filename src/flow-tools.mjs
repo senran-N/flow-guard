@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { buildWorkspaceFlowGraph } from "./graph-builder.mjs";
+import { saveSessionBaseline } from "./graph-diff.mjs";
+import { buildAndSaveWiringPlan } from "./wiring-contract.mjs";
 import { jaccardSimilarity } from "./fingerprint.mjs";
 import { shortId } from "./flow-verifier.mjs";
 import {
@@ -12,18 +14,28 @@ import {
   computeSymbolArchContext
 } from "./arch-vision.mjs";
 
-export function generateFlowOverview(workspaceRoot, syncToAgentsMd = false) {
-  const graph = buildWorkspaceFlowGraph(workspaceRoot);
+export function generateFlowOverview(workspaceRoot, syncToAgentsMd = false, options = {}) {
+  const graph = buildWorkspaceFlowGraph(workspaceRoot, false, {
+    projectMode: options.projectMode || "auto"
+  });
+  if (options.saveBaseline) {
+    saveSessionBaseline(workspaceRoot, graph);
+  }
+
   const prodFiles = graph.files.filter((f) => f.zone === "prod");
   const testFiles = graph.files.filter((f) => f.zone === "test");
   const sandboxFiles = graph.files.filter((f) => f.zone === "sandbox");
 
   const sources = [];
+  const runtimeEntrySources = [];
+  const exportedApiSymbols = [];
   const branches = [];
   const sinks = [];
   for (const sym of graph.symbolById.values()) {
     if (sym.zone !== "prod") continue;
     if (sym.roles.includes("source")) sources.push(sym);
+    if (sym.isEntrySource || sym.exposure === "PROTOCOL_BRIDGE_INBOUND") runtimeEntrySources.push(sym);
+    if (sym.isPublicApi && (sym.kind === "function" || sym.kind === "method")) exportedApiSymbols.push(sym);
     if (sym.roles.includes("branch")) branches.push(sym);
     if (sym.roles.includes("sink")) sinks.push(sym);
   }
@@ -111,6 +123,13 @@ export function generateFlowOverview(workspaceRoot, syncToAgentsMd = false) {
 
   return {
     workspaceRoot,
+    workspaceProfile: {
+      projectMode: graph.workspaceProfile?.projectMode || "hybrid",
+      manifestKind: graph.workspaceProfile?.manifestKind || null,
+      packageEntryFiles: Array.from(graph.workspaceProfile?.packageEntryFiles || []),
+      runtimeLanguages: Array.from(graph.workspaceProfile?.runtimeLanguages || []),
+      hasDynamicPluginLoading: Boolean(graph.workspaceProfile?.hasDynamicPluginLoading)
+    },
     zoneCounts: {
       prodFiles: prodFiles.length,
       testFiles: testFiles.length,
@@ -119,6 +138,8 @@ export function generateFlowOverview(workspaceRoot, syncToAgentsMd = false) {
     },
     flowSummary: {
       trueSourcesCount: sources.length,
+      runtimeEntrySourcesCount: runtimeEntrySources.length,
+      exportedApiSurfaceCount: exportedApiSymbols.length,
       branchRoutersCount: branches.length,
       trueSinksCount: sinks.length,
       crossLanguageBridgesCount: graph.crossBridges.length
@@ -134,8 +155,10 @@ export function generateFlowOverview(workspaceRoot, syncToAgentsMd = false) {
   };
 }
 
-export function traceSymbolFlow(workspaceRoot, query) {
-  const graph = buildWorkspaceFlowGraph(workspaceRoot);
+export function traceSymbolFlow(workspaceRoot, query, options = {}) {
+  const graph = buildWorkspaceFlowGraph(workspaceRoot, false, {
+    projectMode: options.projectMode || "auto"
+  });
   const qLower = String(query || "").trim().toLowerCase();
 
   const matched = Array.from(graph.symbolById.values())
@@ -163,9 +186,39 @@ export function traceSymbolFlow(workspaceRoot, query) {
       return (a.zone === "prod" ? 0 : 1) - (b.zone === "prod" ? 0 : 1);
     });
 
+  const formatEdgeRecord = (rec, direction) => {
+    const peerSym = graph.symbolById.get(direction === "in" ? rec.fromId : rec.toId);
+    return {
+      kind: rec.kind,
+      peer: peerSym ? shortId(peerSym) : direction === "in" ? rec.fromId : rec.toId,
+      location: `${rec.evidence?.file || ""}:${rec.evidence?.line || 1}`,
+      reason: rec.evidence?.reason || rec.kind,
+      ...(rec.evidence?.passedArgs ? { passedArgs: rec.evidence.passedArgs } : {}),
+      ...(rec.evidence?.returnFlow ? { returnFlow: rec.evidence.returnFlow } : {}),
+      ...(rec.evidence?.stateField ? { stateField: rec.evidence.stateField } : {}),
+      ...(rec.evidence?.contract ? { contract: rec.evidence.contract } : {}),
+      resolution: rec.resolution || { mode: "IMPORT_OR_SCOPE", confidence: "HIGH" }
+    };
+  };
+
   const traces = matched.slice(0, 5).map((sym) => {
-    const directCallers = Array.from(graph.inEdges.get(sym.id) || []).map((id) => graph.symbolById.get(id)).filter(Boolean);
-    const directCallees = Array.from(graph.outEdges.get(sym.id) || []).map((id) => graph.symbolById.get(id)).filter(Boolean);
+    const inDetails = graph.inEdgeDetails?.get(sym.id) || [];
+    const outDetails = graph.outEdgeDetails?.get(sym.id) || [];
+
+    // Direct control callers exclude CONTAINS / IMPLEMENTS / STATE_RW unless no call edges exist
+    const callEdgesIn = inDetails.filter(
+      (r) => r.kind !== "CONTAINS" && r.kind !== "IMPLEMENTS" && r.kind !== "STATE_RW"
+    );
+    const directCallers = (callEdgesIn.length > 0 ? callEdgesIn : inDetails)
+      .map((r) => graph.symbolById.get(r.fromId))
+      .filter(Boolean);
+    const uniqueDirectCallers = Array.from(new Map(directCallers.map((s) => [s.id, s])).values());
+
+    const callEdgesOut = outDetails.filter((r) => r.kind !== "CONTAINS" && r.kind !== "IMPLEMENTS");
+    const directCallees = (callEdgesOut.length > 0 ? callEdgesOut : outDetails)
+      .map((r) => graph.symbolById.get(r.toId))
+      .filter(Boolean);
+    const uniqueDirectCallees = Array.from(new Map(directCallees.map((s) => [s.id, s])).values());
 
     const upstreamSources = [];
     const visitedUp = new Set([sym.id]);
@@ -205,12 +258,61 @@ export function traceSymbolFlow(workspaceRoot, query) {
       }
     }
 
+    // Distinguish true parallel branches / co-registrations / polymorphic peers from sequential steps!
     const siblingBranches = new Set();
-    for (const caller of directCallers) {
-      for (const sibId of graph.outEdges.get(caller.id) || []) {
-        const sib = graph.symbolById.get(sibId);
-        if (sibId !== sym.id && sib && sib.zone === "prod") {
-          siblingBranches.add(`${shortId(sib)} [同属 ${caller.name} 分流]`);
+    const sequentialSteps = new Set();
+
+    for (const inRec of callEdgesIn) {
+      const caller = graph.symbolById.get(inRec.fromId);
+      if (!caller || caller.zone !== "prod") continue;
+      const callerOuts = graph.outEdgeDetails?.get(caller.id) || [];
+
+      for (const sibRec of callerOuts) {
+        if (sibRec.toId === sym.id) continue;
+        if (sibRec.kind === "CONTAINS" || sibRec.kind === "IMPLEMENTS" || sibRec.kind === "STATE_RW") continue;
+        const sib = graph.symbolById.get(sibRec.toId);
+        if (!sib || sib.zone !== "prod") continue;
+
+        if (inRec.kind === "BRANCH_DISPATCH" && sibRec.kind === "BRANCH_DISPATCH") {
+          const sameGroup =
+            inRec.evidence?.branchGroupLine &&
+            sibRec.evidence?.branchGroupLine &&
+            inRec.evidence.branchGroupLine === sibRec.evidence.branchGroupLine;
+          siblingBranches.add(
+            `${shortId(sib)} [同属 ${caller.name}${sameGroup ? ` L${sibRec.evidence.branchGroupLine}` : ""} 条件分支派发]`
+          );
+        } else if (inRec.kind === "REGISTRATION" && sibRec.kind === "REGISTRATION") {
+          siblingBranches.add(`${shortId(sib)} [同属 ${caller.name} 注册表挂载]`);
+        } else if (sibRec.kind === "SEQ_CALL" || inRec.kind === "SEQ_CALL") {
+          sequentialSteps.add(
+            `${shortId(sib)} [${caller.name} 内顺序职责步骤 L${sibRec.evidence?.line || caller.startLine}]`
+          );
+        }
+      }
+    }
+
+    // Add polymorphic / interface sibling implementations to `siblingBranchesToCheck`
+    if (sym.kind === "class" || sym.kind === "struct") {
+      for (const baseName of sym.baseTypes || []) {
+        for (const peerSub of graph.subclassesByBase?.get(baseName) || []) {
+          if (peerSub.id !== sym.id && peerSub.zone === "prod") {
+            siblingBranches.add(`${shortId(peerSub)} [同继承/实现契约 ${baseName}]`);
+          }
+        }
+      }
+    } else if (sym.parentContainerName) {
+      const parentSyms = graph.containersByName?.get(sym.parentContainerName) || [];
+      for (const pSym of parentSyms) {
+        for (const baseName of pSym.baseTypes || []) {
+          for (const peerSub of graph.subclassesByBase?.get(baseName) || []) {
+            if (peerSub.name === sym.parentContainerName) continue;
+            const peerMethod = (graph.symbolsByName.get(sym.name) || []).find(
+              (m) => m.zone === "prod" && m.parentContainerName === peerSub.name
+            );
+            if (peerMethod) {
+              siblingBranches.add(`${shortId(peerMethod)} [多态同族方法 (${baseName})]`);
+            }
+          }
         }
       }
     }
@@ -232,7 +334,13 @@ export function traceSymbolFlow(workspaceRoot, query) {
     for (const other of graph.symbolById.values()) {
       if (other.id !== sym.id && other.zone === "prod" && sym.shingles.size > 0 && other.shingles.size > 0) {
         const sim = jaccardSimilarity(sym.shingles, other.shingles);
-        if (sim >= 0.55) reusableCandidates.push({ symbol: shortId(other), similarity: `${Math.round(sim * 100)}%` });
+        if (sim >= 0.55) {
+          reusableCandidates.push({
+            symbol: shortId(other),
+            similarity: `${Math.round(sim * 100)}%`,
+            method: "LEXICAL_SHINGLE_JACCARD"
+          });
+        }
       }
     }
 
@@ -240,16 +348,24 @@ export function traceSymbolFlow(workspaceRoot, query) {
       symbol: shortId(sym),
       zone: sym.zone,
       roles: sym.roles,
+      exposure: sym.exposure,
       architecturalContext: computeSymbolArchContext(graph, sym),
       waterFlowStatus: {
+        connectedToRuntimeEntry: graph.reachableFromRuntimeSource.has(sym.id),
         connectedToTrueSource: graph.reachableFromSource.has(sym.id),
+        exposureSurface: sym.exposure,
         reachesTrueSink: graph.reachesSink.has(sym.id)
       },
+      evidencedRelations: {
+        inbound: inDetails.slice(0, 12).map((r) => formatEdgeRecord(r, "in")),
+        outbound: outDetails.slice(0, 14).map((r) => formatEdgeRecord(r, "out"))
+      },
       upstreamSources,
-      directCallers: directCallers.slice(0, 8).map(shortId),
-      directCallees: directCallees.slice(0, 8).map(shortId),
+      directCallers: uniqueDirectCallers.slice(0, 8).map(shortId),
+      directCallees: uniqueDirectCallees.slice(0, 8).map(shortId),
       downstreamSinks,
       siblingBranchesToCheck: Array.from(siblingBranches).slice(0, 8),
+      sequentialStepsInCaller: Array.from(sequentialSteps).slice(0, 8),
       stateOwnershipSSOT: stateRules,
       reusableCandidates: reusableCandidates.slice(0, 5),
       codeSlice: sym.snippet
@@ -259,11 +375,25 @@ export function traceSymbolFlow(workspaceRoot, query) {
   return { query, matchCount: matched.length, traces };
 }
 
-export function generateWiringBlueprint(workspaceRoot, referenceQuery) {
-  const graph = buildWorkspaceFlowGraph(workspaceRoot);
-  const qLower = String(referenceQuery || "").trim().toLowerCase();
+export function generateWiringBlueprint(workspaceRoot, referenceQueryOrOptions, extraOptions = {}) {
+  const opts =
+    typeof referenceQueryOrOptions === "object" && referenceQueryOrOptions !== null
+      ? referenceQueryOrOptions
+      : { ...extraOptions, reference: referenceQueryOrOptions };
+  const referenceQuery = String(opts.reference || "").trim();
+
+  const graph = buildWorkspaceFlowGraph(workspaceRoot, false, {
+    projectMode: opts.projectMode || "auto"
+  });
+  const qLower = referenceQuery.toLowerCase();
   const refSymbols = Array.from(graph.symbolById.values())
-    .filter((s) => s.name.toLowerCase().includes(qLower) || s.file.toLowerCase().includes(qLower))
+    .filter(
+      (s) =>
+        s.name.toLowerCase().includes(qLower) ||
+        s.file.toLowerCase().includes(qLower) ||
+        (s.writes || []).some((w) => w.toLowerCase().includes(qLower)) ||
+        (s.reads || []).some((r) => r.toLowerCase().includes(qLower))
+    )
     .sort((a, b) => {
       const aZone = a.zone === "prod" ? 0 : 1;
       const bZone = b.zone === "prod" ? 0 : 1;
@@ -287,7 +417,6 @@ export function generateWiringBlueprint(workspaceRoot, referenceQuery) {
     for (const b of c.baseTypes || []) baseContracts.add(b);
   }
 
-  // Find peer implementations (classes sharing a base contract or sharing >=2 method names)
   const peerImpls = new Set();
   for (const baseName of baseContracts) {
     for (const sub of graph.subclassesByBase?.get(baseName) || []) {
@@ -311,21 +440,32 @@ export function generateWiringBlueprint(workspaceRoot, referenceQuery) {
         reservedParams: s.reservedParams
       });
     }
-    for (const callerId of graph.inEdges.get(s.id) || []) {
-      const caller = graph.symbolById.get(callerId);
+    for (const inRec of graph.inEdgeDetails?.get(s.id) || []) {
+      if (inRec.kind === "CONTAINS" || inRec.kind === "IMPLEMENTS" || inRec.kind === "STATE_RW") continue;
+      const caller = graph.symbolById.get(inRec.fromId);
       if (caller && caller.zone === "prod" && caller.file !== targetFile) {
-        const lineStr = `${caller.file}:${caller.startLine} (${caller.name} ➔ 调用 ${s.name})`;
-        if (s.kind === "class" || s.kind === "struct" || s.name === "new" || s.name === "__init__" || s.name === "constructor") {
+        const lineStr = `${caller.file}:${inRec.evidence?.line || caller.startLine} (${caller.name} --[${inRec.kind}]--> ${s.name})`;
+        if (
+          inRec.kind === "REGISTRATION" ||
+          s.kind === "class" ||
+          s.kind === "struct" ||
+          s.name === "new" ||
+          s.name === "__init__" ||
+          s.name === "constructor"
+        ) {
           registrationHooks.add(lineStr);
         } else {
           inboundHooks.add(lineStr);
         }
       }
     }
-    for (const calleeId of graph.outEdges.get(s.id) || []) {
-      const callee = graph.symbolById.get(calleeId);
+    for (const outRec of graph.outEdgeDetails?.get(s.id) || []) {
+      if (outRec.kind === "CONTAINS" || outRec.kind === "IMPLEMENTS") continue;
+      const callee = graph.symbolById.get(outRec.toId);
       if (callee && callee.file !== targetFile) {
-        outboundSinks.add(`${callee.file}:${callee.startLine} (${s.name} ➔ 调用 ${callee.name})`);
+        outboundSinks.add(
+          `${callee.file}:${callee.startLine} (${s.name} --[${outRec.kind}]--> ${callee.name})`
+        );
       }
     }
     if (s.paired) pairedInterfaces.push(`${s.name} (L${s.startLine}) — [${s.paired.group}] (${s.paired.side})`);
@@ -333,8 +473,22 @@ export function generateWiringBlueprint(workspaceRoot, referenceQuery) {
     for (const r of s.reads) stateContracts.add(`读取状态: ${r}`);
   }
 
+  const wiringPlan = buildAndSaveWiringPlan(graph, workspaceRoot, {
+    referenceQuery,
+    referenceFile: targetFile,
+    fileSyms,
+    containers,
+    baseContracts: Array.from(baseContracts),
+    targetSymbol: opts.targetSymbol || null,
+    targetField: opts.targetField || null,
+    consumerTarget: opts.consumerTarget || null,
+    requirePersistence: opts.requirePersistence || "auto",
+    savePlan: opts.savePlan !== false
+  });
+
   return {
     referenceModule: targetFile,
+    wiringPlan,
     moduleArchitectureProfile: {
       domain: inferFileDomain(targetFile),
       containers: containers.map((c) => ({

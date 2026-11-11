@@ -6,19 +6,7 @@ import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { generateFlowOverview } from "./flow-tools.mjs";
 import { verifyWorkspaceFlow } from "./flow-verifier.mjs";
-
-function getCacheDir() {
-  const pluginData = process.env.PLUGIN_DATA;
-  if (pluginData) {
-    try {
-      fs.mkdirSync(pluginData, { recursive: true });
-      return pluginData;
-    } catch {
-      return os.tmpdir();
-    }
-  }
-  return os.tmpdir();
-}
+import { getFlowGuardDataDir } from "./graph-diff.mjs";
 
 export function readStdinJson() {
   const raw = fs.readFileSync(0, "utf8").trim();
@@ -30,7 +18,7 @@ export function resolveHookWorkspace(payload) {
     const p = payload.workspacePaths[0];
     if (p && fs.existsSync(p)) {
       const resolved = path.resolve(p);
-      const cacheDir = getCacheDir();
+      const cacheDir = getFlowGuardDataDir();
       fs.writeFileSync(path.join(cacheDir, "flowguard-last-workspace.txt"), resolved, "utf8");
       if (cacheDir !== os.tmpdir()) {
         fs.writeFileSync(path.join(os.tmpdir(), "flowguard-last-workspace.txt"), resolved, "utf8");
@@ -45,7 +33,7 @@ export function runHook(mode, payload = {}) {
   const workspaceRoot = resolveHookWorkspace(payload);
 
   if (mode === "session-start") {
-    const overview = generateFlowOverview(workspaceRoot, false);
+    const overview = generateFlowOverview(workspaceRoot, false, { saveBaseline: true });
     if (overview.zoneCounts.prodFiles === 0) {
       return {};
     }
@@ -56,9 +44,9 @@ export function runHook(mode, payload = {}) {
         .join("; ") || "无跨语言桥";
 
     const msg = [
-      `[FlowGuard 端到端水路基线已就绪] 生产文件: ${overview.zoneCounts.prodFiles} | 真实水源(Sources): ${overview.flowSummary.trueSourcesCount} | 分流阀(Branches): ${overview.flowSummary.branchRoutersCount} | 真实终端(Sinks): ${overview.flowSummary.trueSinksCount}。`,
+      `[FlowGuard 端到端水路基线已就绪] 模式: ${overview.workspaceProfile.projectMode} | 生产文件: ${overview.zoneCounts.prodFiles} | 真实水源(Sources): ${overview.flowSummary.trueSourcesCount} | 分流阀(Branches): ${overview.flowSummary.branchRoutersCount} | 真实终端(Sinks): ${overview.flowSummary.trueSinksCount}。`,
       `核心跨界桥: ${bridgesText}。`,
-      `提示: 改跨文件逻辑前请调 flow_trace 透视水路，接新模块前请调 flow_blueprint 提取施工单。`
+      `提示: 改跨文件逻辑前调 flow_trace 透视带证据关系，接新模块前调 flow_blueprint 生成共享接入清单，收工前调 flow_verify 对照核验满足/违反/待确认。`
     ].join(" ");
 
     return {
@@ -76,13 +64,29 @@ export function runHook(mode, payload = {}) {
     if (payload.terminationReason && payload.terminationReason !== "NO_TOOL_CALL") {
       return { decision: "allow" };
     }
+    if (String(process.env.FLOWGUARD_MODE || "").toLowerCase() === "advisory") {
+      return { decision: "allow" };
+    }
 
     const report = verifyWorkspaceFlow(workspaceRoot);
-    if (report.changedFilesScanned.length > 0 && report.status === "ISSUES_FOUND") {
+    const hasIncrementalScope =
+      report.changedFilesScanned.length > 0 || (report.impactedUntouchedFiles?.length || 0) > 0;
+
+    if (hasIncrementalScope && report.status === "ISSUES_FOUND") {
       const blockingDataBreaks = (report.dataFlowBreaks || []).filter(
         (d) => d.kind === "DEAD_LOCAL_ASSIGNMENT" || d.kind === "IGNORED_PURE_CALL"
       );
+      const violatedObligations = (report.wiringReport?.obligations || []).filter(
+        (o) => o.status === "VIOLATED" && o.required !== false
+      );
+
       const issues = [];
+      if (violatedObligations.length > 0) {
+        const topObl = violatedObligations[0];
+        issues.push(
+          `接入契约违反 (${report.wiringReport.counts.violated}/${report.wiringReport.counts.total}): ${topObl.finding}${topObl.remediation ? ` -> 修复方向: ${topObl.remediation}` : ""}`
+        );
+      }
       if (report.brokenBridges.length > 0) {
         issues.push(`跨语言桥接断流: ${JSON.stringify(report.brokenBridges[0])}`);
       }
@@ -102,6 +106,7 @@ export function runHook(mode, payload = {}) {
           .update(
             JSON.stringify({
               w: workspaceRoot,
+              v: violatedObligations.map((o) => ({ t: o.targetLocation, f: o.finding })),
               b: report.brokenBridges,
               s: report.sandboxViolations,
               d: blockingDataBreaks,
@@ -110,14 +115,17 @@ export function runHook(mode, payload = {}) {
           )
           .digest("hex");
 
-        const cacheFile = path.join(getCacheDir(), `flowguard-stop-${payload.conversationId || "default"}.txt`);
+        const cacheFile = path.join(
+          getFlowGuardDataDir(),
+          `flowguard-stop-${payload.conversationId || "default"}.txt`
+        );
         const lastHash = fs.existsSync(cacheFile) ? fs.readFileSync(cacheFile, "utf8").trim() : "";
 
         if (lastHash !== stateHash) {
           fs.writeFileSync(cacheFile, stateHash, "utf8");
           return {
             decision: "continue",
-            reason: `【FlowGuard 通水验收拦截】检测到未闭合的链路问题：\n${issues.join("\n")}\n请立即修复或调用 flow_verify 核查后再结束任务。`
+            reason: `【FlowGuard 通水验收拦截】检测到明确违反的必要链路契约（注：待确认项不阻断，切勿添加无意义假调用掩盖告警）：\n${issues.join("\n")}\n请补齐真实接入关系并调用 flow_verify 复核后再结束任务。`
           };
         }
       }

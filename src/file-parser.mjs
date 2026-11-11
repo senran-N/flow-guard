@@ -472,7 +472,7 @@ function extractDataFlowAndTouches({
   }
   if (!hasInternalMutation) {
     const collMutRe =
-      /((?:(?:this|self)(?:\.|->)|\$this->)?[A-Za-z_$][A-Za-z0-9_$]*)(?:\??\.|->)(?:Add|Remove|Clear|Insert|Push|Pop|Set|Delete|Append|add|remove|clear|insert|push|pop|set|delete|append|splice|shift|unshift|sort|reverse|concat|replace|merge|update|delete_if|keep_if)(?:\s*<[^>]*>)?\s*(?:\(|\{|\bdo\b)/g;
+      /((?:(?:this|self)(?:\.|->)|\$this->)?[A-Za-z_$][A-Za-z0-9_$]*)(?:\??\.|->)(?:Add|Remove|Clear|Insert|Push|Pop|Set|Delete|Append|add|remove|clear|insert|push|pop|set|delete|append|splice|shift|unshift|sort|reverse|merge|update|delete_if|keep_if)(?:\s*<[^>]*>)?\s*(?:\(|\{|\bdo\b)/g;
     while ((m = collMutRe.exec(innerBody)) !== null) {
       if (isNonLocalTarget(m[1])) {
         hasInternalMutation = true;
@@ -599,6 +599,15 @@ function extractDataFlowAndTouches({
     }
   }
 
+  const upperConstantsRead = new Set();
+  const bodyWithoutConstDecl = innerBody.replace(/\b(?:const|let|var|static|final|#define)\s+[A-Z][A-Z0-9_]*\b/g, " ");
+  const upperConstRe = /\b([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)\b/g;
+  while ((m = upperConstRe.exec(bodyWithoutConstDecl)) !== null) {
+    if (!/^(?:TRUE|FALSE|NULL|NONE|EOF|OK|ERR| HTTP_|JSON|UTF8|UTF_8)$/.test(m[1])) {
+      upperConstantsRead.add(m[1]);
+    }
+  }
+
   return {
     unusedParams,
     hasReturnValue,
@@ -609,6 +618,7 @@ function extractDataFlowAndTouches({
     localVars,
     conditionalCount,
     qualifiedCalls,
+    upperConstantsRead: Array.from(upperConstantsRead),
     writes: Array.from(writes),
     delegatedWrites: Array.from(delegatedWrites),
     reads: Array.from(reads)
@@ -833,12 +843,337 @@ function extractFileImports(lang, content, relPath = "") {
   };
 }
 
+function extractBalancedCallArgs(text, openParenIdx) {
+  if (openParenIdx < 0 || text[openParenIdx] !== "(") return "";
+  let depth = 0;
+  const maxEnd = Math.min(text.length, openParenIdx + 360);
+  for (let i = openParenIdx; i < maxEnd; i++) {
+    if (text[i] === "(") depth++;
+    else if (text[i] === ")") {
+      depth--;
+      if (depth === 0) return text.slice(openParenIdx + 1, i);
+    }
+  }
+  return text.slice(openParenIdx + 1, maxEnd);
+}
+
+function extractArgTokensFromSlice(argText) {
+  if (!argText || !argText.trim()) return [];
+  const parts = [];
+  let p = 0;
+  let b = 0;
+  let c = 0;
+  let last = 0;
+  for (let i = 0; i < argText.length; i++) {
+    const ch = argText[i];
+    if (ch === "(") p++;
+    else if (ch === ")" && p > 0) p--;
+    else if (ch === "[") b++;
+    else if (ch === "]" && b > 0) b--;
+    else if (ch === "{") c++;
+    else if (ch === "}" && c > 0) c--;
+    else if (ch === "," && p === 0 && b === 0 && c === 0) {
+      parts.push(argText.slice(last, i));
+      last = i + 1;
+    }
+  }
+  parts.push(argText.slice(last));
+
+  const out = [];
+  for (const raw of parts.slice(0, 8)) {
+    const trimmed = raw.trim();
+    if (!trimmed) continue;
+    const propChainM = trimmed.match(/^(?:await\s+)?((?:this|self|state|store|ctx|config|\$this)(?:\.|->)#?[A-Za-z_$][A-Za-z0-9_$.]*|[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)+)$/);
+    if (propChainM) {
+      out.push(propChainM[1]);
+      continue;
+    }
+    const identM = trimmed.match(/^(?:&(?:mut\s+)?|\*)?([A-Za-z_$][A-Za-z0-9_$]*)$/);
+    if (identM && !/^(?:true|false|null|None|nil|undefined)$/.test(identM[1])) {
+      out.push(identM[1]);
+      continue;
+    }
+    for (const id of (trimmed.match(/(?:this|self|state|store|config)\.[A-Za-z_$][A-Za-z0-9_$]*|\b[A-Za-z_$][A-Za-z0-9_$]*\b/g) || []).slice(0, 3)) {
+      if (!/^(?:true|false|null|None|nil|undefined|new|await|return)$/.test(id)) {
+        out.push(id);
+      }
+    }
+  }
+  return Array.from(new Set(out)).slice(0, 8);
+}
+
+function extractCallPayloadFields(commentStripped, matchStartIdx) {
+  const openParenIdx = commentStripped.indexOf("(", matchStartIdx);
+  if (openParenIdx < 0) return [];
+  const callArgs = extractBalancedCallArgs(commentStripped, openParenIdx);
+  if (!callArgs || !callArgs.includes("{")) return [];
+
+  const HTTP_OPT_KEYS = /^(?:method|headers|body|signal|credentials|mode|cache|redirect|referrer|integrity|keepalive|params|responseType|url|baseURL|timeout)$/;
+  const fields = new Set();
+  const braceBlocks = [];
+  let depth = 0;
+  let blockStart = -1;
+  for (let i = 0; i < callArgs.length; i++) {
+    if (callArgs[i] === "{") {
+      if (depth === 0) blockStart = i + 1;
+      depth++;
+    } else if (callArgs[i] === "}") {
+      depth--;
+      if (depth === 0 && blockStart >= 0) {
+        braceBlocks.push(callArgs.slice(blockStart, i));
+        blockStart = -1;
+      }
+    }
+  }
+
+  for (const blk of braceBlocks) {
+    // Check if there is a nested JSON.stringify({ ... }) or body: { ... }
+    const nestedBodyM = blk.match(/\b(?:body|data|payload)\s*:\s*(?:JSON\.stringify\s*\(\s*)?\{([^}]*)\}/);
+    const targetSlice = nestedBodyM ? nestedBodyM[1] : blk;
+    let km;
+    const keyValRe = /(?:^|[,{])\s*["']?([a-zA-Z_$][a-zA-Z0-9_$]*)["']?(?=\s*(?::|,|$))/g;
+    while ((km = keyValRe.exec(targetSlice)) !== null) {
+      const k = km[1];
+      if (k && !HTTP_OPT_KEYS.test(k) && !/^(?:true|false|null|undefined)$/.test(k)) {
+        fields.add(k);
+      }
+    }
+  }
+  return Array.from(fields).slice(0, 16);
+}
+
+function extractCallSitesForSymbol({
+  lang,
+  ownCleanLines,
+  startLine,
+  bodyStartLineOffset,
+  declName,
+  params,
+  localVars,
+  importAliases,
+  isExpressionBody
+}) {
+  const sites = [];
+  const SKIP_CALLEES =
+    /^(?:if|for|foreach|while|switch|catch|return|new|typeof|sizeof|nameof|await|lock|using|Some|None|Ok|Err|vec|format|println|eprintln|super|base|this|self)$/;
+  const isIndentLang = lang === "python" || lang === "ruby";
+  const condStack = [];
+  let braceDepth = 0;
+  let lastPoppedCondHeader = null;
+  let lastSingleLineCondHeader = null;
+  const startIdx = isExpressionBody ? 0 : Math.max(1, bodyStartLineOffset);
+  const fullJoined = ownCleanLines.join("\n");
+
+  for (let relIdx = startIdx; relIdx < ownCleanLines.length; relIdx++) {
+    const rawLine = ownCleanLines[relIdx];
+    const trimmed = rawLine.trim();
+    if (!trimmed) continue;
+    const absLine = startLine + relIdx;
+    const indent = (rawLine.match(/^\s*/)?.[0] || "").length;
+
+    if (isIndentLang) {
+      const isContinuationBranch = /^(?:elif|else|when)\b/.test(trimmed);
+      while (condStack.length > 0 && indent <= condStack[condStack.length - 1].indent) {
+        const popped = condStack.pop();
+        if (isContinuationBranch && indent === popped.indent) {
+          lastPoppedCondHeader = popped.headerLine;
+        }
+      }
+      if (/^(?:if|elif|else|case|match|when)\b/.test(trimmed)) {
+        const headerLine = isContinuationBranch && lastPoppedCondHeader ? lastPoppedCondHeader : absLine;
+        condStack.push({ indent, headerLine });
+        lastPoppedCondHeader = null;
+      } else {
+        lastPoppedCondHeader = null;
+      }
+    } else {
+      let lineClosesLeadingBrace = 0;
+      for (let cIdx = 0; cIdx < trimmed.length && trimmed[cIdx] === "}"; cIdx++) {
+        lineClosesLeadingBrace++;
+      }
+      let poppedHeaderOnThisLine = null;
+      for (let c = 0; c < lineClosesLeadingBrace; c++) {
+        braceDepth = Math.max(0, braceDepth - 1);
+        while (condStack.length > 0 && condStack[condStack.length - 1].braceDepth > braceDepth) {
+          poppedHeaderOnThisLine = condStack.pop().headerLine;
+        }
+      }
+      if (poppedHeaderOnThisLine !== null) {
+        lastPoppedCondHeader = poppedHeaderOnThisLine;
+      }
+
+      const afterLeadingClose = trimmed.slice(lineClosesLeadingBrace).trim();
+      const isElseCont = /^(?:else\b|case\b|default\s*:)/.test(afterLeadingClose);
+      const isCondStart = /^(?:if|switch|match)\b|\bmatch\b[^{;]*\{\s*$/.test(afterLeadingClose) || isElseCont;
+
+      let netRemainingBraces = 0;
+      for (let cIdx = lineClosesLeadingBrace; cIdx < trimmed.length; cIdx++) {
+        if (trimmed[cIdx] === "{") netRemainingBraces++;
+        else if (trimmed[cIdx] === "}") netRemainingBraces--;
+      }
+
+      if (isCondStart) {
+        const inheritedHeader =
+          isElseCont && (lastPoppedCondHeader || lastSingleLineCondHeader)
+            ? lastPoppedCondHeader || lastSingleLineCondHeader
+            : absLine;
+        if (netRemainingBraces > 0) {
+          condStack.push({ braceDepth: braceDepth + 1, headerLine: inheritedHeader });
+          lastSingleLineCondHeader = null;
+        } else if (!/^case\b|^default\s*:/.test(afterLeadingClose)) {
+          lastSingleLineCondHeader = inheritedHeader;
+        }
+        lastPoppedCondHeader = null;
+      } else {
+        lastPoppedCondHeader = null;
+        lastSingleLineCondHeader = null;
+      }
+
+      braceDepth = Math.max(0, braceDepth + netRemainingBraces);
+      while (condStack.length > 0 && condStack[condStack.length - 1].braceDepth > braceDepth) {
+        lastPoppedCondHeader = condStack.pop().headerLine;
+      }
+    }
+
+    const inlineConditional =
+      /\?[^:]+:|(?:\|\||&&)\s*[A-Za-z_$][A-Za-z0-9_$.]*\s*\(/.test(trimmed) ||
+      Boolean(lastSingleLineCondHeader);
+    const inConditionalBranch = condStack.length > 0 || inlineConditional;
+    const branchHeaderLine =
+      condStack.length > 0
+        ? condStack[condStack.length - 1].headerLine
+        : lastSingleLineCondHeader || (inlineConditional ? absLine : null);
+
+    // Extract direct & qualified calls on this line
+    const lineCallRe =
+      /(?:(?:\b|\$)([A-Za-z_][A-Za-z0-9_]*)(?:(?:\??\.|->)#?[A-Za-z_][A-Za-z0-9_]*)*(?:\??\.|->|::))?(?:\bnew\s+)?(#?[A-Za-z_$][A-Za-z0-9_$]*)\s*(?:(?:::)?<[^;{}()=]+>\s*|<<<[^;{}]+>>>\s*)?\(/g;
+    let cm;
+    while ((cm = lineCallRe.exec(rawLine)) !== null) {
+      const receiver = cm[1] || null;
+      const rawCallee = cm[2];
+      if (!rawCallee || rawCallee === declName || SKIP_CALLEES.test(rawCallee)) continue;
+      const callee = importAliases[rawCallee] || rawCallee;
+      const openIdx = rawLine.indexOf("(", cm.index + cm[0].length - 1);
+      const argSlice = extractBalancedCallArgs(rawLine, openIdx >= 0 ? openIdx : rawLine.indexOf("(", cm.index));
+      const passedArgs = extractArgTokensFromSlice(argSlice);
+
+      const prefixBeforeCall = rawLine.slice(0, cm.index).trim();
+      let returnFlow = "CONSUMED_EXPR";
+      if (isExpressionBody && relIdx === startIdx && !prefixBeforeCall) {
+        returnFlow = "RETURNED";
+      } else if (/\breturn\s*(?:await\s*)?$/.test(prefixBeforeCall) || /=>\s*(?:await\s*)?$/.test(prefixBeforeCall)) {
+        returnFlow = "RETURNED";
+      } else {
+        const assignM = prefixBeforeCall.match(/([A-Za-z_$#][A-Za-z0-9_$.#]*)\s*(?::(?!:)[^=]+)?(?::=|=|\+=)\s*(?:await\s*)?$/);
+        if (assignM) {
+          returnFlow = `ASSIGNED:${assignM[1]}`;
+        } else if (!prefixBeforeCall || /^(?:void|await)\b/.test(prefixBeforeCall)) {
+          returnFlow = "DISCARDED_BARE";
+        }
+      }
+
+      sites.push({
+        callee,
+        rawCallee,
+        receiver,
+        line: absLine,
+        passedArgs,
+        returnFlow,
+        inConditionalBranch,
+        branchHeaderLine,
+        isRegistrationRef: false
+      });
+
+      if (
+        receiver &&
+        !/^(?:this|self|super|base)$/.test(receiver) &&
+        !localVars.has(receiver) &&
+        !params.includes(receiver) &&
+        (/^[A-Z]/.test(receiver) || Boolean(importAliases[receiver]))
+      ) {
+        const resolvedRecv = importAliases[receiver] || receiver;
+        sites.push({
+          callee: resolvedRecv,
+          rawCallee: receiver,
+          receiver: null,
+          line: absLine,
+          passedArgs,
+          returnFlow,
+          inConditionalBranch,
+          branchHeaderLine,
+          isRegistrationRef: false
+        });
+      }
+    }
+
+    // First-class registration / dispatch map / callback references on this line
+    const lineRefRe = /(?:[,(\[{]\s*|[A-Za-z0-9_"'`]\s*:\s*|\+=\s*)([a-zA-Z_][a-zA-Z0-9_]{2,})\s*(?=[,)\]}]|$)/g;
+    let rm;
+    while ((rm = lineRefRe.exec(rawLine)) !== null) {
+      const rawRef = rm[1];
+      if (
+        rawRef !== declName &&
+        !localVars.has(rawRef) &&
+        !params.includes(rawRef) &&
+        !/^(?:true|false|null|None|nil|undefined|self|this|super|err|error|ctx|req|res|int|str|bool|string|number|object|any|void|async|await|const|let|var)$/.test(
+          rawRef
+        )
+      ) {
+        const resolvedRef = importAliases[rawRef] || rawRef;
+        if (!sites.some((s) => s.line === absLine && s.callee === resolvedRef && !s.isRegistrationRef)) {
+          sites.push({
+            callee: resolvedRef,
+            rawCallee: rawRef,
+            receiver: null,
+            line: absLine,
+            passedArgs: [],
+            returnFlow: "REGISTERED_REF",
+            inConditionalBranch,
+            branchHeaderLine,
+            isRegistrationRef: true
+          });
+        }
+      }
+    }
+  }
+
+  // Fallback for multiline expressions not caught line-by-line
+  if (sites.length === 0 && fullJoined.includes("(")) {
+    let fm;
+    const fallbackRe = /\b([A-Za-z_$][A-Za-z0-9_$]*)\s*\(/g;
+    while ((fm = fallbackRe.exec(fullJoined)) !== null) {
+      if (fm[1] !== declName && !SKIP_CALLEES.test(fm[1])) {
+        sites.push({
+          callee: importAliases[fm[1]] || fm[1],
+          rawCallee: fm[1],
+          receiver: null,
+          line: startLine,
+          passedArgs: [],
+          returnFlow: "CONSUMED_EXPR",
+          inConditionalBranch: false,
+          branchHeaderLine: null,
+          isRegistrationRef: false
+        });
+      }
+    }
+  }
+
+  return sites;
+}
+
 export function parseSourceFile(absPath, relPath) {
   const ext = path.extname(relPath).toLowerCase();
   const lang = EXT_LANG[ext];
   if (!lang || !fs.existsSync(absPath)) return null;
-
   const content = fs.readFileSync(absPath, "utf8");
+  return parseSourceFileContent(content, relPath);
+}
+
+export function parseSourceFileContent(content, relPath) {
+  const ext = path.extname(relPath).toLowerCase();
+  const lang = EXT_LANG[ext];
+  if (!lang || typeof content !== "string") return null;
+
   const rawLines = content.split(/\r?\n/);
   const sfcInfo = ext === ".vue" || ext === ".svelte" ? preprocessSfcContent(content) : null;
   const lexInput = sfcInfo ? sfcInfo.scriptContent : content;
@@ -1223,6 +1558,21 @@ export function parseSourceFile(absPath, relPath) {
         rawDocAndHeader
       );
 
+    const callSites =
+      decl.kind === "function" || decl.kind === "method"
+        ? extractCallSitesForSymbol({
+            lang,
+            ownCleanLines,
+            startLine,
+            bodyStartLineOffset,
+            declName: decl.name,
+            params,
+            localVars: df.localVars,
+            importAliases,
+            isExpressionBody: Boolean(bounds?.isExpressionBody)
+          })
+        : [];
+
     const normFinger = decl.kind === "function" || decl.kind === "method" ? normalizeFinger(ownCleanBodyText) : "";
     symbols.push({
       id: symId,
@@ -1254,6 +1604,8 @@ export function parseSourceFile(absPath, relPath) {
       deadLocalVars: df.deadLocalVars,
       conditionalCount: df.conditionalCount,
       qualifiedCalls: df.qualifiedCalls,
+      callSites,
+      upperConstantsRead: df.upperConstantsRead || [],
       calls: Array.from(calls),
       writes: df.writes,
       delegatedWrites: df.delegatedWrites,
@@ -1431,9 +1783,12 @@ export function parseSourceFile(absPath, relPath) {
     const useRawLines = lang === "rust";
     const beforeSym = (useRawLines ? rawOutsideLines : cleanLines).slice(0, s.startLine - 1).join("\n");
     const afterSym = (useRawLines ? rawOutsideLines : cleanLines).slice(s.endLine).join("\n");
-    if (refRe.test(beforeSym) || refRe.test(afterSym)) {
+    const outsideCombined = `${beforeSym}\n${afterSym}`
+      .replace(/\bexport\s*(?:type\s*)?\{[^}]*\}/g, " ")
+      .replace(/\bexport\s+default\s+[A-Za-z_$][A-Za-z0-9_$]*\s*;?/g, " ")
+      .replace(/\bmodule\.exports\s*=\s*\{[^}]*\}/g, " ");
+    if (refRe.test(outsideCombined)) {
       s.isReferencedInFile = true;
-      const outsideCombined = `${beforeSym}\n${afterSym}`.replace(/\bexport\s*(?:type\s*)?\{[^}]*\}/g, " ");
       const escName = s.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const delegateBindRe = new RegExp(
         `(?:\\+=\\s*${escName}\\b(?!\\s*\\()|\\b(?!const\\b|let\\b|var\\b|auto\\b|export\\b|return\\b)[A-Za-z_][A-Za-z0-9_]*\\s*=(?!=)\\s*(?:new\\s+[A-Za-z0-9_.<>]+\\s*\\(\\s*)?${escName}\\b(?!\\s*\\()|[,(\\[]\\s*${escName}\\s*(?=[,)\\]}]))`
@@ -1444,8 +1799,24 @@ export function parseSourceFile(absPath, relPath) {
       for (const other of symbols) {
         if (other.id !== s.id && (s.startLine < other.startLine || s.endLine > other.endLine)) {
           const otherSlice = cleanLines.slice(other.startLine - 1, other.endLine).join("\n");
-          if (refRe.test(otherSlice) && !other.calls.includes(s.name)) {
-            other.calls.push(s.name);
+          if (refRe.test(otherSlice)) {
+            if (!other.calls.includes(s.name)) other.calls.push(s.name);
+            if (
+              other.callSites &&
+              !other.callSites.some((cs) => cs.callee === s.name)
+            ) {
+              other.callSites.push({
+                callee: s.name,
+                rawCallee: s.name,
+                receiver: null,
+                line: other.startLine,
+                passedArgs: [],
+                returnFlow: "REGISTERED_REF",
+                inConditionalBranch: false,
+                branchHeaderLine: null,
+                isRegistrationRef: true
+              });
+            }
           }
         }
       }
@@ -1488,7 +1859,7 @@ export function parseSourceFile(absPath, relPath) {
     }
   }
 
-  // Cross-boundary signals (with 1-based line numbers for exact symbol-level attribution)
+  // Cross-boundary signals (with 1-based line numbers & payload field keys for exact attribution)
   const bridgeSignals = {
     tauriInvokes: [],
     rpcCalls: [],
@@ -1497,7 +1868,9 @@ export function parseSourceFile(absPath, relPath) {
     electronHandles: [],
     httpCalls: [],
     httpRoutes: [],
-    configTouches: []
+    configTouches: [],
+    webview2Touches: [],
+    sharedMemoryTouches: []
   };
   const commentStripped = commentlessCode;
   const offsetToLine = (offset) => {
@@ -1563,7 +1936,8 @@ export function parseSourceFile(absPath, relPath) {
     }
   }
 
-  const msgEmitRe = /\bsend\s*\(\s*["']([a-zA-Z][a-zA-Z0-9_.-]{2,})["']|["'](?:cmd|method)["']\s*[,:]\s*["']([a-zA-Z][a-zA-Z0-9_.-]{2,})["']/g;
+  const msgEmitRe =
+    /\bsend\s*\(\s*["']([a-zA-Z][a-zA-Z0-9_.-]{2,})["']|(?:[{,[(\s]|^)(?<!\?\s*)["'](?:cmd|method)["']\s*:\s*["']([a-zA-Z][a-zA-Z0-9_.-]{2,})["']/g;
   while ((m = msgEmitRe.exec(commentStripped)) !== null) {
     const cmdTopic = `cmd:${m[1] || m[2]}`;
     addUnique(bridgeSignals.eventTouches, `EVT:${cmdTopic}:emit`, {
@@ -1572,7 +1946,7 @@ export function parseSourceFile(absPath, relPath) {
       line: offsetToLine(m.index)
     });
   }
-  const msgListenRe = /\b(?:cmd|method)\s*==\s*["']([a-zA-Z][a-zA-Z0-9_.-]{2,})["']/g;
+  const msgListenRe = /\b(?:cmd|method)\s*===?\s*["']([a-zA-Z][a-zA-Z0-9_.-]{2,})["']/g;
   while ((m = msgListenRe.exec(commentStripped)) !== null) {
     const cmdTopic = `cmd:${m[1]}`;
     addUnique(bridgeSignals.eventTouches, `EVT:${cmdTopic}:listen`, {
@@ -1582,11 +1956,12 @@ export function parseSourceFile(absPath, relPath) {
     });
   }
 
-  // Socket.io / WebSocket Event Bus (`socket.emit("evt")` <-> `socket.on("evt")`)
-  const sockEmitRe = /\b(?:this\.)?\$?(?:socket|io)\.(?:volatile\.)?emit\s*\(\s*["']([a-zA-Z][a-zA-Z0-9_.:/-]{1,})["']/g;
+  // Socket.io / WebSocket / App EventBus (`socket/io/eventBus/bus/emitter/app/window.emit("evt")` <-> `.on/.listen("evt")`)
+  const sockEmitRe =
+    /\b(?:this\.)?\$?(?:socket|io|eventBus|bus|emitter|events|app|window)\.(?:volatile\.)?emit\s*\(\s*["']([a-zA-Z][a-zA-Z0-9_.:/-]{1,})["']/g;
   while ((m = sockEmitRe.exec(commentStripped)) !== null) {
-    if (!/^(?:connect|disconnect|disconnecting|error|connection|reconnect|ping|pong)$/i.test(m[1])) {
-      const wsTopic = `ws:${m[1]}`;
+    if (!/^(?:connect|disconnect|disconnecting|error|connection|reconnect|ping|pong|data|end|close)$/i.test(m[1])) {
+      const wsTopic = m[1].includes(":") || m[1].includes("/") ? `ws:${m[1]}` : `evt:${m[1]}`;
       addUnique(bridgeSignals.eventTouches, `EVT:${wsTopic}:emit`, {
         topic: wsTopic,
         mode: "emit",
@@ -1594,10 +1969,11 @@ export function parseSourceFile(absPath, relPath) {
       });
     }
   }
-  const sockOnRe = /\b(?:this\.)?\$?(?:socket|io)\.on\s*\(\s*["']([a-zA-Z][a-zA-Z0-9_.:/-]{1,})["']/g;
+  const sockOnRe =
+    /\b(?:this\.)?\$?(?:socket|io|eventBus|bus|emitter|events|app|window)\.(?:on|once|listen)\s*\(\s*["']([a-zA-Z][a-zA-Z0-9_.:/-]{1,})["']/g;
   while ((m = sockOnRe.exec(commentStripped)) !== null) {
-    if (!/^(?:connect|disconnect|disconnecting|error|connection|reconnect|ping|pong)$/i.test(m[1])) {
-      const wsTopic = `ws:${m[1]}`;
+    if (!/^(?:connect|disconnect|disconnecting|error|connection|reconnect|ping|pong|data|end|close|message)$/i.test(m[1])) {
+      const wsTopic = m[1].includes(":") || m[1].includes("/") ? `ws:${m[1]}` : `evt:${m[1]}`;
       addUnique(bridgeSignals.eventTouches, `EVT:${wsTopic}:listen`, {
         topic: wsTopic,
         mode: "listen",
@@ -1610,7 +1986,11 @@ export function parseSourceFile(absPath, relPath) {
     if (!/\b(?:function\s+invoke|(?:const|let|var)\s+invoke\s*=)\b/.test(cleanCode)) {
       const invRe = /\b(?:__TAURI_INVOKE|TAURI_INVOKE|invoke)\s*(?:<[^>]*>)?\s*\(\s*["']([a-z_][a-z0-9_]+)["']/g;
       while ((m = invRe.exec(commentStripped)) !== null) {
-        addUnique(bridgeSignals.tauriInvokes, `TAURI:${m[1]}`, { cmd: m[1], line: offsetToLine(m.index) });
+        addUnique(bridgeSignals.tauriInvokes, `TAURI:${m[1]}`, {
+          cmd: m[1],
+          line: offsetToLine(m.index),
+          payloadFields: extractCallPayloadFields(commentStripped, m.index)
+        });
       }
     }
     const rpcRe = /\b([a-zA-Z0-9_$]+(?:ServiceClient|AuthClient|RpcClient))\.([a-z][a-zA-Z0-9_]*)\s*\(/g;
@@ -1618,16 +1998,39 @@ export function parseSourceFile(absPath, relPath) {
       addUnique(bridgeSignals.rpcCalls, `RPC:${m[1]}.${m[2]}`, {
         client: m[1],
         method: m[2],
-        line: offsetToLine(m.index)
+        line: offsetToLine(m.index),
+        payloadFields: extractCallPayloadFields(commentStripped, m.index)
       });
     }
     const elSendRe = /\bipcRenderer\.(?:invoke|send)\s*\(\s*["']([^"']+)["']/g;
     while ((m = elSendRe.exec(commentStripped)) !== null) {
-      addUnique(bridgeSignals.electronSends, `ELSEND:${m[1]}`, { channel: m[1], line: offsetToLine(m.index) });
+      addUnique(bridgeSignals.electronSends, `ELSEND:${m[1]}`, {
+        channel: m[1],
+        line: offsetToLine(m.index),
+        payloadFields: extractCallPayloadFields(commentStripped, m.index)
+      });
     }
     const elHandleRe = /\bipcMain\.(?:handle|on)\s*\(\s*["']([^"']+)["']/g;
     while ((m = elHandleRe.exec(commentStripped)) !== null) {
       addUnique(bridgeSignals.electronHandles, `ELHND:${m[1]}`, { channel: m[1], line: offsetToLine(m.index) });
+    }
+    const wv2SendRe = /\bchrome\.webview\.postMessage\s*\(/g;
+    while ((m = wv2SendRe.exec(commentStripped)) !== null) {
+      addUnique(bridgeSignals.webview2Touches, `WV2:js:send:${offsetToLine(m.index)}`, {
+        side: "frontend",
+        mode: "send",
+        line: offsetToLine(m.index),
+        payloadFields: extractCallPayloadFields(commentStripped, m.index)
+      });
+    }
+    const wv2ListenRe = /\bchrome\.webview\.addEventListener\s*\(\s*["']message["']/g;
+    while ((m = wv2ListenRe.exec(commentStripped)) !== null) {
+      addUnique(bridgeSignals.webview2Touches, `WV2:js:listen:${offsetToLine(m.index)}`, {
+        side: "frontend",
+        mode: "listen",
+        line: offsetToLine(m.index),
+        payloadFields: []
+      });
     }
     const httpRe =
       /\b(?:(fetch)|(?:axios|http|ky|api)\.(get|post|put|delete|patch))\s*(?:<[^>]*>)?\s*\(\s*["'`]((?:\$\{[A-Za-z0-9_$.()?:-]+\})?\/[a-zA-Z][a-zA-Z0-9_/${}.:-]*|api\/[a-zA-Z0-9_/${}.:-]*|[a-z][a-z0-9_-]{2,})["'`]/g;
@@ -1661,7 +2064,8 @@ export function parseSourceFile(absPath, relPath) {
       addUnique(bridgeSignals.httpCalls, `HTTPCALL:${method}:${apiPath}`, {
         method,
         path: apiPath,
-        line: offsetToLine(m.index)
+        line: offsetToLine(m.index),
+        payloadFields: extractCallPayloadFields(commentStripped, m.index)
       });
     }
     const openApiSdkRe =
@@ -1672,8 +2076,64 @@ export function parseSourceFile(absPath, relPath) {
       addUnique(bridgeSignals.httpCalls, `HTTPCALL:${method}:${apiPath}`, {
         method,
         path: apiPath,
-        line: offsetToLine(m.index)
+        line: offsetToLine(m.index),
+        payloadFields: extractCallPayloadFields(commentStripped, m.index)
       });
+    }
+  }
+
+  // Native C++/C#/Rust WebView2 & Win32/POSIX/Python Shared Memory IPC probes
+  if (lang === "cpp" || lang === "csharp" || lang === "rust") {
+    const wv2NatSendRe = /\bPostWebMessageAs(?:Json|String)\s*\(/g;
+    while ((m = wv2NatSendRe.exec(commentStripped)) !== null) {
+      addUnique(bridgeSignals.webview2Touches, `WV2:nat:send:${offsetToLine(m.index)}`, {
+        side: "native",
+        mode: "send",
+        line: offsetToLine(m.index),
+        payloadFields: []
+      });
+    }
+    const wv2NatListenRe = /\b(?:add_WebMessageReceived|WebMessageReceived\s*\+=)/g;
+    while ((m = wv2NatListenRe.exec(commentStripped)) !== null) {
+      addUnique(bridgeSignals.webview2Touches, `WV2:nat:listen:${offsetToLine(m.index)}`, {
+        side: "native",
+        mode: "listen",
+        line: offsetToLine(m.index),
+        payloadFields: []
+      });
+    }
+  }
+  const shmWinRe = /\b(CreateFileMapping|OpenFileMapping)[AW]?\s*\([^;()]{0,180}?L?["']([A-Za-z0-9_./\\:-]{3,})["']/g;
+  while ((m = shmWinRe.exec(commentStripped)) !== null) {
+    const mode = m[1].startsWith("Create") ? "write" : "read";
+    addUnique(bridgeSignals.sharedMemoryTouches, `SHM:${m[2]}:${mode}`, {
+      segment: m[2],
+      mode,
+      line: offsetToLine(m.index)
+    });
+  }
+  const shmPosixRe = /\bshm_open\s*\(\s*["'](\/?[A-Za-z0-9_.-]{3,})["']\s*,([^)]+)\)/g;
+  while ((m = shmPosixRe.exec(commentStripped)) !== null) {
+    const mode = /\bO_CREAT\b|\bO_RDWR\b/.test(m[2]) ? "write" : "read";
+    addUnique(bridgeSignals.sharedMemoryTouches, `SHM:${m[1]}:${mode}`, {
+      segment: m[1],
+      mode,
+      line: offsetToLine(m.index)
+    });
+  }
+  if (lang === "python") {
+    const pyShmRe = /\bSharedMemory\s*\(([^)]*)\)/g;
+    while ((m = pyShmRe.exec(commentStripped)) !== null) {
+      const nameM = m[1].match(/\bname\s*=\s*r?["']([A-Za-z0-9_./\\:-]{3,})["']|^\s*r?["']([A-Za-z0-9_./\\:-]{3,})["']/);
+      if (nameM) {
+        const seg = nameM[1] || nameM[2];
+        const mode = /\bcreate\s*=\s*True\b/.test(m[1]) ? "write" : "read";
+        addUnique(bridgeSignals.sharedMemoryTouches, `SHM:${seg}:${mode}`, {
+          segment: seg,
+          mode,
+          line: offsetToLine(m.index)
+        });
+      }
     }
   }
 
@@ -1784,6 +2244,8 @@ export function parseSourceFile(absPath, relPath) {
       deadLocalVars: [],
       conditionalCount: df.conditionalCount,
       qualifiedCalls: df.qualifiedCalls,
+      callSites: [],
+      upperConstantsRead: df.upperConstantsRead || [],
       calls: Array.from(calls),
       writes: df.writes,
       delegatedWrites: df.delegatedWrites,

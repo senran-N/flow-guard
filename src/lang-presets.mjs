@@ -716,10 +716,11 @@ export function matchSymbolDeclaration(lang, line, inClassScope = false, inVueOp
     }
     const cppM = line.match(/^\s*(?:[A-Za-z_][A-Za-z0-9_:*&<>]*\s+)+([A-Za-z_][A-Za-z0-9_]*)\s*\([^;]*$/);
     if (cppM && !CONTROL_KEYWORDS.test(cppM[1])) {
+      const isFileLocalStatic = !inClassScope && /^\s*(?:inline\s+)?static\b/.test(beforeParen);
       return {
         name: cppM[1],
         kind: inClassScope ? "method" : "function",
-        isPublicApi: true
+        isPublicApi: !isFileLocalStatic
       };
     }
   }
@@ -745,7 +746,7 @@ export function isRuntimeEntrySource(lang, fileRel, symName, attrsAndSig, bodyTe
     ) {
       return true;
     }
-    if (/\[(HttpGet|HttpPost|HttpPut|HttpDelete|Route|ApiController)\]/.test(attrsAndSig)) {
+    if (/\[(HttpGet|HttpPost|HttpPut|HttpDelete|Route|ApiController)\]/.test(attrsAndSig) || /\bWebMessageReceived\b/.test(bodyText)) {
       return true;
     }
     return false;
@@ -755,8 +756,7 @@ export function isRuntimeEntrySource(lang, fileRel, symName, attrsAndSig, bodyTe
       symName === "main" ||
       symName === "run" ||
       /#\[(?:tauri::)?command(?:\s*\([^)]*\))?\s*\]|#\[specta::specta\b/.test(attrsAndSig) ||
-      /#\[(get|post|put|delete|patch|tokio::main|actix_web::main)\]/.test(attrsAndSig) ||
-      (/(^|\/)lib\.rs$/.test(normFile) && /^\s*pub\s+fn\b/.test(attrsAndSig))
+      /#\[(get|post|put|delete|patch|tokio::main|actix_web::main)\]/.test(attrsAndSig)
     );
   }
   if (lang === "ts" || lang === "vue") {
@@ -769,10 +769,11 @@ export function isRuntimeEntrySource(lang, fileRel, symName, attrsAndSig, bodyTe
         )) ||
       normFile.endsWith("App.vue") ||
       normFile.endsWith("App.svelte") ||
-      (/(^|\/)index\.(ts|tsx|js|mjs)$/.test(normFile) && /\bexport\b/.test(attrsAndSig)) ||
-      /(^|\/)app\/.*\/(page|route)\.(tsx|ts|js)$/.test(normFile) ||
-      /@(click|submit|change|input|keydown)|on(Click|Submit|Change)\s*=/.test(bodyText) ||
-      /ipcMain\.(handle|on)\s*\(|process\.stdin\.on\s*\(/.test(bodyText)
+      normFile.endsWith("App.tsx") ||
+      normFile.endsWith("App.jsx") ||
+      /(^|\/)app\/.*\/(page|route|layout)\.(tsx|ts|jsx|js)$/.test(normFile) ||
+      /@(click|submit|change|input|keydown)|on(Click|Submit|Change|Input)\s*=/.test(bodyText) ||
+      /ipcMain\.(handle|on)\s*\(|process\.stdin\.on\s*\(|createRoot\s*\(|chrome\.webview\.addEventListener\s*\(/.test(bodyText)
     );
   }
   if (lang === "dart") {
@@ -828,7 +829,10 @@ export function isRuntimeEntrySource(lang, fileRel, symName, attrsAndSig, bodyTe
     );
   }
   if (lang === "cpp") {
-    return /^(main|wmain|WinMain|wWinMain|DllMain)$/.test(symName);
+    return (
+      /^(main|wmain|WinMain|wWinMain|DllMain|NAPI_MODULE_INIT)$/.test(symName) ||
+      /\badd_WebMessageReceived\s*\(/.test(bodyText)
+    );
   }
   return false;
 }

@@ -1,7 +1,7 @@
 {
   "name": "flow-guard",
-  "version": "0.1.1",
-  "description": "End-to-End Causality Flow (Source ➔ Branch ➔ Sink) Architecture Vision, Polyglot Bridge Linker & Incremental Flow Verifier MCP Plugin for AI Agents",
+  "version": "0.2.0",
+  "description": "Task-Oriented End-to-End Wiring Blueprint, Evidenced Causality Graph Diff & 3-Tier (Structural / Data-Flow / Behavioral) Verifier MCP Engine for AI Coding Agents",
   "type": "module",
   "main": "src/server.mjs",
   "bin": {
@@ -22,7 +22,9 @@
   ],
   "scripts": {
     "start": "node src/server.mjs",
-    "test": "node test/torture-suite.mjs",
+    "test": "node test/torture-suite.mjs && node test/task-benchmark-suite.mjs",
+    "test:torture": "node test/torture-suite.mjs",
+    "test:tasks": "node test/task-benchmark-suite.mjs",
     "verify:self": "node src/server.mjs --cli verify ."
   },
   "repository": {

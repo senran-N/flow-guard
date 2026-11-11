@@ -1,60 +1,55 @@
 ---
 name: flow-engineering
-description: 端到端水路（Source ➔ Branch ➔ Sink）透视、沙盒原型向生产迁移、跨语言链路对齐与废管死代码清理的标准作业流程（SOP）。当需要接入新模块、将隔离实验代码合入主项目、排查改A漏B的遗留问题或清理死代码时激活此技能。
+description: 端到端水路（Source ➔ Branch ➔ Sink）透视、共享接线蓝图闭环、跨语言协议对齐与基于图差异的三态验收标准作业流程（SOP）。当需要接入新模块、新增配置/协议链路、排查改A漏B或清理死代码时激活此技能。
 ---
 
-# Flow Engineering — 端到端水路工程指南
+# Flow Engineering — 端到端任务接线与三态验收指南
 
-本技能配合 `flow-guard` MCP Server（`flow_overview`、`flow_trace`、`flow_blueprint`、`flow_verify`）与生命周期钩子，帮助你以最少的步骤完成**无断流、无漏改、无死代码**的高质量代码演进。
-
----
-
-## 核心心智模型：把代码看作「通水水管网」
-
-不要把代码看作静态积木，每一处有效代码都必须处于一条完整的 **Source ➔ Branch ➔ Sink** 水路上：
-
-1. **真实水源（True Source）**：真实世界的触发入口（UI 事件、Tauri/HTTP API 入口、Unity `Awake/Update/OnGUI`、`[HarmonyPatch]`、网络收包、磁盘读档）。
-2. **分流阀与跨界桥（Branches & Bridges）**：
-   - 模式分流阀（如 `shared` vs `independent`、`Host` vs `Client`）；
-   - 跨语言水路桥（如前端 `invoke('cmd')` $\to$ Rust `#[tauri::command] fn cmd`、跨进程共享配置文件如 `mp-session.json`）。
-3. **真实终端（True Sink）**：最终产生可观测效果的出口（修改原生引擎组件/Transform、写入网络发送流、落盘保存文件、更新前端响应式 Store）。
+本技能配合 `flow-guard` MCP Server（`flow_overview`、`flow_trace`、`flow_blueprint`、`flow_verify`），帮助你在局部改代码时始终围绕**“本次任务应该接成什么样，以及最后有什么证据证明接好了”**完成闭环。
 
 ---
 
-## 场景一：修改现有业务逻辑（防“改 A 漏 B”）
+## 核心心智模型：四大漏接根因与三层验收证据
 
-1. **一键透视水路**：
-   调用 `flow_trace({ workspaceRoot, target: "<函数名/类名/字段名>" })`。
-2. **核对 3 个关键问题**：
-   - **上游水源**：有哪些入口会触发到这里？
-   - **同级支流（Sibling Branches）**：上游分流阀是否还分出了其它并列支流（例如改了单船逻辑，同级的 `FleetRuntime` 多船支流是否消费同一结构）？
-   - **状态写权限（SSOT）**：你要修改的状态字段，谁是唯一权威写入者（Writer）？切勿在只读消费端私自新建冗余缓存。
-3. **检查可复用函数**：
-   查看 `flow_trace` 返回的 `reusableCandidates`，优先复用已有工具函数，杜绝复制粘贴造轮子。
+AI 编程最常见的四类结构性失误：
+1. **写了却没接上**：函数或类已实现（甚至加了 `export`），但没有任何真实运行入口触发，或计算结果无下游消费者。
+2. **改了一处漏了关联处**：同族多态实现、另一平台分支、跨语言协议载荷对端、状态读取方或 `Save ⇄ Load` 恢复端未同步修改。
+3. **接通了错误路径**：生产入口误调 `sandbox/test` 实验实现，或新配置虽已写入并保存，核心计算仍读旧常量。
+4. **修复破坏了架构契约**：误删预留扩展钩子/条件编译签名，或用空 `catch {}`、形式化假调用掩盖断流。
 
----
-
-## 场景二：隔离沙盒实验 ➔ 生产项目完整接入（防“半截接入”）
-
-当你在 `scratch/`、`lab/`、`experiments/` 或测试脚本中验证好了一段新逻辑，准备接入正式生产目录时，严格执行以下 4 步：
-
-1. **提取同类模块施工单**：
-   找一个生产区已有的同类功能模块，调用 `flow_blueprint({ workspaceRoot, reference: "<同类模块名>" })`。
-2. **按施工单完成 4 站式接线**：
-   - **第 1 站（接水源 Source）**：将真实运行时参数（而非实验时的硬编码假参数）传入新模块。
-   - **第 2 站（过分流 Branch）**：在所有必要的模式分支（如主/副船、主/客机）中注册路由。
-   - **第 3 站（闭环成对接口 Paired Lifecycle）**：若涉及 `Send`，必接 `Receive`；若涉及运行期状态，必接 `Save` 与 `Load`；若涉及 `Create`，必接 `Destroy/Reset`。
-   - **第 4 站（落真终端 Sink）**：确保新模块计算出的结果真正写入了原生引擎对象、网络流或 UI 状态（不能停留在只写不读的内部字段里当“哑巴节点”）。
-3. **剥离沙盒残留脚手架**：
-   彻底删除实验阶段写的 `mock/dummy` 默认值、空 `catch {}` 吞错逻辑，严禁生产区文件反向 `import` 实验区/测试区文件。
-4. **执行通水验收**：
-   调用 `flow_verify({ workspaceRoot })`，确认无 `BROKEN_FLOW`（断流）与 `WRITE_ONLY_STATE`（只写不读状态）。
+FlowGuard 按三层证据逐级核验：
+- **`L1_STRUCTURAL`（结构接通）**：入口可达性（区分 `application` 真实入口与 `library` 包公开 API）、工厂注册、多态/平台分支、跨语言桥接对端是否存在。
+- **`L2_DATA_FLOW`（数据接通）**：本次新增参数、跨端载荷字段或状态字段是否真正传递到目标计算消费者（而非停留在只写状态或仅被 `Save` 序列化读取），返回值是否被有效承接，`Save ⇄ Load` 字段读写是否对称。
+- **`L3_BEHAVIORAL`（行为生效）**：是否有测试或运行探针验证输入改变后输出按预期变化（线程同步、共享内存时序、原生句柄生命周期需结合现有测试与运行探针确认）。
 
 ---
 
-## 场景三：替换旧逻辑与清理死代码（防“废管堆积”）
+## 标准作业流程（SOP）
 
-1. **新水路接通后，立即调用 `flow_verify({ workspaceRoot })`**：
-   查看报告中的 `newlyOrphaned`（本次改动导致断流的旧函数/旧文件）与 `deadPipes`（全仓零水流孤岛）。
-2. **果断物理删除**：
-   只要 `flow_verify` 标明某旧函数已无任何生产水源可达且无反射/跨语言引用，直接将其从源码中物理删除，严禁留作注释或加 `#[allow(dead_code)]` 保留。
+### 第一步：动工前查带证据关系（`flow_trace`）
+调用 `flow_trace({ workspaceRoot, target })`，重点阅读：
+- **`evidencedRelations`**：查看每条入边/出边的类型（`CONTAINS` / `SEQ_CALL` / `BRANCH_DISPATCH` / `REGISTRATION` / `STATE_RW` / `IMPLEMENTS` / `PROTOCOL_BRIDGE`）、源码行号、实参列表与解析置信度（遇到 `AMBIGUOUS` 候选集先回源码核实）。
+- **`siblingBranchesToCheck` vs `sequentialStepsInCaller`**：只对真正的条件分支、工厂注册与多态同族检查并列同步需求，不要把同一函数内的顺序步骤误判为并列实现。
+
+### 第二步：围绕同一份接入清单施工（`flow_blueprint`）
+接入新功能、新配置或新实现类前，调用：
+```json
+{
+  "reference": "DetectorConfig",
+  "targetSymbol": "setDetectionThreshold",
+  "targetField": "detectionThreshold",
+  "consumerTarget": "applyFilter",
+  "requirePersistence": "required"
+}
+```
+- 工具将自动生成并持久化 `wiringPlan`（包含每站的接入位置、原因、期望建立的关系、验收方式及 `ambiguitiesToConfirm`）。
+- 按清单逐站打通：**入口触发 ➔ 工厂/路由挂载 ➔ 跨端协议载荷对齐 ➔ 目标业务消费计算 ↕ 对称保存与恢复**。
+
+### 第三步：基于图差异与三态结论交卷（`flow_verify`）
+完成修改后调用 `flow_verify({ workspaceRoot, baseRef, runTestsCommand })`：
+- 若任务跨越多次 Git 提交，传入 `baseRef`（如任务起点 commit SHA 或 `HEAD~N`）以对比完整任务前后的水路图差异（含 `impactedUntouchedFiles` 未修改文件波及检查）。
+- 逐项核对 `wiringReport`：
+  - **`SATISFIED`（满足）**：已找到所需连接与数据消费证据。
+  - **`VIOLATED`（违反）**：存在漏注册、协议字段未消费、过滤仍用旧常量、重启未恢复或应用新增导出未接入口等明确冲突，必须按 `remediation` 补齐真实关系（严禁造假调用消警）。
+  - **`INCONCLUSIVE`（待确认）**：存在外部插件动态订阅、反射加载或缺少运行期测试覆盖，交卷时须向用户如实说明待确认项。
+- 清理死代码时：仅直接删除 `CONFIRMED_SAFE_TO_DELETE` 的内部废管；对 `NO_STATIC_CALLER_EVIDENCE` 与 `reservedContracts` 保持审慎核实。
