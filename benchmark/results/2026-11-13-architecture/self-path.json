@@ -1,0 +1,94 @@
+{
+  "status": "PATHS_FOUND",
+  "query": {
+    "from": "executeTool",
+    "to": "buildWorkspaceFlowGraph",
+    "pathMode": "execution",
+    "maxHops": 12,
+    "maxPaths": 5,
+    "searchBudget": 20000,
+    "includeCandidates": false
+  },
+  "paths": [
+    {
+      "nodeIds": [
+        "symbol:src/server.mjs::executeTool#L222",
+        "symbol:src/flow-tools.mjs::generateFlowOverview#L21",
+        "symbol:src/graph-builder.mjs::buildWorkspaceFlowGraph#L355"
+      ],
+      "edgeIds": [
+        "relation:[\"symbol:src/server.mjs::executeTool#L222\",\"symbol:src/flow-tools.mjs::generateFlowOverview#L21\",\"BRANCH_DISPATCH\",\"HIGH\",null]",
+        "relation:[\"symbol:src/flow-tools.mjs::generateFlowOverview#L21\",\"symbol:src/graph-builder.mjs::buildWorkspaceFlowGraph#L355\",\"SEQ_CALL\",\"HIGH\",null]"
+      ],
+      "hops": 2,
+      "certainty": "STATIC_EVIDENCE",
+      "interpretation": "STATIC_EXECUTION_PATH"
+    },
+    {
+      "nodeIds": [
+        "symbol:src/server.mjs::executeTool#L222",
+        "symbol:src/flow-tools.mjs::generateWiringBlueprint#L357",
+        "symbol:src/graph-builder.mjs::buildWorkspaceFlowGraph#L355"
+      ],
+      "edgeIds": [
+        "relation:[\"symbol:src/server.mjs::executeTool#L222\",\"symbol:src/flow-tools.mjs::generateWiringBlueprint#L357\",\"BRANCH_DISPATCH\",\"HIGH\",null]",
+        "relation:[\"symbol:src/flow-tools.mjs::generateWiringBlueprint#L357\",\"symbol:src/graph-builder.mjs::buildWorkspaceFlowGraph#L355\",\"SEQ_CALL\",\"HIGH\",null]"
+      ],
+      "hops": 2,
+      "certainty": "STATIC_EVIDENCE",
+      "interpretation": "STATIC_EXECUTION_PATH"
+    },
+    {
+      "nodeIds": [
+        "symbol:src/server.mjs::executeTool#L222",
+        "symbol:src/flow-tools.mjs::traceSymbolFlow#L121",
+        "symbol:src/graph-builder.mjs::buildWorkspaceFlowGraph#L355"
+      ],
+      "edgeIds": [
+        "relation:[\"symbol:src/server.mjs::executeTool#L222\",\"symbol:src/flow-tools.mjs::traceSymbolFlow#L121\",\"BRANCH_DISPATCH\",\"HIGH\",null]",
+        "relation:[\"symbol:src/flow-tools.mjs::traceSymbolFlow#L121\",\"symbol:src/graph-builder.mjs::buildWorkspaceFlowGraph#L355\",\"SEQ_CALL\",\"HIGH\",null]"
+      ],
+      "hops": 2,
+      "certainty": "STATIC_EVIDENCE",
+      "interpretation": "STATIC_EXECUTION_PATH"
+    },
+    {
+      "nodeIds": [
+        "symbol:src/server.mjs::executeTool#L222",
+        "symbol:src/flow-verifier.mjs::verifyWorkspaceFlow#L18",
+        "symbol:src/graph-builder.mjs::buildWorkspaceFlowGraph#L355"
+      ],
+      "edgeIds": [
+        "relation:[\"symbol:src/server.mjs::executeTool#L222\",\"symbol:src/flow-verifier.mjs::verifyWorkspaceFlow#L18\",\"BRANCH_DISPATCH\",\"HIGH\",null]",
+        "relation:[\"symbol:src/flow-verifier.mjs::verifyWorkspaceFlow#L18\",\"symbol:src/graph-builder.mjs::buildWorkspaceFlowGraph#L355\",\"SEQ_CALL\",\"HIGH\",null]"
+      ],
+      "hops": 2,
+      "certainty": "STATIC_EVIDENCE",
+      "interpretation": "STATIC_EXECUTION_PATH"
+    },
+    {
+      "nodeIds": [
+        "symbol:src/server.mjs::executeTool#L222",
+        "symbol:src/flow-tools.mjs::generateFlowOverview#L21",
+        "symbol:src/architecture-diff.mjs::compareWorkspaceArchitecture#L30",
+        "symbol:src/graph-builder.mjs::buildWorkspaceFlowGraph#L355"
+      ],
+      "edgeIds": [
+        "relation:[\"symbol:src/server.mjs::executeTool#L222\",\"symbol:src/flow-tools.mjs::generateFlowOverview#L21\",\"BRANCH_DISPATCH\",\"HIGH\",null]",
+        "relation:[\"symbol:src/flow-tools.mjs::generateFlowOverview#L21\",\"symbol:src/architecture-diff.mjs::compareWorkspaceArchitecture#L30\",\"BRANCH_DISPATCH\",\"HIGH\",null]",
+        "relation:[\"symbol:src/architecture-diff.mjs::compareWorkspaceArchitecture#L30\",\"symbol:src/graph-builder.mjs::buildWorkspaceFlowGraph#L355\",\"SEQ_CALL\",\"HIGH\",null]"
+      ],
+      "hops": 3,
+      "certainty": "STATIC_EVIDENCE",
+      "interpretation": "STATIC_EXECUTION_PATH"
+    }
+  ],
+  "search": {
+    "visitedStates": 57,
+    "queuedStates": 133,
+    "depthLimited": false,
+    "pathLimited": true,
+    "budgetLimited": false,
+    "complete": false
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "modules": [
+    {
+      "id": "transport",
+      "name": "MCP、CLI 与会话入口",
+      "layer": "ENTRY_SURFACE",
+      "paths": ["src/server.mjs", "src/rpc-input.mjs", "src/hook-runner.mjs"]
+    },
+    {
+      "id": "architecture",
+      "name": "架构模型与任务查询",
+      "layer": "DOMAIN_CORE",
+      "paths": ["src/arch-vision.mjs", "src/architecture-config.mjs", "src/architecture-dependencies.mjs", "src/architecture-diff.mjs", "src/architecture-evidence.mjs", "src/architecture-focus.mjs", "src/architecture-model.mjs", "src/architecture-paths.mjs", "src/architecture-semantics.mjs", "src/architecture-state.mjs", "src/architecture-topology.mjs", "src/architecture-view.mjs", "src/flow-tools.mjs"]
+    },
+    {
+      "id": "analysis",
+      "name": "源码解析与关系建图",
+      "layer": "DOMAIN_CORE",
+      "paths": ["src/graph-builder.mjs", "src/file-parser.mjs", "src/lexer.mjs", "src/module-references.mjs", "src/bridge-linker.mjs", "src/fingerprint.mjs", "src/conditional-context.mjs", "src/lang-presets.mjs", "src/similarity-index.mjs"]
+    },
+    {
+      "id": "language-resolution",
+      "name": "语言、包和框架解析",
+      "layer": "DOMAIN_CORE",
+      "paths": ["src/cargo-loader.mjs", "src/js-imports.mjs", "src/package-boundaries.mjs", "src/react-lifecycle.mjs", "src/vue-template.mjs", "src/framework-callbacks.mjs", "src/python-dependencies.mjs", "src/rust-imports.mjs", "src/rust-macro-types.mjs", "src/rust-project.mjs", "src/rust-receivers.mjs", "src/rust-semantic-process.mjs", "src/rust-semantics.mjs", "src/rust-type-flow.mjs", "src/rust-zones.mjs"]
+    },
+    {
+      "id": "verification",
+      "name": "接线契约、图差异与行为验收",
+      "layer": "ORCHESTRATION_ROUTING",
+      "paths": ["src/flow-verifier.mjs", "src/wiring-contract.mjs", "src/graph-diff.mjs", "src/test-runner.mjs", "src/test-process.mjs"]
+    },
+    {
+      "id": "state",
+      "name": "会话状态存储",
+      "layer": "INFRA_SINK",
+      "paths": ["src/state-store.mjs"]
+    }
+  ]
+}

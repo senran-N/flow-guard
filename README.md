@@ -5,7 +5,7 @@
 <br />
 
 [![Release](https://img.shields.io/badge/release-v0.2.0-38bdf8?style=flat-square&logo=github)](https://github.com/senran-N/flow-guard/releases/tag/v0.2.0)
-[![Test Suites](https://img.shields.io/badge/Tests-147%20Assertions%20%2B%20156%20Cases-34d399?style=flat-square&logo=node.js)](./test/real-world-regression.test.mjs)
+[![Test Suites](https://img.shields.io/badge/Tests-147%20Assertions%20%2B%20207%20Cases-34d399?style=flat-square&logo=node.js)](./test/real-world-regression.test.mjs)
 [![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-818cf8?style=flat-square)](https://modelcontextprotocol.io)
 [![Languages](https://img.shields.io/badge/Polyglot-27%20Extensions%20%7C%2011%2B%20Langs-34d399?style=flat-square)](#-%E5%A4%9A%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%B7%A8%E8%BE%B9%E7%95%8C%E6%A1%A5%E6%8E%A5%E7%9F%A9%E9%98%B5)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0%20(Pure%20Node%20ESM)-22d3ee?style=flat-square)](./package.json)
@@ -87,6 +87,34 @@ FlowGuard 通过标准 Model Context Protocol (`stdio` JSON-RPC 2.0，零外部�
 - **`workspaceProfile`**：自动识别工程模式（`application` / `library` / `hybrid`）、包导出入口与动态插件加载特征。
 - **`architectureDomains` & `backbonePipelines`**：划分 `ENTRY_SURFACE`、`ORCHESTRATION_ROUTING`、`INFRA_SINK`，提取核心端到端主干水路与高中心度枢纽（`architecturalHubs`）。
 - **`stateOwnership` (SSOT) & `extensionAndReserveCatalog`**：全局状态字段唯一写入者/读取者映射与多态扩展契约目录。
+
+#### 分层架构查询（`architecture`）
+
+完整用法与十轮开发新增的路径、状态、影响面、业务模块配置及历史比较见 [架构查询指南](./ARCHITECTURE.md)；开发与验收记录见 [十轮记录](./benchmark/ARCHITECTURE-ROUNDS.md)。
+
+`flow_overview` 和 `flow_trace` 共享版本化的 `architecture` 输出：`nodes`、`edges`、`coverage` 和 `mermaid`。节点 ID 可在后续查询中复用；模块/文件节点的 `drillDown` 给出继续展开的工具及参数，符号节点可直接跳转到 `flow_trace`。默认只展示生产源码。
+
+```bash
+# 项目模块总览（默认最多 40 个节点、80 条关系）
+node src/server.mjs --cli overview /path/to/repo
+
+# 展开一个模块的文件，depth 0 仅显示该模块内的文件
+node src/server.mjs --cli overview /path/to/repo --level file --focus module:src/core --depth 0
+
+# 展开一个文件的符号，并查看向下游一跳的关系
+node src/server.mjs --cli overview /path/to/repo --level symbol --focus src/core/service.ts --depth 1 --direction downstream
+
+# 追踪符号的上游两跳；原有 traces 字段继续保留
+node src/server.mjs --cli trace /path/to/repo MyFunction --depth 2 --direction upstream
+```
+
+MCP 使用同名参数：`level`（`module/file/symbol`，overview 默认 module，trace 默认 symbol）、`focus`（精确节点 ID、模块目录、文件路径或唯一符号名）、`depth`（0–5，默认 1）、`direction`（`both/upstream/downstream`）、`maxNodes`（1–500）、`maxEdges`（1–2000）、`nodeOffset` 和 `edgeOffset`。未指定 focus 时 overview 展示全仓；trace 从所有匹配的生产符号开始展开。重复符号名的 focus 会报歧义，需改用节点 ID。路径相对于工作区。
+
+`coverage` 记录匹配、返回、省略数量及焦点范围外数量，`nextNodeOffset` / `nextEdgeOffset` 给出下一页位置。节点优先展示源码模块/文件/符号，再按稳定 ID 排序；有焦点时先按距焦点的跳数排序；关系只返回两端均在当前节点页的部分，`edgesOutsideNodePage` 明示跨页省略。要检查某条跨页依赖，应缩小 focus 或提高 maxNodes。默认关系分页适用于当前节点页；传入 `edgeScope: "all-matched"`（CLI `--edge-scope all-matched`）可独立遍历全部匹配关系，页外端点放入 `boundaryNodes`。改变节点页后重置 edgeOffset。翻页时传回 `expectedGraphId`（CLI `--expected-graph`），图已变化则报错，需重新查询。
+
+关系保留类型、置信度、解析方式、源/目标声明位置及最多 3 条源码证据样本；`evidenceCount` / `omittedEvidenceCount` 明示证据省略量，候选预览保留在证据的 `resolution.candidates` 中，最多 8 个并标明总数和省略数；用 `edgeId`、`evidenceOffset`、`maxEvidence` 获取完整关系证据，候选用 `candidateOffset`、`maxCandidates` 分页。同一模块/文件内的关系在粗粒度视图中折叠，数量见 `collapsedInternalRelations`，可下钻查看。`scope` 还提供分析器限制及其省略计数。符号层同时展示状态写入/读取关系及未找到对端的协议端点。状态证据位置是所属声明，明确标为 `ENCLOSING_DECLARATION`，不冒充具体字段访问位置。
+
+`mermaidPipeline` 与 `architecture.mermaid` 使用同一组节点和关系；写入 AGENTS.md 时附带覆盖数量。模块分组仍按目录推断，不等于已确认的业务边界；候选、注册、状态和结构关系均不能证明运行时执行。原有 `architectureDomains`、`backbonePipelines` 等摘要字段继续保留原有语义及数量上限，新增 coverage 只描述 `architecture`；trace 的旧列表另提供 `traceCoverage` 及关系省略计数。
 
 ### 2. `flow_trace` — 改代码前必调：带证据关系分类与影响面透视
 输入任意函数名、类名、文件名或状态字段，返回带源码行号与解析依据的因果链路：

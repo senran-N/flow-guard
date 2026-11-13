@@ -1,3 +1,4 @@
+import { extractJsModuleReferences } from "./module-references.mjs";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -2598,6 +2599,7 @@ export function parseSourceFileContent(content, relPath) {
     }
   }
   return {
+    moduleReferences: ["ts", "vue"].includes(lang) ? extractJsModuleReferences(cleanCode, commentlessCode) : [],
     contentHash: crypto.createHash("sha256").update(content).digest("hex"),
     packageName: ["go", "java", "kotlin"].includes(lang) ? cleanCode.match(/^\s*package\s+([\w.]+)/m)?.[1] || null : null,
     file: relPath,

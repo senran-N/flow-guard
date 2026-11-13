@@ -35,6 +35,7 @@ export function cloneParsedFile(raw) {
     reExportedPaths: [...(raw.reExportedPaths || [])],
     reExportedStems: [...(raw.reExportedStems || [])],
     importBindings: (raw.importBindings || []).map((binding) => ({ ...binding })),
+    moduleReferences: (raw.moduleReferences || []).map((reference) => ({ ...reference })),
     exportBindings: (raw.exportBindings || []).map((binding) => ({ ...binding })),
     templateEventHandlers: (raw.templateEventHandlers || []).map((event) => ({ ...event })),
     memberReads: [...(raw.memberReads || [])],
@@ -793,9 +794,8 @@ export function assembleFlowGraph(files, workspaceRoot = "", options = {}) {
     const buildEdgeMetaFromSites = (targetSym, sites, resolutionMode, confidence, candidatePool = null) => {
       const primarySite = sites && sites.length > 0 ? sites[0] : null;
       const isRegistration =
-        Boolean(primarySite?.isRegistrationRef) ||
-        Boolean(targetSym.isCallbackRef && !primarySite) ||
-        (/^(?:register|subscribe|bind|mount|provide)[A-Z_]/i.test(sym.name) && Boolean(primarySite));
+        (Boolean(primarySite?.isRegistrationRef) && resolutionMode !== 'RUST_CALLBACK_INVOCATION') ||
+        Boolean(targetSym.isCallbackRef && !primarySite);
       const isBranch = !isRegistration && Boolean(primarySite?.inConditionalBranch);
       const kind = isRegistration ? "REGISTRATION" : isBranch ? "BRANCH_DISPATCH" : "SEQ_CALL";
       const line = primarySite?.line || sym.startLine;
@@ -842,6 +842,17 @@ export function assembleFlowGraph(files, workspaceRoot = "", options = {}) {
         }
       };
     };
+
+    function addEdgesFromSites(target, sites, mode, confidence, candidates) {
+      const groups = new Map();
+      for (const site of sites || []) {
+        const category = site.isRegistrationRef ? 'REGISTRATION' : site.inConditionalBranch ? `BRANCH:${site.branchGroupLine || site.branchHeaderLine || site.line}` : 'SEQ_CALL';
+        if (!groups.has(category)) groups.set(category, []);
+        groups.get(category).push(site);
+      }
+      if (!groups.size) groups.set('UNLOCATED', []);
+      for (const group of groups.values()) addSymEdge(sym.id, target.id, buildEdgeMetaFromSites(target, group, mode, confidence, candidates));
+    }
 
     for (const calleeName of sym.calls) {
       if (/^(main|wmain|WinMain|wWinMain|DllMain)$/.test(calleeName)) continue;
@@ -893,7 +904,7 @@ export function assembleFlowGraph(files, workspaceRoot = "", options = {}) {
       if (sameFileTargets.length > 0 && !/^[A-Z]/.test(calleeName) && !hasExternalQualifier) {
         const conf = sameFileTargets.length === 1 ? "HIGH" : "AMBIGUOUS";
         for (const t of sameFileTargets) {
-          addSymEdge(sym.id, t.id, buildEdgeMetaFromSites(t, sites, "EXACT_SAME_FILE", conf, sameFileTargets));
+          addEdgesFromSites(t, sites, "EXACT_SAME_FILE", conf, sameFileTargets);
         }
         continue;
       }
@@ -993,7 +1004,7 @@ export function assembleFlowGraph(files, workspaceRoot = "", options = {}) {
               : mode === "HEURISTIC_NAME" || (mode === "SAME_PACKAGE_DIR" && !exactGoPackageFunction)
                 ? "MEDIUM"
                 : "HIGH";
-          addSymEdge(sym.id, target.id, buildEdgeMetaFromSites(target, sites, mode, confidence, candidateSyms));
+          addEdgesFromSites(target, sites, mode, confidence, candidateSyms);
         }
       }
     }

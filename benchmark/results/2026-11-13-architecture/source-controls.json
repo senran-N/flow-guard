@@ -1,0 +1,42 @@
+{
+  "results": [
+    {
+      "name": "fd",
+      "file": "src/main.rs",
+      "from": "main",
+      "to": "run",
+      "needle": "let result = run();",
+      "replacement": "let result = Ok(ExitCode::Success);",
+      "commit": "24d90b28d25438af2a8f2e7f7e46d03d6828da94",
+      "sourceHash": "faf95331137e1c0a8f76486b44fa916c8f6ca0c35a22a5f6e68e3efe6fefcbaf",
+      "line": 69,
+      "control": "PATHS_FOUND",
+      "deletion": "NO_STATIC_PATH_FOUND",
+      "unchanged": true,
+      "limitation": "In-memory source mutation checks static edge extraction; no claim of runtime regression coverage."
+    },
+    {
+      "name": "gin",
+      "file": "gin.go",
+      "from": "Default",
+      "to": "New",
+      "needle": "engine := New()",
+      "replacement": "engine := &Engine{}",
+      "commit": "0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646",
+      "sourceHash": "4d3d7d8a4ed9189be2d9d47c3902d1d9613ab507e4dcd9143f26d7109f9ac441",
+      "line": 252,
+      "control": "PATHS_FOUND",
+      "deletion": "NO_STATIC_PATH_FOUND",
+      "unchanged": true,
+      "limitation": "In-memory source mutation checks static edge extraction; no claim of runtime regression coverage."
+    },
+    {
+      "name": "pinia",
+      "commit": "4817135a25431172d363bd928476db7cdbf875c4",
+      "file": "packages/pinia/src/index.ts",
+      "sourceHash": "cbbe8844bd8371776c79c408653f5d13867fc89ababc01fca238c63fc262b2bd",
+      "outcome": "RE_EXPORT_DEPENDENCY_FOUND",
+      "unchanged": true
+    }
+  ]
+}

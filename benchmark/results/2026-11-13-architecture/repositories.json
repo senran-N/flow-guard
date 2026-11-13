@@ -1,0 +1,1339 @@
+{
+  "node": "v24.14.0",
+  "platform": "win32",
+  "results": [
+    {
+      "name": "fd",
+      "commit": "24d90b28d25438af2a8f2e7f7e46d03d6828da94",
+      "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true,
+      "repeatConsistent": true,
+      "rounds": [
+        {
+          "round": 1,
+          "buildMs": 442,
+          "totalMs": 525,
+          "rssMiB": 106,
+          "reportHash": "ae0baad8176ff049dfec3b09e2681e07e3ec78b3f5a488fba842654778866094",
+          "defaultOutputBytes": 16598,
+          "module": {
+            "totalNodes": 4,
+            "totalEdges": 11,
+            "collapsedInternalRelations": 295,
+            "matchedNodes": 4,
+            "matchedEdges": 11,
+            "returnedNodes": 4,
+            "returnedEdges": 11,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "file": {
+            "totalNodes": 23,
+            "totalEdges": 36,
+            "collapsedInternalRelations": 240,
+            "matchedNodes": 23,
+            "matchedEdges": 36,
+            "returnedNodes": 23,
+            "returnedEdges": 36,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "symbol": {
+            "totalNodes": 283,
+            "totalEdges": 406,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 283,
+            "matchedEdges": 406,
+            "returnedNodes": 20,
+            "returnedEdges": 18,
+            "omittedNodes": 263,
+            "omittedEdges": 388,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 388,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": null
+          },
+          "witness": {
+            "from": "src/cli.rs::Opts.search_paths#L714",
+            "to": "src/cli.rs::ensure_current_directory_exists#L983",
+            "evidence": {
+              "file": "src/cli.rs",
+              "line": 722,
+              "reason": "条件分支派发 (分支头 L722): search_paths ➔ ensure_current_directory_exists",
+              "passedArgs": [
+                "current_directory"
+              ],
+              "argumentSites": [
+                {
+                  "line": 722,
+                  "passedArgs": [
+                    "current_directory"
+                  ],
+                  "positionalArgs": [
+                    "current_directory"
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                }
+              ],
+              "returnFlow": "DISCARDED_BARE"
+            }
+          },
+          "outputBytes": 176605
+        },
+        {
+          "round": 2,
+          "buildMs": 302,
+          "totalMs": 372,
+          "rssMiB": 178,
+          "reportHash": "ae0baad8176ff049dfec3b09e2681e07e3ec78b3f5a488fba842654778866094",
+          "defaultOutputBytes": 16598,
+          "module": {
+            "totalNodes": 4,
+            "totalEdges": 11,
+            "collapsedInternalRelations": 295,
+            "matchedNodes": 4,
+            "matchedEdges": 11,
+            "returnedNodes": 4,
+            "returnedEdges": 11,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "file": {
+            "totalNodes": 23,
+            "totalEdges": 36,
+            "collapsedInternalRelations": 240,
+            "matchedNodes": 23,
+            "matchedEdges": 36,
+            "returnedNodes": 23,
+            "returnedEdges": 36,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "symbol": {
+            "totalNodes": 283,
+            "totalEdges": 406,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 283,
+            "matchedEdges": 406,
+            "returnedNodes": 20,
+            "returnedEdges": 18,
+            "omittedNodes": 263,
+            "omittedEdges": 388,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 388,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": null
+          },
+          "witness": {
+            "from": "src/cli.rs::Opts.search_paths#L714",
+            "to": "src/cli.rs::ensure_current_directory_exists#L983",
+            "evidence": {
+              "file": "src/cli.rs",
+              "line": 722,
+              "reason": "条件分支派发 (分支头 L722): search_paths ➔ ensure_current_directory_exists",
+              "passedArgs": [
+                "current_directory"
+              ],
+              "argumentSites": [
+                {
+                  "line": 722,
+                  "passedArgs": [
+                    "current_directory"
+                  ],
+                  "positionalArgs": [
+                    "current_directory"
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                }
+              ],
+              "returnFlow": "DISCARDED_BARE"
+            }
+          },
+          "outputBytes": 176605
+        }
+      ]
+    },
+    {
+      "name": "pinia",
+      "commit": "4817135a25431172d363bd928476db7cdbf875c4",
+      "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true,
+      "repeatConsistent": true,
+      "rounds": [
+        {
+          "round": 1,
+          "buildMs": 619,
+          "totalMs": 861,
+          "rssMiB": 173,
+          "reportHash": "c70cf943bb8f9f09ae40202674beb3cec82fc110a4f984ac664e45bd51843ca9",
+          "defaultOutputBytes": 58784,
+          "module": {
+            "totalNodes": 95,
+            "totalEdges": 108,
+            "collapsedInternalRelations": 267,
+            "matchedNodes": 95,
+            "matchedEdges": 108,
+            "returnedNodes": 95,
+            "returnedEdges": 108,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "file": {
+            "totalNodes": 134,
+            "totalEdges": 197,
+            "collapsedInternalRelations": 157,
+            "matchedNodes": 134,
+            "matchedEdges": 197,
+            "returnedNodes": 134,
+            "returnedEdges": 197,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "symbol": {
+            "totalNodes": 225,
+            "totalEdges": 304,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 225,
+            "matchedEdges": 304,
+            "returnedNodes": 20,
+            "returnedEdges": 15,
+            "omittedNodes": 205,
+            "omittedEdges": 289,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 289,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": null
+          },
+          "witness": {
+            "from": "packages/nuxt/src/module.ts::module#module#L1",
+            "to": "packages/nuxt/src/auto-hmr-plugin.ts::autoRegisterHMRPlugin#L3",
+            "evidence": {
+              "file": "packages/nuxt/src/module.ts",
+              "line": 90,
+              "reason": "条件分支派发 (分支头 L90): module ➔ autoRegisterHMRPlugin",
+              "passedArgs": [
+                "resolve",
+                "nuxt",
+                "options"
+              ],
+              "argumentSites": [
+                {
+                  "line": 90,
+                  "passedArgs": [
+                    "resolve",
+                    "nuxt",
+                    "options"
+                  ],
+                  "positionalArgs": [
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                }
+              ],
+              "returnFlow": "CONSUMED_EXPR"
+            }
+          },
+          "outputBytes": 529647
+        },
+        {
+          "round": 2,
+          "buildMs": 536,
+          "totalMs": 793,
+          "rssMiB": 263,
+          "reportHash": "c70cf943bb8f9f09ae40202674beb3cec82fc110a4f984ac664e45bd51843ca9",
+          "defaultOutputBytes": 58784,
+          "module": {
+            "totalNodes": 95,
+            "totalEdges": 108,
+            "collapsedInternalRelations": 267,
+            "matchedNodes": 95,
+            "matchedEdges": 108,
+            "returnedNodes": 95,
+            "returnedEdges": 108,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "file": {
+            "totalNodes": 134,
+            "totalEdges": 197,
+            "collapsedInternalRelations": 157,
+            "matchedNodes": 134,
+            "matchedEdges": 197,
+            "returnedNodes": 134,
+            "returnedEdges": 197,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "symbol": {
+            "totalNodes": 225,
+            "totalEdges": 304,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 225,
+            "matchedEdges": 304,
+            "returnedNodes": 20,
+            "returnedEdges": 15,
+            "omittedNodes": 205,
+            "omittedEdges": 289,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 289,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": null
+          },
+          "witness": {
+            "from": "packages/nuxt/src/module.ts::module#module#L1",
+            "to": "packages/nuxt/src/auto-hmr-plugin.ts::autoRegisterHMRPlugin#L3",
+            "evidence": {
+              "file": "packages/nuxt/src/module.ts",
+              "line": 90,
+              "reason": "条件分支派发 (分支头 L90): module ➔ autoRegisterHMRPlugin",
+              "passedArgs": [
+                "resolve",
+                "nuxt",
+                "options"
+              ],
+              "argumentSites": [
+                {
+                  "line": 90,
+                  "passedArgs": [
+                    "resolve",
+                    "nuxt",
+                    "options"
+                  ],
+                  "positionalArgs": [
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                }
+              ],
+              "returnFlow": "CONSUMED_EXPR"
+            }
+          },
+          "outputBytes": 529647
+        }
+      ]
+    },
+    {
+      "name": "fastapi",
+      "commit": "e1144f6954eb8dd8c306f8dd2f5f0a14bbeb2cfd",
+      "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true,
+      "repeatConsistent": true,
+      "rounds": [
+        {
+          "round": 1,
+          "buildMs": 10495,
+          "totalMs": 12285,
+          "rssMiB": 401,
+          "reportHash": "a5271ac09744b55d8f42fe8292ebeb20661f0cae3b0d1fa649c9805c8a202478",
+          "defaultOutputBytes": 124298,
+          "module": {
+            "totalNodes": 9,
+            "totalEdges": 71,
+            "collapsedInternalRelations": 3639,
+            "matchedNodes": 9,
+            "matchedEdges": 71,
+            "returnedNodes": 9,
+            "returnedEdges": 71,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "file": {
+            "totalNodes": 74,
+            "totalEdges": 238,
+            "collapsedInternalRelations": 3115,
+            "matchedNodes": 74,
+            "matchedEdges": 238,
+            "returnedNodes": 74,
+            "returnedEdges": 238,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "symbol": {
+            "totalNodes": 1024,
+            "totalEdges": 5057,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 1024,
+            "matchedEdges": 5057,
+            "returnedNodes": 20,
+            "returnedEdges": 20,
+            "omittedNodes": 1004,
+            "omittedEdges": 5037,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 5037,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": null
+          },
+          "witness": {
+            "from": "fastapi/applications.py::FastAPI.__init__#L68",
+            "to": "fastapi/datastructures.py::Default#L174",
+            "evidence": {
+              "file": "fastapi/applications.py",
+              "line": 68,
+              "reason": "顺序调用步骤: __init__ ➔ Default",
+              "argumentSites": [],
+              "returnFlow": "CONSUMED_EXPR"
+            }
+          },
+          "outputBytes": 963601
+        },
+        {
+          "round": 2,
+          "buildMs": 9205,
+          "totalMs": 11115,
+          "rssMiB": 573,
+          "reportHash": "a5271ac09744b55d8f42fe8292ebeb20661f0cae3b0d1fa649c9805c8a202478",
+          "defaultOutputBytes": 124298,
+          "module": {
+            "totalNodes": 9,
+            "totalEdges": 71,
+            "collapsedInternalRelations": 3639,
+            "matchedNodes": 9,
+            "matchedEdges": 71,
+            "returnedNodes": 9,
+            "returnedEdges": 71,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "file": {
+            "totalNodes": 74,
+            "totalEdges": 238,
+            "collapsedInternalRelations": 3115,
+            "matchedNodes": 74,
+            "matchedEdges": 238,
+            "returnedNodes": 74,
+            "returnedEdges": 238,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "symbol": {
+            "totalNodes": 1024,
+            "totalEdges": 5057,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 1024,
+            "matchedEdges": 5057,
+            "returnedNodes": 20,
+            "returnedEdges": 20,
+            "omittedNodes": 1004,
+            "omittedEdges": 5037,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 5037,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": null
+          },
+          "witness": {
+            "from": "fastapi/applications.py::FastAPI.__init__#L68",
+            "to": "fastapi/datastructures.py::Default#L174",
+            "evidence": {
+              "file": "fastapi/applications.py",
+              "line": 68,
+              "reason": "顺序调用步骤: __init__ ➔ Default",
+              "argumentSites": [],
+              "returnFlow": "CONSUMED_EXPR"
+            }
+          },
+          "outputBytes": 963601
+        }
+      ]
+    },
+    {
+      "name": "gin",
+      "commit": "0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646",
+      "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true,
+      "repeatConsistent": true,
+      "rounds": [
+        {
+          "round": 1,
+          "buildMs": 1797,
+          "totalMs": 2775,
+          "rssMiB": 583,
+          "reportHash": "9013b203e2cb3245af4a657ddab3ebcd39a3f8188d4e4baa9f220f3261adfbef",
+          "defaultOutputBytes": 16694,
+          "module": {
+            "totalNodes": 7,
+            "totalEdges": 9,
+            "collapsedInternalRelations": 1933,
+            "matchedNodes": 7,
+            "matchedEdges": 9,
+            "returnedNodes": 7,
+            "returnedEdges": 9,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "file": {
+            "totalNodes": 57,
+            "totalEdges": 388,
+            "collapsedInternalRelations": 953,
+            "matchedNodes": 57,
+            "matchedEdges": 388,
+            "returnedNodes": 57,
+            "returnedEdges": 388,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "symbol": {
+            "totalNodes": 601,
+            "totalEdges": 1973,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 601,
+            "matchedEdges": 1973,
+            "returnedNodes": 20,
+            "returnedEdges": 6,
+            "omittedNodes": 581,
+            "omittedEdges": 1967,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 1967,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": null
+          },
+          "witness": {
+            "from": "auth.go::BasicAuthForRealm#L48",
+            "to": "auth.go::processAccounts#L76",
+            "evidence": {
+              "file": "auth.go",
+              "line": 53,
+              "reason": "顺序调用步骤: BasicAuthForRealm ➔ processAccounts",
+              "passedArgs": [
+                "accounts"
+              ],
+              "argumentSites": [
+                {
+                  "line": 53,
+                  "passedArgs": [
+                    "accounts"
+                  ],
+                  "positionalArgs": [
+                    "accounts"
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                }
+              ],
+              "returnFlow": "ASSIGNED:pairs"
+            }
+          },
+          "outputBytes": 1187239
+        },
+        {
+          "round": 2,
+          "buildMs": 1625,
+          "totalMs": 2922,
+          "rssMiB": 623,
+          "reportHash": "9013b203e2cb3245af4a657ddab3ebcd39a3f8188d4e4baa9f220f3261adfbef",
+          "defaultOutputBytes": 16694,
+          "module": {
+            "totalNodes": 7,
+            "totalEdges": 9,
+            "collapsedInternalRelations": 1933,
+            "matchedNodes": 7,
+            "matchedEdges": 9,
+            "returnedNodes": 7,
+            "returnedEdges": 9,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "file": {
+            "totalNodes": 57,
+            "totalEdges": 388,
+            "collapsedInternalRelations": 953,
+            "matchedNodes": 57,
+            "matchedEdges": 388,
+            "returnedNodes": 57,
+            "returnedEdges": 388,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "symbol": {
+            "totalNodes": 601,
+            "totalEdges": 1973,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 601,
+            "matchedEdges": 1973,
+            "returnedNodes": 20,
+            "returnedEdges": 6,
+            "omittedNodes": 581,
+            "omittedEdges": 1967,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 1967,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": null
+          },
+          "witness": {
+            "from": "auth.go::BasicAuthForRealm#L48",
+            "to": "auth.go::processAccounts#L76",
+            "evidence": {
+              "file": "auth.go",
+              "line": 53,
+              "reason": "顺序调用步骤: BasicAuthForRealm ➔ processAccounts",
+              "passedArgs": [
+                "accounts"
+              ],
+              "argumentSites": [
+                {
+                  "line": 53,
+                  "passedArgs": [
+                    "accounts"
+                  ],
+                  "positionalArgs": [
+                    "accounts"
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                }
+              ],
+              "returnFlow": "ASSIGNED:pairs"
+            }
+          },
+          "outputBytes": 1187239
+        }
+      ]
+    },
+    {
+      "name": "fmt",
+      "commit": "e7e6e3f71033fbfc71eba1709789328bcb0ceb28",
+      "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true,
+      "repeatConsistent": true,
+      "rounds": [
+        {
+          "round": 1,
+          "buildMs": 6462,
+          "totalMs": 10149,
+          "rssMiB": 823,
+          "reportHash": "690ebca691da9a6d0eb49d87a60c590c386cb1d352d486bcb6eddd0546cb6fab",
+          "defaultOutputBytes": 28534,
+          "module": {
+            "totalNodes": 5,
+            "totalEdges": 14,
+            "collapsedInternalRelations": 20690,
+            "matchedNodes": 5,
+            "matchedEdges": 14,
+            "returnedNodes": 5,
+            "returnedEdges": 14,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "file": {
+            "totalNodes": 25,
+            "totalEdges": 425,
+            "collapsedInternalRelations": 12072,
+            "matchedNodes": 25,
+            "matchedEdges": 425,
+            "returnedNodes": 25,
+            "returnedEdges": 425,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "symbol": {
+            "totalNodes": 1552,
+            "totalEdges": 20755,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 1552,
+            "matchedEdges": 20755,
+            "returnedNodes": 20,
+            "returnedEdges": 30,
+            "omittedNodes": 1532,
+            "omittedEdges": 20725,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 20696,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": 30
+          },
+          "witness": {
+            "from": "include/fmt/args.h::dynamic_arg_list#L43",
+            "to": "include/fmt/format.h::basic_memory_buffer.move#L1035",
+            "evidence": {
+              "file": "include/fmt/args.h",
+              "line": 43,
+              "reason": "顺序调用步骤: dynamic_arg_list ➔ move",
+              "argumentSites": [],
+              "returnFlow": "CONSUMED_EXPR"
+            }
+          },
+          "outputBytes": 1714779
+        },
+        {
+          "round": 2,
+          "buildMs": 8378,
+          "totalMs": 13127,
+          "rssMiB": 908,
+          "reportHash": "690ebca691da9a6d0eb49d87a60c590c386cb1d352d486bcb6eddd0546cb6fab",
+          "defaultOutputBytes": 28534,
+          "module": {
+            "totalNodes": 5,
+            "totalEdges": 14,
+            "collapsedInternalRelations": 20690,
+            "matchedNodes": 5,
+            "matchedEdges": 14,
+            "returnedNodes": 5,
+            "returnedEdges": 14,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "file": {
+            "totalNodes": 25,
+            "totalEdges": 425,
+            "collapsedInternalRelations": 12072,
+            "matchedNodes": 25,
+            "matchedEdges": 425,
+            "returnedNodes": 25,
+            "returnedEdges": 425,
+            "omittedNodes": 0,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 0,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": false,
+            "nextNodeOffset": null,
+            "nextEdgeOffset": null
+          },
+          "symbol": {
+            "totalNodes": 1552,
+            "totalEdges": 20755,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 1552,
+            "matchedEdges": 20755,
+            "returnedNodes": 20,
+            "returnedEdges": 30,
+            "omittedNodes": 1532,
+            "omittedEdges": 20725,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 20696,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": 30
+          },
+          "witness": {
+            "from": "include/fmt/args.h::dynamic_arg_list#L43",
+            "to": "include/fmt/format.h::basic_memory_buffer.move#L1035",
+            "evidence": {
+              "file": "include/fmt/args.h",
+              "line": 43,
+              "reason": "顺序调用步骤: dynamic_arg_list ➔ move",
+              "argumentSites": [],
+              "returnFlow": "CONSUMED_EXPR"
+            }
+          },
+          "outputBytes": 1714779
+        }
+      ]
+    },
+    {
+      "name": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true,
+      "repeatConsistent": true,
+      "rounds": [
+        {
+          "round": 1,
+          "buildMs": 2503,
+          "totalMs": 16015,
+          "rssMiB": 876,
+          "reportHash": "0c31f80e385a926f3ee0f355457ff8d3088d9939b50c5e552f44284e36fc2cf1",
+          "defaultOutputBytes": 104255,
+          "module": {
+            "totalNodes": 600,
+            "totalEdges": 631,
+            "collapsedInternalRelations": 1224,
+            "matchedNodes": 600,
+            "matchedEdges": 631,
+            "returnedNodes": 500,
+            "returnedEdges": 631,
+            "omittedNodes": 100,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 100,
+            "edgesOutsideNodePage": 100,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 500,
+            "nextEdgeOffset": null
+          },
+          "file": {
+            "totalNodes": 791,
+            "totalEdges": 2222,
+            "collapsedInternalRelations": 258,
+            "matchedNodes": 791,
+            "matchedEdges": 2222,
+            "returnedNodes": 500,
+            "returnedEdges": 2000,
+            "omittedNodes": 291,
+            "omittedEdges": 222,
+            "returnedBoundaryNodes": 263,
+            "edgesOutsideNodePage": 291,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 500,
+            "nextEdgeOffset": 2000
+          },
+          "symbol": {
+            "totalNodes": 469,
+            "totalEdges": 1720,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 469,
+            "matchedEdges": 1720,
+            "returnedNodes": 20,
+            "returnedEdges": 0,
+            "omittedNodes": 449,
+            "omittedEdges": 1720,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 1720,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": null
+          },
+          "witness": {
+            "from": "src/App.jsx::App#L27",
+            "to": "src/hooks/useConfig.jsx::useConfig#L7",
+            "evidence": {
+              "file": "src/App.jsx",
+              "line": 28,
+              "reason": "顺序调用步骤: App ➔ useConfig",
+              "argumentSites": [
+                {
+                  "line": 28,
+                  "passedArgs": [],
+                  "positionalArgs": [
+                    null,
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                },
+                {
+                  "line": 29,
+                  "passedArgs": [],
+                  "positionalArgs": [
+                    null,
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                },
+                {
+                  "line": 30,
+                  "passedArgs": [],
+                  "positionalArgs": [
+                    null,
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                },
+                {
+                  "line": 31,
+                  "passedArgs": [],
+                  "positionalArgs": [
+                    null,
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                },
+                {
+                  "line": 32,
+                  "passedArgs": [],
+                  "positionalArgs": [
+                    null,
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                },
+                {
+                  "line": 33,
+                  "passedArgs": [],
+                  "positionalArgs": [
+                    null,
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                }
+              ],
+              "returnFlow": "CONSUMED_EXPR"
+            }
+          },
+          "outputBytes": 4620569
+        },
+        {
+          "round": 2,
+          "buildMs": 1976,
+          "totalMs": 6635,
+          "rssMiB": 879,
+          "reportHash": "0c31f80e385a926f3ee0f355457ff8d3088d9939b50c5e552f44284e36fc2cf1",
+          "defaultOutputBytes": 104255,
+          "module": {
+            "totalNodes": 600,
+            "totalEdges": 631,
+            "collapsedInternalRelations": 1224,
+            "matchedNodes": 600,
+            "matchedEdges": 631,
+            "returnedNodes": 500,
+            "returnedEdges": 631,
+            "omittedNodes": 100,
+            "omittedEdges": 0,
+            "returnedBoundaryNodes": 100,
+            "edgesOutsideNodePage": 100,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 500,
+            "nextEdgeOffset": null
+          },
+          "file": {
+            "totalNodes": 791,
+            "totalEdges": 2222,
+            "collapsedInternalRelations": 258,
+            "matchedNodes": 791,
+            "matchedEdges": 2222,
+            "returnedNodes": 500,
+            "returnedEdges": 2000,
+            "omittedNodes": 291,
+            "omittedEdges": 222,
+            "returnedBoundaryNodes": 263,
+            "edgesOutsideNodePage": 291,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 500,
+            "nextEdgeOffset": 2000
+          },
+          "symbol": {
+            "totalNodes": 469,
+            "totalEdges": 1720,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 469,
+            "matchedEdges": 1720,
+            "returnedNodes": 20,
+            "returnedEdges": 0,
+            "omittedNodes": 449,
+            "omittedEdges": 1720,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 1720,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": null
+          },
+          "witness": {
+            "from": "src/App.jsx::App#L27",
+            "to": "src/hooks/useConfig.jsx::useConfig#L7",
+            "evidence": {
+              "file": "src/App.jsx",
+              "line": 28,
+              "reason": "顺序调用步骤: App ➔ useConfig",
+              "argumentSites": [
+                {
+                  "line": 28,
+                  "passedArgs": [],
+                  "positionalArgs": [
+                    null,
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                },
+                {
+                  "line": 29,
+                  "passedArgs": [],
+                  "positionalArgs": [
+                    null,
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                },
+                {
+                  "line": 30,
+                  "passedArgs": [],
+                  "positionalArgs": [
+                    null,
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                },
+                {
+                  "line": 31,
+                  "passedArgs": [],
+                  "positionalArgs": [
+                    null,
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                },
+                {
+                  "line": 32,
+                  "passedArgs": [],
+                  "positionalArgs": [
+                    null,
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                },
+                {
+                  "line": 33,
+                  "passedArgs": [],
+                  "positionalArgs": [
+                    null,
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                }
+              ],
+              "returnFlow": "CONSUMED_EXPR"
+            }
+          },
+          "outputBytes": 4620569
+        }
+      ]
+    },
+    {
+      "name": "bruno",
+      "commit": "60d7517d0545ef82c032c10dcbb6a3c815d246cf",
+      "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true,
+      "repeatConsistent": true,
+      "rounds": [
+        {
+          "round": 1,
+          "buildMs": 40525,
+          "totalMs": 51230,
+          "rssMiB": 939,
+          "reportHash": "8bb3a6e73a478458e0c391b92a9a7956f84bb4de67732625889e0c3093b76eb9",
+          "defaultOutputBytes": 213642,
+          "module": {
+            "totalNodes": 3909,
+            "totalEdges": 5531,
+            "collapsedInternalRelations": 25225,
+            "matchedNodes": 3909,
+            "matchedEdges": 5531,
+            "returnedNodes": 500,
+            "returnedEdges": 2000,
+            "omittedNodes": 3409,
+            "omittedEdges": 3531,
+            "returnedBoundaryNodes": 1582,
+            "edgesOutsideNodePage": 3409,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 500,
+            "nextEdgeOffset": 2000
+          },
+          "file": {
+            "totalNodes": 5621,
+            "totalEdges": 34487,
+            "collapsedInternalRelations": 9491,
+            "matchedNodes": 5621,
+            "matchedEdges": 34487,
+            "returnedNodes": 500,
+            "returnedEdges": 2000,
+            "omittedNodes": 5121,
+            "omittedEdges": 32487,
+            "returnedBoundaryNodes": 545,
+            "edgesOutsideNodePage": 31515,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 500,
+            "nextEdgeOffset": 2000
+          },
+          "symbol": {
+            "totalNodes": 9026,
+            "totalEdges": 48302,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 9026,
+            "matchedEdges": 48302,
+            "returnedNodes": 20,
+            "returnedEdges": 9,
+            "omittedNodes": 9006,
+            "omittedEdges": 48293,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 48293,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": null
+          },
+          "witness": {
+            "from": ".github/scripts/comment-on-flaky-tests.js::comment-on-flaky-tests#L1",
+            "to": "packages/bruno-electron/src/utils/parse.js::parse#module#L1",
+            "evidence": {
+              "file": ".github/scripts/comment-on-flaky-tests.js",
+              "line": 28,
+              "reason": "顺序调用步骤: comment-on-flaky-tests ➔ parse",
+              "passedArgs": [
+                "fs",
+                "readFileSync"
+              ],
+              "argumentSites": [
+                {
+                  "line": 28,
+                  "passedArgs": [
+                    "fs",
+                    "readFileSync"
+                  ],
+                  "positionalArgs": [
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                }
+              ],
+              "returnFlow": "ASSIGNED:flakyTests"
+            }
+          },
+          "outputBytes": 8612140
+        },
+        {
+          "round": 2,
+          "buildMs": 39428,
+          "totalMs": 49854,
+          "rssMiB": 978,
+          "reportHash": "8bb3a6e73a478458e0c391b92a9a7956f84bb4de67732625889e0c3093b76eb9",
+          "defaultOutputBytes": 213642,
+          "module": {
+            "totalNodes": 3909,
+            "totalEdges": 5531,
+            "collapsedInternalRelations": 25225,
+            "matchedNodes": 3909,
+            "matchedEdges": 5531,
+            "returnedNodes": 500,
+            "returnedEdges": 2000,
+            "omittedNodes": 3409,
+            "omittedEdges": 3531,
+            "returnedBoundaryNodes": 1582,
+            "edgesOutsideNodePage": 3409,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 500,
+            "nextEdgeOffset": 2000
+          },
+          "file": {
+            "totalNodes": 5621,
+            "totalEdges": 34487,
+            "collapsedInternalRelations": 9491,
+            "matchedNodes": 5621,
+            "matchedEdges": 34487,
+            "returnedNodes": 500,
+            "returnedEdges": 2000,
+            "omittedNodes": 5121,
+            "omittedEdges": 32487,
+            "returnedBoundaryNodes": 545,
+            "edgesOutsideNodePage": 31515,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 500,
+            "nextEdgeOffset": 2000
+          },
+          "symbol": {
+            "totalNodes": 9026,
+            "totalEdges": 48302,
+            "collapsedInternalRelations": 0,
+            "matchedNodes": 9026,
+            "matchedEdges": 48302,
+            "returnedNodes": 20,
+            "returnedEdges": 9,
+            "omittedNodes": 9006,
+            "omittedEdges": 48293,
+            "returnedBoundaryNodes": 0,
+            "edgesOutsideNodePage": 48293,
+            "excludedByFocusNodes": 0,
+            "excludedByFocusEdges": 0,
+            "truncated": true,
+            "nextNodeOffset": 20,
+            "nextEdgeOffset": null
+          },
+          "witness": {
+            "from": ".github/scripts/comment-on-flaky-tests.js::comment-on-flaky-tests#L1",
+            "to": "packages/bruno-electron/src/utils/parse.js::parse#module#L1",
+            "evidence": {
+              "file": ".github/scripts/comment-on-flaky-tests.js",
+              "line": 28,
+              "reason": "顺序调用步骤: comment-on-flaky-tests ➔ parse",
+              "passedArgs": [
+                "fs",
+                "readFileSync"
+              ],
+              "argumentSites": [
+                {
+                  "line": 28,
+                  "passedArgs": [
+                    "fs",
+                    "readFileSync"
+                  ],
+                  "positionalArgs": [
+                    null
+                  ],
+                  "argumentMapping": "POSITIONAL"
+                }
+              ],
+              "returnFlow": "ASSIGNED:flakyTests"
+            }
+          },
+          "outputBytes": 8612140
+        }
+      ]
+    }
+  ]
+}

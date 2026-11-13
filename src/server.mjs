@@ -143,6 +143,51 @@ const TOOLS = [
   }
 ];
 
+for (const name of ['flow_overview', 'flow_trace']) {
+  Object.assign(TOOLS.find(tool => tool.name === name).inputSchema.properties, {
+    level: { type: 'string', enum: ['module', 'file', 'symbol'], description: '架构展开层级；overview 默认 module，trace 默认 symbol' },
+    focus: { type: 'string', description: '架构节点 ID、模块目录、文件路径或唯一符号名；可用返回的 drillDown 参数逐层展开' },
+    depth: { type: 'integer', minimum: 0, maximum: 5, description: '焦点周围关系跳数，默认 1；0 仅展示焦点范围' },
+    direction: { type: 'string', enum: ['both', 'upstream', 'downstream'], description: '架构邻域查询方向，默认 both；不代表运行时可达性' },
+    maxNodes: { type: 'integer', minimum: 1, maximum: 500, description: '最多返回节点数，默认 40' },
+    maxEdges: { type: 'integer', minimum: 1, maximum: 2000, description: '最多返回关系数，默认 80；关系附证据和置信度' },
+    nodeOffset: { type: 'integer', minimum: 0, maximum: Number.MAX_SAFE_INTEGER, description: '稳定节点分页偏移量，默认 0；完整计数及省略量见 architecture.coverage' },
+    edgeOffset: { type: 'integer', minimum: 0, maximum: Number.MAX_SAFE_INTEGER, description: '当前节点页内的关系分页偏移量，默认 0；改变节点页后应重置' }
+  });
+}
+for (const name of ['flow_overview', 'flow_trace']) Object.assign(TOOLS.find(t => t.name === name).inputSchema.properties, {
+  includeTopology: { type: 'boolean', description: '返回全投影的依赖环、孤立节点和枢纽；不受 focus/分页截断' },
+  impact: { type: 'boolean', description: '返回焦点的上下游依赖影响；高置信路径与仅候选路径分列' },
+  impactLimit: { type: 'integer', minimum: 1, maximum: 1000, description: '每方向每类影响结果的上限，默认 100' },
+  edgeScope: { type: 'string', enum: ['node-page', 'all-matched'], description: 'all-matched 可独立遍历全部匹配关系；页外端点返回 boundaryNodes' },
+  expectedGraphId: { type: 'string', description: '翻页时传回 graphId，源码/配置/图变化时拒绝混用' },
+  edgeId: { type: 'string', description: '要获取完整证据的关系 ID，需使用返回该关系时的 level' },
+  evidenceOffset: { type: 'integer', minimum: 0, maximum: Number.MAX_SAFE_INTEGER, description: '关系证据分页偏移量' },
+  maxEvidence: { type: 'integer', minimum: 1, maximum: 500, description: '单次关系证据上限，默认 50' }
+});
+for (const name of ['flow_overview', 'flow_trace']) Object.assign(TOOLS.find(t => t.name === name).inputSchema.properties, {
+  candidateOffset: { type: 'integer', minimum: 0, maximum: Number.MAX_SAFE_INTEGER, description: '完整关系证据中的候选分页偏移量' },
+  maxCandidates: { type: 'integer', minimum: 1, maximum: 200, description: '完整证据单页候选数，默认 20；预览最多 8 个' }
+});
+Object.assign(TOOLS.find(tool => tool.name === 'flow_overview').inputSchema.properties, {
+  maxHops: { type: 'integer', minimum: 1, maximum: 50, description: '影响面跳数上限，默认 12' },
+  baseRef: { type: 'string', description: '从 Git archive 重建历史源码/配置后比较架构，默认 file 层；需要 Git 和 tar' },
+  diffLimit: { type: 'integer', minimum: 1, maximum: 1000, description: '每类架构变化的返回上限，默认 100，省略量另列' }
+});
+
+Object.assign(TOOLS.find(tool => tool.name === 'flow_trace').inputSchema.properties, {
+  inspectState: { type: 'boolean', description: '将 target 作为精确状态字段/限定名查询写读所有者与持久化线索' },
+  maxStates: { type: 'integer', minimum: 1, maximum: 200, description: '状态查询最多返回数，默认 20' },
+  maxOwners: { type: 'integer', minimum: 1, maximum: 500, description: '每个状态最多返回的写入方/读取方，默认 30' },
+  stateOffset: { type: 'integer', minimum: 0, maximum: Number.MAX_SAFE_INTEGER, description: '状态查询分页偏移量' },
+  to: { type: 'string', description: '路径终点：唯一符号、精确节点 ID、文件或模块；与 target 组成有向路径查询' },
+  pathMode: { type: 'string', enum: ['execution', 'relationships'], description: 'execution 默认只走调用/协议；relationships 包含注册、状态、结构和依赖' },
+  maxHops: { type: 'integer', minimum: 1, maximum: 50, description: '路径跳数上限，默认 12' },
+  maxPaths: { type: 'integer', minimum: 1, maximum: 50, description: '返回最短简单路径数量上限，默认 5' },
+  searchBudget: { type: 'integer', minimum: 1, maximum: 1000000, description: '路径搜索状态预算，默认 20000；截断会明确返回' },
+  includeCandidates: { type: 'boolean', description: '路径是否包含候选边，默认 false' }
+});
+
 for (const tool of TOOLS) {
   Object.assign(tool.inputSchema.properties, {
     sessionId: { type: "string", description: "会话隔离标识；也可通过 FLOWGUARD_SESSION_ID 设置" },
@@ -199,6 +244,7 @@ export function executeTool(name, args = {}) {
       });
     case "flow_trace":
       return traceSymbolFlow(root, args.target, {
+        ...args,
         projectMode: args.projectMode
       });
     case "flow_blueprint":
@@ -323,11 +369,22 @@ function parseCliArguments(toolName, tokens) {
     "--field": "targetField",
     "--consumer": "consumerTarget",
     "--run-tests": "runTestsCommand",
+    "--candidate-offset": "candidateOffset", "--max-candidates": "maxCandidates",
+    "--impact-limit": "impactLimit",
+    "--edge-scope": "edgeScope", "--expected-graph": "expectedGraphId", "--edge-id": "edgeId", "--evidence-offset": "evidenceOffset", "--max-evidence": "maxEvidence",
+    "--diff-limit": "diffLimit",
+    "--max-states": "maxStates", "--max-owners": "maxOwners", "--state-offset": "stateOffset",
+    "--to": "to", "--path-mode": "pathMode", "--max-hops": "maxHops", "--max-paths": "maxPaths", "--search-budget": "searchBudget",
+    "--level": "level", "--focus": "focus", "--depth": "depth", "--direction": "direction",
+    "--max-nodes": "maxNodes", "--max-edges": "maxEdges", "--node-offset": "nodeOffset", "--edge-offset": "edgeOffset",
     "--project-mode": "projectMode",
     "--session": "sessionId", "--task": "taskId", "--test-timeout": "testTimeoutMs",
     "--rust-features": "rustFeatures", "--rust-target": "rustTarget", "--rust-semantic-timeout": "rustSemanticTimeoutMs"
   };
   const booleanFlags = {
+    "--topology": ["includeTopology", true], "--impact": ["impact", true],
+    "--inspect-state": ["inspectState", true],
+    "--include-candidates": ["includeCandidates", true],
     "--full": ["fullScan", true],
     "--persist": ["requirePersistence", "required"],
     "--allow-inconclusive": ["allowInconclusive", true],
@@ -335,8 +392,8 @@ function parseCliArguments(toolName, tokens) {
     "--rust-no-default-features": ['rustNoDefaultFeatures', true]
   };
   const supportedFlags = {
-    flow_overview: ["--project-mode"],
-    flow_trace: ["--project-mode"],
+    flow_overview: ["--base", "--diff-limit", "--max-hops", "--project-mode", "--level", "--focus", "--depth", "--direction", "--max-nodes", "--max-edges", "--node-offset", "--edge-offset", "--edge-scope", "--expected-graph", "--edge-id", "--evidence-offset", "--max-evidence", "--topology", "--impact", "--impact-limit", "--candidate-offset", "--max-candidates"],
+    flow_trace: ["--inspect-state", "--max-states", "--max-owners", "--state-offset", "--to", "--path-mode", "--max-hops", "--max-paths", "--search-budget", "--include-candidates", "--project-mode", "--level", "--focus", "--depth", "--direction", "--max-nodes", "--max-edges", "--node-offset", "--edge-offset", "--edge-scope", "--expected-graph", "--edge-id", "--evidence-offset", "--max-evidence", "--topology", "--impact", "--impact-limit", "--candidate-offset", "--max-candidates"],
     flow_blueprint: ["--target", "--field", "--consumer", "--persist", "--project-mode"],
     flow_verify: ["--base", "--full", "--run-tests", "--project-mode", "--test-timeout", "--allow-inconclusive",
       '--rust-semantic', '--rust-build-scripts', '--rust-features', '--rust-no-default-features', '--rust-target', '--rust-semantic-timeout']
@@ -369,6 +426,9 @@ function parseCliArguments(toolName, tokens) {
     ...(positional[1] ? { [toolName === "flow_blueprint" ? "reference" : "target"]: positional[1] } : {})
   };
   Object.assign(args, overrides);
+  for (const key of ['depth', 'maxNodes', 'maxEdges', 'nodeOffset', 'edgeOffset', 'maxHops', 'maxPaths', 'searchBudget', 'maxStates', 'maxOwners', 'stateOffset', 'diffLimit', 'evidenceOffset', 'maxEvidence', 'impactLimit', 'candidateOffset', 'maxCandidates']) {
+    if (overrides[key] !== undefined) args[key] = Number(overrides[key]);
+  }
   if (args.testTimeoutMs !== undefined) args.testTimeoutMs = Number(args.testTimeoutMs);
   if (args.rustSemanticTimeoutMs !== undefined) args.rustSemanticTimeoutMs = Number(args.rustSemanticTimeoutMs);
   if (toolName === "flow_trace" && !args.target) throw new Error("flow_trace requires a target");

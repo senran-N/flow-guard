@@ -3,6 +3,10 @@ import path from "node:path";
 import { buildWorkspaceFlowGraph } from "./graph-builder.mjs";
 import { saveSessionBaseline } from "./graph-diff.mjs";
 import { buildAndSaveWiringPlan } from "./wiring-contract.mjs";
+import { buildArchitectureView, architectureOptions } from "./architecture-view.mjs";
+import { findArchitecturePaths } from "./architecture-paths.mjs";
+import { inspectArchitectureState } from "./architecture-state.mjs";
+import { compareWorkspaceArchitecture } from "./architecture-diff.mjs";
 import { jaccardSimilarity } from "./fingerprint.mjs";
 import { shortId } from "./flow-verifier.mjs";
 import {
@@ -15,12 +19,10 @@ import {
 } from "./arch-vision.mjs";
 
 export function generateFlowOverview(workspaceRoot, syncToAgentsMd = false, options = {}) {
+  const viewOptions = architectureOptions(options);
   const graph = buildWorkspaceFlowGraph(workspaceRoot, false, {
     projectMode: options.projectMode || "auto"
   });
-  if (options.saveBaseline) {
-    saveSessionBaseline(workspaceRoot, graph, options);
-  }
 
   const prodFiles = graph.files.filter((f) => f.zone === "prod");
   const testFiles = graph.files.filter((f) => f.zone === "test");
@@ -45,54 +47,12 @@ export function generateFlowOverview(workspaceRoot, syncToAgentsMd = false, opti
   const architecturalHubs = extractArchitecturalHubs(graph);
   const extensionAndReserveCatalog = buildExtensionAndReserveCatalog(graph);
 
-  const mermaidLines = [
-    "```mermaid",
-    "flowchart LR",
-    '  subgraph Sources["1. 真实水源 (True Sources)"]',
-    "    direction TB"
-  ];
-  const sourceFiles = Array.from(new Set(sources.map((s) => s.file))).slice(0, 10);
-  sourceFiles.forEach((f, idx) => {
-    const syms = sources.filter((s) => s.file === f).map((s) => s.name).slice(0, 3).join(", ");
-    mermaidLines.push(`    S${idx}["${path.basename(f)}\\n(${syms})"]`);
-  });
-  mermaidLines.push("  end", '  subgraph Branches["2. 核心分流阀与跨界桥 (Branches & Bridges)"]', "    direction TB");
-
-  const branchFiles = Array.from(new Set(branches.map((s) => s.file))).slice(0, 10);
-  branchFiles.forEach((f, idx) => {
-    const syms = branches.filter((s) => s.file === f).map((s) => s.name).slice(0, 3).join(", ");
-    mermaidLines.push(`    B${idx}["${path.basename(f)}\\n(${syms})"]`);
-  });
-  mermaidLines.push("  end", '  subgraph Sinks["3. 真实终端出水口 (True Sinks)"]', "    direction TB");
-
-  const sinkFiles = Array.from(new Set(sinks.map((s) => s.file))).slice(0, 10);
-  sinkFiles.forEach((f, idx) => {
-    const syms = sinks.filter((s) => s.file === f).map((s) => s.name).slice(0, 3).join(", ");
-    mermaidLines.push(`    K${idx}["${path.basename(f)}\\n(${syms})"]`);
-  });
-  mermaidLines.push("  end");
-
-  const addedEdges = new Set();
-  sourceFiles.forEach((sf, sIdx) => {
-    const outs = graph.fileOutEdges.get(sf) || new Set();
-    branchFiles.forEach((bf, bIdx) => {
-      if (sf !== bf && outs.has(bf) && !addedEdges.has(`S${sIdx}-->B${bIdx}`)) {
-        addedEdges.add(`S${sIdx}-->B${bIdx}`);
-        mermaidLines.push(`  S${sIdx}-->B${bIdx}`);
-      }
-    });
-  });
-  branchFiles.forEach((bf, bIdx) => {
-    const outs = graph.fileOutEdges.get(bf) || new Set();
-    sinkFiles.forEach((kf, kIdx) => {
-      if (bf !== kf && outs.has(kf) && !addedEdges.has(`B${bIdx}-->K${kIdx}`)) {
-        addedEdges.add(`B${bIdx}-->K${kIdx}`);
-        mermaidLines.push(`  B${bIdx}-->K${kIdx}`);
-      }
-    });
-  });
-  mermaidLines.push("```");
-  const mermaidBlock = mermaidLines.join("\n");
+  const architecture = buildArchitectureView(graph, { ...options, ...viewOptions });
+  const architectureDiff = options.baseRef ? compareWorkspaceArchitecture(workspaceRoot, graph, { ...options, level: options.level || 'file' }) : undefined;
+  const mermaidBlock = architecture.mermaid;
+  if (options.saveBaseline) {
+    saveSessionBaseline(workspaceRoot, graph, options);
+  }
 
   const coreStates = Array.from(graph.stateOwnership.values())
     .filter((st) => st.writers.length > 0 && st.readers.length > 0)
@@ -110,6 +70,7 @@ export function generateFlowOverview(workspaceRoot, syncToAgentsMd = false, opti
       "<!-- FLOWGUARD:START -->",
       "## 实时端到端水路拓扑 (由 FlowGuard 自动维护)",
       mermaidBlock,
+      `静态架构视图（${architecture.query.level}）：展示 ${architecture.coverage.returnedNodes}/${architecture.coverage.matchedNodes} 个节点、${architecture.coverage.returnedEdges}/${architecture.coverage.matchedEdges} 条关系；省略 ${architecture.coverage.omittedNodes} 个节点、${architecture.coverage.omittedEdges} 条关系。分组依据见 architecture.scope.grouping，候选连线不证明运行时执行。`,
       "<!-- FLOWGUARD:END -->"
     ].join("\n");
     if (fs.existsSync(agentsPath)) {
@@ -144,6 +105,8 @@ export function generateFlowOverview(workspaceRoot, syncToAgentsMd = false, opti
       trueSinksCount: sinks.length,
       crossLanguageBridgesCount: graph.crossBridges.length
     },
+    architecture,
+    ...(architectureDiff ? { architectureDiff } : {}),
     architectureDomains,
     backbonePipelines,
     architecturalHubs,
@@ -156,6 +119,7 @@ export function generateFlowOverview(workspaceRoot, syncToAgentsMd = false, opti
 }
 
 export function traceSymbolFlow(workspaceRoot, query, options = {}) {
+  const viewOptions = architectureOptions({ ...options, level: options.level ?? "symbol" });
   const graph = buildWorkspaceFlowGraph(workspaceRoot, false, {
     projectMode: options.projectMode || "auto"
   });
@@ -166,6 +130,8 @@ export function traceSymbolFlow(workspaceRoot, query, options = {}) {
       const qualDot = s.parentContainerName ? `${s.parentContainerName}.${s.name}`.toLowerCase() : "";
       const qualColon = s.parentContainerName ? `${s.parentContainerName}::${s.name}`.toLowerCase() : "";
       return (
+        s.id.toLowerCase() === qLower ||
+        `symbol:${s.id}`.toLowerCase() === qLower ||
         s.name.toLowerCase().includes(qLower) ||
         qualDot.includes(qLower) ||
         qualColon.includes(qLower) ||
@@ -360,7 +326,9 @@ export function traceSymbolFlow(workspaceRoot, query, options = {}) {
       },
       evidencedRelations: {
         inbound: inDetails.slice(0, 12).map((r) => formatEdgeRecord(r, "in")),
-        outbound: outDetails.slice(0, 14).map((r) => formatEdgeRecord(r, "out"))
+        outbound: outDetails.slice(0, 14).map((r) => formatEdgeRecord(r, "out")),
+        coverage: { inboundTotal: inDetails.length, inboundOmitted: Math.max(0, inDetails.length - 12),
+          outboundTotal: outDetails.length, outboundOmitted: Math.max(0, outDetails.length - 14) }
       },
       upstreamSources,
       directCallers: uniqueDirectCallers.slice(0, 8).map(shortId),
@@ -374,7 +342,16 @@ export function traceSymbolFlow(workspaceRoot, query, options = {}) {
     };
   });
 
-  return { query, matchCount: matched.length, traces };
+  const architecture = buildArchitectureView(graph, {
+    ...options, ...viewOptions,
+    ...(options.impact && options.focus === undefined ? { focus: query } : {}),
+    ...(options.focus === undefined && !options.impact ? { focusIds: matched.map(s => s.id) } : {})
+  });
+  const paths = options.to !== undefined ? findArchitecturePaths(graph, query, options.to, options) : undefined;
+  const stateImpact = options.inspectState ? inspectArchitectureState(graph, query, options) : undefined;
+  return { query, matchCount: matched.length, traces, ...(paths ? { paths } : {}),
+    ...(stateImpact ? { stateImpact } : {}),
+    traceCoverage: { matched: matched.length, returned: traces.length, omitted: matched.length - traces.length }, architecture };
 }
 
 export function generateWiringBlueprint(workspaceRoot, referenceQueryOrOptions, extraOptions = {}) {

@@ -5,7 +5,7 @@
 <br />
 
 [![Release](https://img.shields.io/badge/release-v0.2.0-38bdf8?style=flat-square&logo=github)](https://github.com/senran-N/flow-guard/releases/tag/v0.2.0)
-[![Test Suites](https://img.shields.io/badge/Tests-147%20Assertions%20%2B%20156%20Cases-34d399?style=flat-square&logo=node.js)](./test/real-world-regression.test.mjs)
+[![Test Suites](https://img.shields.io/badge/Tests-147%20Assertions%20%2B%20207%20Cases-34d399?style=flat-square&logo=node.js)](./test/real-world-regression.test.mjs)
 [![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-818cf8?style=flat-square)](https://modelcontextprotocol.io)
 [![Languages](https://img.shields.io/badge/Polyglot-27%20Extensions%20%7C%2011%2B%20Langs-34d399?style=flat-square)](#polyglot--cross-boundary-bridge-matrix)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0%20(Pure%20Node%20ESM)-22d3ee?style=flat-square)](./package.json)
@@ -18,6 +18,24 @@
 </div>
 
 ---
+
+## Hierarchical architecture queries
+
+Task paths (`flow_trace --to`), state ownership (`--inspect-state`), dependency impact (`--impact`), topology (`--topology`), explicit business modules and historical architecture comparison (`overview --base`) are documented in the [architecture guide](./ARCHITECTURE.md). The [ten-round development record](./benchmark/ARCHITECTURE-ROUNDS.md) links the validation evidence.
+
+`flow_overview` and `flow_trace` return a shared `architecture` object with versioned nodes, typed edges, source evidence, confidence, coverage and Mermaid output. Use `level: "module" | "file" | "symbol"` to drill down; nodes provide reusable IDs and `drillDown` tool arguments. Overview defaults to modules; trace defaults to a symbol neighborhood. Existing summary and trace fields remain available.
+
+```bash
+node src/server.mjs --cli overview /path/to/repo --level file --focus module:src/core --depth 0
+node src/server.mjs --cli overview /path/to/repo --level symbol --focus src/core/service.ts --depth 1 --direction downstream
+node src/server.mjs --cli trace /path/to/repo MyFunction --depth 2 --direction upstream
+```
+
+CLI flags map to MCP fields: `level`, `focus`, `depth` (0–5, default 1), `direction` (`both/upstream/downstream`), `maxNodes` (1–500, default 40), `maxEdges` (1–2000, default 80), `nodeOffset` and `edgeOffset`. Focus accepts an exact node ID, workspace-relative module/file path or unique symbol name; ambiguous names are rejected. Without focus, overview covers the workspace while trace starts from all matching production symbols.
+
+`coverage` reports matched, returned, omitted and out-of-focus counts, plus `nextNodeOffset` / `nextEdgeOffset`. Nodes sort by distance, source-node priority and stable ID. Default edges require both endpoints on the current node page; `edgeScope: "all-matched"` independently pages all matched edges with off-page endpoints in `boundaryNodes`. Use `expectedGraphId` to reject stale pages after edits. Each relation previews up to three evidence samples and eight candidates with explicit omissions. Fetch an `edgeId` to page all evidence and candidates using `evidenceOffset` / `candidateOffset`. Symbol views include state ownership and unresolved protocol peers. State access evidence points to enclosing declarations, explicitly labeled as such.
+
+`mermaidPipeline` uses the same projection as `architecture.mermaid`; AGENTS.md sync includes coverage counts. Module grouping is a directory heuristic. Candidate, structural, registration and state relations do not prove runtime execution. Coverage describes the new architecture projection, not legacy summary lists, which retain their existing limits.
 
 ## Why FlowGuard?
 

@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "verificationVerdict": "SATISFIED",
+  "headlineSummary": "静态检查未发现契约违反；当前无待验收义务，结果不代表行为测试已通过。",
+  "scanMode": "FULL_WORKSPACE",
+  "executionErrors": []
+}

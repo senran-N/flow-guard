@@ -1,0 +1,47 @@
+{
+  "grouping": "EXPLICIT_CONFIG_WITH_DIRECTORY_FALLBACK",
+  "coverage": {
+    "totalNodes": 63,
+    "totalEdges": 92,
+    "collapsedInternalRelations": 754,
+    "matchedNodes": 63,
+    "matchedEdges": 92,
+    "returnedNodes": 40,
+    "returnedEdges": 69,
+    "omittedNodes": 23,
+    "omittedEdges": 23,
+    "returnedBoundaryNodes": 0,
+    "edgesOutsideNodePage": 23,
+    "excludedByFocusNodes": 0,
+    "excludedByFocusEdges": 0,
+    "truncated": true,
+    "nextNodeOffset": 40,
+    "nextEdgeOffset": null
+  },
+  "modules": [
+    {
+      "id": "module:analysis",
+      "label": "源码解析与关系建图"
+    },
+    {
+      "id": "module:architecture",
+      "label": "架构模型与任务查询"
+    },
+    {
+      "id": "module:language-resolution",
+      "label": "语言、包和框架解析"
+    },
+    {
+      "id": "module:state",
+      "label": "会话状态存储"
+    },
+    {
+      "id": "module:transport",
+      "label": "MCP、CLI 与会话入口"
+    },
+    {
+      "id": "module:verification",
+      "label": "接线契约、图差异与行为验收"
+    }
+  ]
+}

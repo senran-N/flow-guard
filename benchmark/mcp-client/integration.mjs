@@ -40,6 +40,26 @@ try {
       assert.equal(invalidSemantic.isError, true);
       const overview = await call('flow_overview', { saveBaseline: true, sessionId: 'client', taskId: sdk });
       assert.ok(overview.zoneCounts.prodFiles >= 2);
+      assert.equal(overview.architecture.schemaVersion, 1);
+      const fileView = await call('flow_overview', { level: 'file', focus: 'module:src', depth: 0, maxNodes: 10 });
+      assert.equal(fileView.architecture.nodes.length, 2);
+      const symbolView = await call('flow_overview', { level: 'symbol', focus: 'src/worker.mjs', depth: 0 });
+      const calculate = symbolView.architecture.nodes.find(node => node.label === 'calculate');
+      const exactTrace = await call('flow_trace', { ...calculate.drillDown.arguments, depth: 1 });
+      assert.equal(exactTrace.matchCount, 1);
+      assert.ok(exactTrace.architecture.nodes.some(node => node.id === calculate.id));
+      const taskPath = await call('flow_trace', { target: 'src/main.mjs', to: 'calculate', maxHops: 2 });
+      assert.equal(taskPath.paths.status, 'PATHS_FOUND');
+      const state = await call('flow_trace', { target: 'no_such_field', inspectState: true });
+      assert.equal(state.stateImpact.status, 'NO_STATIC_STATE_FOUND');
+      const topology = await call('flow_overview', { level: 'file', includeTopology: true, edgeScope: 'all-matched', maxNodes: 1 });
+      assert.ok(topology.architecture.topology);
+      assert.ok(topology.architecture.boundaryNodes.length > 0);
+      const page = await call('flow_overview', { level: 'file', includeTopology: true, edgeScope: 'all-matched', maxNodes: 1,
+        expectedGraphId: topology.architecture.graphId });
+      assert.equal(page.architecture.graphId, topology.architecture.graphId);
+      const invalidView = await client.callTool({ name: 'flow_overview', arguments: { workspaceRoot: root, maxNodes: 0 } });
+      assert.equal(invalidView.isError, true);
       await call('flow_trace', { target: 'calculate' });
       const blueprint = await call('flow_blueprint', { reference: 'calculate', targetSymbol: 'calculate',
         requirePersistence: 'not_required', sessionId: 'client', taskId: sdk });
@@ -61,7 +81,8 @@ try {
       assert.equal(invalid.isError, true);
       await client.ping();
       results.push({ sdk, outcome: 'PASSED', tests: ['initialize', 'list', 'overview', 'trace', 'blueprint',
-        'inconclusive', 'behavior-pass', 'behavior-fail', 'unknown-tool', 'invalid-workspace', 'rust-semantic-schema', 'rust-semantic-inapplicable', 'rust-semantic-historical-guard', 'ping'], stderr });
+        'inconclusive', 'behavior-pass', 'behavior-fail', 'unknown-tool', 'invalid-workspace', 'rust-semantic-schema', 'rust-semantic-inapplicable', 'rust-semantic-historical-guard',
+        'architecture-drill-down', 'architecture-exact-trace', 'architecture-validation', 'task-path', 'state-query', 'topology', 'graph-pagination', 'ping'], stderr });
     } catch (error) {
       results.push({ sdk, outcome: 'FAILED', error: error.stack, stderr });
       process.exitCode = 1;

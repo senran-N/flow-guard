@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased — hierarchical architecture views
+
+- Add directed task paths to flow_trace, separating executable calls/protocols from relationship paths, with explicit candidate, depth, path-count and work-budget limits.
+- Add scoped state-owner queries, explicit business module configuration, nearest package manifests, and JS/TS/Vue/Svelte import dependencies with unresolved endpoints.
+- Add historical architecture comparison using isolated Git archive source/configuration; expose static dependency topology and high-confidence versus candidate-only impact.
+- Add independent edge/evidence/candidate pagination, off-page endpoint records and graph version validation. Bound candidate previews after real-repository output review.
+- Validate paths/SCCs against an independent 40-graph closure oracle; retain real-source deletion controls and versioned seven-repository repeat scans.
+
+- Share a versioned architecture projection across overview and trace, with module/file/symbol nodes, stable IDs, drill-down arguments, typed relations, original resolution confidence and source evidence.
+- Add focus, depth, direction, node/edge bounds and pagination through both CLI and MCP. Report omitted nodes, edges and evidence explicitly; preserve ambiguous candidates and static-analysis boundaries.
+- Render Mermaid from the returned graph rather than fixed source/branch/sink file previews. Include coverage when syncing AGENTS.md, and retain existing overview/trace summary fields.
+- Add parser-to-query, traversal, pagination, state/protocol, CLI and stdio MCP regression coverage.
+
 ## 2026-11-13 Rust nominal types and callback regressions
 
 - Follow concrete generic arguments, named fields, supported standard-library wrappers and simple local declarative macro factory signatures. Preserve cfg, scope, ambiguity and shadowing boundaries.
