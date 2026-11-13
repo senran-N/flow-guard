@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        node: [18, 20, 22]
+        node: [18, 20, 22, 24]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,3 +29,14 @@ jobs:
 
       - name: Run Self-Bootstrapped Flow Verification
         run: npm run verify:self
+
+      - name: Run Full-Workspace Flow Verification
+        run: node src/server.mjs --cli verify . --full
+
+      - name: Install pinned MCP clients
+        if: matrix.node == 24
+        run: npm ci --prefix benchmark/mcp-client --ignore-scripts --no-audit --no-fund
+
+      - name: Exercise real MCP clients
+        if: matrix.node == 24
+        run: npm run test:mcp-sdk

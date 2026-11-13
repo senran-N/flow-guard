@@ -1,0 +1,89 @@
+{
+  "sourceHash": "7b120c3c2d2e09f4883b2ef65854ae45bebeb02ad2378ddb09145ee2aa1eefab",
+  "measuredSourceHash": "b24554b5d7546c8973b1750e81f8f78f616198eda59fae1188e050f0d31d23bc",
+  "deliveryDelta": "Unused internal parameters removed and Rust macro templates excluded; six Rust repositories rescanned separately",
+  "counts": {
+    "repositories": 39,
+    "runs": 78,
+    "completedTwice": 39,
+    "deterministic": 39,
+    "completedRuns": 78,
+    "timeouts": []
+  },
+  "tests": {
+    "assertions": 147,
+    "nodeCases": 140
+  },
+  "typescriptOracle": {
+    "typescript": "5.9.3",
+    "node": "v24.14.0",
+    "results": [
+      {
+        "name": "inherited paths without baseUrl",
+        "expected": [
+          "shared/Card.ts"
+        ],
+        "observed": [
+          "shared/Card.ts"
+        ],
+        "passed": true
+      },
+      {
+        "name": "inherited baseUrl and paths",
+        "expected": [
+          "shared/Card.ts"
+        ],
+        "observed": [
+          "shared/Card.ts"
+        ],
+        "passed": true
+      },
+      {
+        "name": "child baseUrl changes inherited paths",
+        "expected": [
+          "own/Card.ts"
+        ],
+        "observed": [
+          "own/Card.ts"
+        ],
+        "passed": true
+      },
+      {
+        "name": "child paths use inherited baseUrl",
+        "expected": [
+          "shared/Card.ts"
+        ],
+        "observed": [
+          "shared/Card.ts"
+        ],
+        "passed": true
+      },
+      {
+        "name": "child paths replace inherited paths",
+        "expected": [],
+        "observed": [],
+        "passed": true
+      },
+      {
+        "name": "later base paths override earlier paths",
+        "expected": [
+          "own/Card.ts"
+        ],
+        "observed": [
+          "own/Card.ts"
+        ],
+        "passed": true
+      },
+      {
+        "name": "package config entry",
+        "expected": [
+          "shared/Card.ts"
+        ],
+        "observed": [
+          "shared/Card.ts"
+        ],
+        "passed": true
+      }
+    ]
+  }
+}

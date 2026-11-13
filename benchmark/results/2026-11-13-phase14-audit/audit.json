@@ -1,0 +1,362 @@
+{
+  "capturedAt": "2026-11-13T09:13:46.141Z",
+  "sourceHash": "d045c3b926d18ee3fd896c785251068274ea8c1f413c56d37f01c08f16683265",
+  "scope": "Manual review of all 14 phase13 residual VIOLATED diagnostics; no runtime validation, no engine changes, no scan relabeling.",
+  "counts": {
+    "FALSE_POSITIVE_REFERENCE": 6,
+    "FALSE_POSITIVE_HOST_CALLBACK": 3,
+    "NO_EXTERNAL_STATIC_REFERENCE_FOUND": 5
+  },
+  "repositories": [
+    {
+      "name": "clash-verge-rev",
+      "workspace": "D:\\Myproject\\crack\\clash-verge-rev",
+      "commit": "389dddf51204984e91a9769c3dee08db2eeefbb2",
+      "status": "",
+      "matchesPhase13": true
+    },
+    {
+      "name": "ripgrep",
+      "workspace": "D:\\Myproject\\crack\\ripgrep",
+      "commit": "178cc027e283fd965cb72d0a7395b219eada170c",
+      "status": "",
+      "matchesPhase13": true
+    },
+    {
+      "name": "SwitchHosts",
+      "workspace": "D:\\Myproject\\crack\\SwitchHosts",
+      "commit": "7c8eaa50a6c45dde8ce7614c5659747000b36671",
+      "status": "",
+      "matchesPhase13": true
+    }
+  ],
+  "evidenceFiles": {
+    "clash-verge-rev/src-tauri/src/config/verge.rs": "0e640b42f9358397b29679161b7a4696fb4f7ab4f8c1d29d38dcc8cd620c679d",
+    "clash-verge-rev/src-tauri/src/cmd/clash.rs": "88b15b3c635d72f487a85dc999c612d5b5249ae576ccc1b60f1bfda83dd3bd5f",
+    "clash-verge-rev/src-tauri/src/ipc.rs": "60233cff09e47db06987a86753e4a88d0a9acbd87b8f0a3d18a37d78ca21d5e3",
+    "clash-verge-rev/src/services/bindings.ts": "8a3c8853880bb93e3b0089dcdf692479d9e69956173e2d1e7f0623e07add9dd3",
+    "clash-verge-rev/src-tauri/src/core/proxy_control.rs": "91e5829f8055ab90dc93988e335ce4caeb9b582e4c894d7deadd76d54994f566",
+    "clash-verge-rev/src-tauri/src/core/manager/lifecycle.rs": "ea3cd5388c5a2be79c82daae08ee61de0c548cb96e83c8f1b68b7e280426654b",
+    "clash-verge-rev/src-tauri/src/cmd/app.rs": "de19854ce670aaad595bae5f64df2e56b7b12d245f129d7934c66d7905965555",
+    "ripgrep/crates/searcher/src/searcher/mod.rs": "d6deae788a4a23d5c92cc9c4682ae0f29193fb0c4f26304f6b6c1a7a719faee9",
+    "ripgrep/crates/core/search.rs": "b002e2262185a97eb0273494e3a0977066fbe32e0ff8a2c5258c1bc563ba6d46",
+    "ripgrep/pkg/brew/ripgrep-bin.rb": "ecf775e73d312844a11877985c289256c7b6c4ad69ebd077fd96996cc8d93a48",
+    "SwitchHosts/src/common/hostsFn.ts": "45ac6e79908a9e7044b11f978045aa3a11fe86e43681e7f3e2750919bedd5643",
+    "SwitchHosts/test/common/hostsFn.test.ts": "5adaa7a2ecc71f8bfd988013a7aee857c60371c955854cf69d786e959f4e2345",
+    "SwitchHosts/src/renderer/components/Editor/hosts_cm.ts": "c15cc9db1cd225d85b8982506e99ce306742ec2809df055e9f32830c7295d0fd",
+    "SwitchHosts/src/renderer/components/Editor/HostsEditor.tsx": "8eff3dfadf5b4603b9ba197ba8e298df6f7a447b82906152f01e2d9f66f27f94",
+    "SwitchHosts/src/renderer/components/Tree/fn.ts": "a14397fb3be18f8623e8dca38bcc8455c6589bc580caa7919c847d1531bfff8d",
+    "SwitchHosts/src/renderer/utils/css-var.ts": "067f24567d8fc5aa692cbcd6a6b94a50594f0f746ea8941ed766de86baba26fd"
+  },
+  "findings": [
+    {
+      "repository": "clash-verge-rev",
+      "id": "AUTO-EXP-3",
+      "target": "src-tauri/src/config/encrypt.rs:52-64 (serialize_encrypted)",
+      "originalStatus": "VIOLATED",
+      "classification": "FALSE_POSITIVE_REFERENCE",
+      "evidence": [
+        {
+          "file": "src-tauri/src/config/verge.rs",
+          "line": 182,
+          "text": "serialize_with = \"serialize_encrypted\","
+        }
+      ],
+      "limitation": "Serde derive 属性引用；不等同于本轮运行过序列化。"
+    },
+    {
+      "repository": "clash-verge-rev",
+      "id": "AUTO-EXP-4",
+      "target": "src-tauri/src/config/encrypt.rs:66-84 (deserialize_encrypted)",
+      "originalStatus": "VIOLATED",
+      "classification": "FALSE_POSITIVE_REFERENCE",
+      "evidence": [
+        {
+          "file": "src-tauri/src/config/verge.rs",
+          "line": 183,
+          "text": "deserialize_with = \"deserialize_encrypted\","
+        }
+      ],
+      "limitation": "Serde derive 属性引用；不等同于本轮运行过反序列化。"
+    },
+    {
+      "repository": "clash-verge-rev",
+      "id": "AUTO-EXP-5",
+      "target": "src-tauri/src/core/manager/state.rs:153-159 (CoreManager.get_clash_logs)",
+      "originalStatus": "VIOLATED",
+      "classification": "FALSE_POSITIVE_REFERENCE",
+      "evidence": [
+        {
+          "file": "src-tauri/src/cmd/clash.rs",
+          "line": 247,
+          "text": "let logs = CoreManager::global().get_clash_logs().await.unwrap_or_default();"
+        },
+        {
+          "file": "src-tauri/src/ipc.rs",
+          "line": 61,
+          "text": "cmd::get_clash_logs,"
+        },
+        {
+          "file": "src/services/bindings.ts",
+          "line": 118,
+          "text": "getClashLogs: () => __TAURI_INVOKE<string[]>('get_clash_logs'),"
+        }
+      ],
+      "limitation": "Tauri 命令注册及前端 invoke；未运行桌面业务。"
+    },
+    {
+      "repository": "clash-verge-rev",
+      "id": "AUTO-EXP-6",
+      "target": "src-tauri/src/core/sysopt.rs:324-366 (Sysopt.refresh_guard)",
+      "originalStatus": "VIOLATED",
+      "classification": "FALSE_POSITIVE_REFERENCE",
+      "evidence": [
+        {
+          "file": "src-tauri/src/core/proxy_control.rs",
+          "line": 592,
+          "text": "if Sysopt::global().refresh_guard().await {"
+        },
+        {
+          "file": "src-tauri/src/core/manager/lifecycle.rs",
+          "line": 608,
+          "text": "proxy_control::refresh_guard().await?;"
+        }
+      ],
+      "limitation": "实际生产调用及上游调用；未证明所有配置下分支执行。"
+    },
+    {
+      "repository": "clash-verge-rev",
+      "id": "AUTO-EXP-7",
+      "target": "src-tauri/src/core/updater.rs:396-423 (SilentUpdater.install_update)",
+      "originalStatus": "VIOLATED",
+      "classification": "FALSE_POSITIVE_REFERENCE",
+      "evidence": [
+        {
+          "file": "src-tauri/src/cmd/app.rs",
+          "line": 69,
+          "text": ".install_update(&app_handle, &version, |event| {"
+        },
+        {
+          "file": "src-tauri/src/ipc.rs",
+          "line": 21,
+          "text": "cmd::install_update,"
+        },
+        {
+          "file": "src/services/bindings.ts",
+          "line": 30,
+          "text": "__TAURI_INVOKE<InstallUpdateOutcome>('install_update', {"
+        }
+      ],
+      "limitation": "Tauri 命令中的链式方法调用；未安装更新。"
+    },
+    {
+      "repository": "ripgrep",
+      "id": "AUTO-EXP-1",
+      "target": "crates/searcher/src/line_buffer.rs:330-332 (LineBuffer.set_binary_detection)",
+      "originalStatus": "VIOLATED",
+      "classification": "FALSE_POSITIVE_REFERENCE",
+      "evidence": [
+        {
+          "file": "crates/searcher/src/searcher/mod.rs",
+          "line": 619,
+          "text": "line_buffer: RefCell<LineBuffer>,"
+        },
+        {
+          "file": "crates/searcher/src/searcher/mod.rs",
+          "line": 800,
+          "text": "self.line_buffer.borrow_mut().set_binary_detection(detection.0);"
+        },
+        {
+          "file": "crates/core/search.rs",
+          "line": 257,
+          "text": "self.searcher.set_binary_detection(bin);"
+        }
+      ],
+      "limitation": "字段类型与 borrow_mut 调用对应目标 LineBuffer；未执行完整 Cargo 测试。"
+    },
+    {
+      "repository": "ripgrep",
+      "id": "AUTO-EXP-2",
+      "target": "pkg/brew/ripgrep-bin.rb:16-22 (RipgrepBin.install)",
+      "originalStatus": "VIOLATED",
+      "classification": "FALSE_POSITIVE_HOST_CALLBACK",
+      "evidence": [
+        {
+          "file": "pkg/brew/ripgrep-bin.rb",
+          "line": 1,
+          "text": "class RipgrepBin < Formula"
+        },
+        {
+          "file": "pkg/brew/ripgrep-bin.rb",
+          "line": 16,
+          "text": "def install"
+        }
+      ],
+      "limitation": "Homebrew Formula 安装入口；仓内无需显式调用，未运行 brew install。"
+    },
+    {
+      "repository": "SwitchHosts",
+      "id": "AUTO-EXP-6",
+      "target": "src/common/hostsFn.ts:26-44 (cleanHostsList)",
+      "originalStatus": "VIOLATED",
+      "classification": "NO_EXTERNAL_STATIC_REFERENCE_FOUND",
+      "evidence": [
+        {
+          "file": "src/common/hostsFn.ts",
+          "line": 26,
+          "text": "export const cleanHostsList = (data: IHostsBasicData): IHostsBasicData => {"
+        }
+      ],
+      "limitation": "仅找到声明；不能证明业务缺陷或排除动态访问。"
+    },
+    {
+      "repository": "SwitchHosts",
+      "id": "AUTO-EXP-7",
+      "target": "src/common/hostsFn.ts:53-65 (updateOneItem)",
+      "originalStatus": "VIOLATED",
+      "classification": "NO_EXTERNAL_STATIC_REFERENCE_FOUND",
+      "evidence": [
+        {
+          "file": "src/common/hostsFn.ts",
+          "line": 53,
+          "text": "export const updateOneItem = ("
+        },
+        {
+          "file": "test/common/hostsFn.test.ts",
+          "line": 8,
+          "text": "import { findItemById, setOnStateOfItem } from '../../src/common/hostsFn'"
+        }
+      ],
+      "limitation": "测试第 62/96 行仅标题含函数名，测试实际调用 setOnStateOfItem。"
+    },
+    {
+      "repository": "SwitchHosts",
+      "id": "AUTO-EXP-8",
+      "target": "src/common/hostsFn.ts:178-186 (deleteItemById)",
+      "originalStatus": "VIOLATED",
+      "classification": "NO_EXTERNAL_STATIC_REFERENCE_FOUND",
+      "evidence": [
+        {
+          "file": "src/common/hostsFn.ts",
+          "line": 178,
+          "text": "export const deleteItemById = (list: IHostsListObject[], id: string) => {"
+        },
+        {
+          "file": "src/common/hostsFn.ts",
+          "line": 185,
+          "text": "list.map((item) => deleteItemById(item.children || [], id))"
+        }
+      ],
+      "limitation": "另有自递归，未找到函数外部调用。"
+    },
+    {
+      "repository": "SwitchHosts",
+      "id": "AUTO-EXP-9",
+      "target": "src/renderer/components/Editor/hosts_cm.ts:43-45 (BoundaryLabel.eq)",
+      "originalStatus": "VIOLATED",
+      "classification": "FALSE_POSITIVE_HOST_CALLBACK",
+      "evidence": [
+        {
+          "file": "src/renderer/components/Editor/hosts_cm.ts",
+          "line": 38,
+          "text": "class BoundaryLabel extends WidgetType {"
+        },
+        {
+          "file": "src/renderer/components/Editor/hosts_cm.ts",
+          "line": 43,
+          "text": "eq(other: BoundaryLabel) {"
+        },
+        {
+          "file": "src/renderer/components/Editor/hosts_cm.ts",
+          "line": 85,
+          "text": "widget: new BoundaryLabel(view.state.facet(boundaryLabels)[boundary]),"
+        },
+        {
+          "file": "src/renderer/components/Editor/hosts_cm.ts",
+          "line": 271,
+          "text": "hostsHighlighter,"
+        },
+        {
+          "file": "src/renderer/components/Editor/HostsEditor.tsx",
+          "line": 214,
+          "text": "...built.extensions,"
+        }
+      ],
+      "limitation": "CodeMirror WidgetType 回调；有插件注册路径，执行取决于文档和渲染状态。"
+    },
+    {
+      "repository": "SwitchHosts",
+      "id": "AUTO-EXP-10",
+      "target": "src/renderer/components/Editor/hosts_cm.ts:47-52 (BoundaryLabel.toDOM)",
+      "originalStatus": "VIOLATED",
+      "classification": "FALSE_POSITIVE_HOST_CALLBACK",
+      "evidence": [
+        {
+          "file": "src/renderer/components/Editor/hosts_cm.ts",
+          "line": 47,
+          "text": "toDOM() {"
+        },
+        {
+          "file": "src/renderer/components/Editor/hosts_cm.ts",
+          "line": 85,
+          "text": "widget: new BoundaryLabel(view.state.facet(boundaryLabels)[boundary]),"
+        },
+        {
+          "file": "src/renderer/components/Editor/hosts_cm.ts",
+          "line": 271,
+          "text": "hostsHighlighter,"
+        },
+        {
+          "file": "src/renderer/components/Editor/HostsEditor.tsx",
+          "line": 209,
+          "text": "const built = rebuildExtensions()"
+        }
+      ],
+      "limitation": "CodeMirror WidgetType 回调；未运行编辑器验证实际绘制。"
+    },
+    {
+      "repository": "SwitchHosts",
+      "id": "AUTO-EXP-11",
+      "target": "src/renderer/components/Tree/fn.ts:155-158 (isParent)",
+      "originalStatus": "VIOLATED",
+      "classification": "NO_EXTERNAL_STATIC_REFERENCE_FOUND",
+      "evidence": [
+        {
+          "file": "src/renderer/components/Tree/fn.ts",
+          "line": 155,
+          "text": "export function isParent(treeList: ITreeNodeData[], item: ITreeNodeData, id: string): boolean {"
+        }
+      ],
+      "limitation": "仅找到声明；isParentIsDragSource 为不同符号。"
+    },
+    {
+      "repository": "SwitchHosts",
+      "id": "AUTO-EXP-12",
+      "target": "src/renderer/utils/css-var.ts:7-11 (getCssVar)",
+      "originalStatus": "VIOLATED",
+      "classification": "NO_EXTERNAL_STATIC_REFERENCE_FOUND",
+      "evidence": [
+        {
+          "file": "src/renderer/utils/css-var.ts",
+          "line": 7,
+          "text": "export const getCssVar = (name: string): string => {"
+        }
+      ],
+      "limitation": "仅找到声明；不能证明业务缺陷。"
+    }
+  ],
+  "scanFiles": {
+    "clash-verge-rev": "2ed99adb9311c2e03dec994abb68e2ee348e3993acb7c5311e52d961d2dc7b6c",
+    "ripgrep": "eedb18c8ee016161d34eff2079c6a5d76ece197c2730eeeae5357ef08e8e06b1",
+    "SwitchHosts": "d2e8276c3ef5a43e8acc5b10952a96cdd80e41432a89885076963639f6a44c27"
+  },
+  "negativeSearch": {
+    "command": "rg -n -w \"cleanHostsList|updateOneItem|deleteItemById|isParent|getCssVar\" D:/Myproject/crack/SwitchHosts",
+    "limitation": "Text search plus import/namespace inspection; not whole-program dynamic reachability proof."
+  },
+  "primarySources": [
+    "https://serde.rs/field-attrs.html",
+    "https://raw.githubusercontent.com/codemirror/view/main/src/decoration.ts",
+    "https://docs.brew.sh/Formula-Cookbook"
+  ]
+}

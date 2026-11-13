@@ -1,0 +1,2884 @@
+[
+  {
+    "repository": "Alamofire",
+    "run": 1,
+    "verifyMs": 2526,
+    "totalMs": 2711,
+    "rssMiB": 291,
+    "graph": {
+      "files": 107,
+      "prodFiles": 53,
+      "symbols": 2552,
+      "languages": {
+        "ts": 6,
+        "swift": 101
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 12,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 16,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "977ab6c236e5cb6066b3c78bd79bd28a44964fcb440f531927c2a28372218fe2"
+  },
+  {
+    "repository": "Alamofire",
+    "run": 2,
+    "verifyMs": 2524,
+    "totalMs": 2725,
+    "rssMiB": 293,
+    "graph": {
+      "files": 107,
+      "prodFiles": 53,
+      "symbols": 2552,
+      "languages": {
+        "ts": 6,
+        "swift": 101
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 12,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 16,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "977ab6c236e5cb6066b3c78bd79bd28a44964fcb440f531927c2a28372218fe2"
+  },
+  {
+    "repository": "axum",
+    "run": 2,
+    "verifyMs": 5720,
+    "totalMs": 7220,
+    "rssMiB": 248,
+    "graph": {
+      "files": 310,
+      "prodFiles": 109,
+      "symbols": 2976,
+      "languages": {
+        "rust": 305,
+        "ts": 5
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 1104,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 8,
+      "obligationsInconclusive": 1096,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 2,
+      "unwiredExportsCount": 8,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 139,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 296,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "498df2b7409693b63dbd2db8c0aa50b60767257ff396efacc33349cc3d0dc45c"
+  },
+  {
+    "repository": "axum",
+    "run": 1,
+    "verifyMs": 5755,
+    "totalMs": 7318,
+    "rssMiB": 248,
+    "graph": {
+      "files": 310,
+      "prodFiles": 109,
+      "symbols": 2976,
+      "languages": {
+        "rust": 305,
+        "ts": 5
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 1104,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 8,
+      "obligationsInconclusive": 1096,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 2,
+      "unwiredExportsCount": 8,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 139,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 296,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "498df2b7409693b63dbd2db8c0aa50b60767257ff396efacc33349cc3d0dc45c"
+  },
+  {
+    "repository": "BepInEx",
+    "run": 1,
+    "verifyMs": 1085,
+    "totalMs": 1230,
+    "rssMiB": 117,
+    "graph": {
+      "files": 116,
+      "prodFiles": 116,
+      "symbols": 883,
+      "languages": {
+        "csharp": 116
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 13,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 121,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 19,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "33277bb6c1b1470cdc06febfab3c7d4e642b40ffb2f4678b39a95fb37e4b2536"
+  },
+  {
+    "repository": "BepInEx",
+    "run": 2,
+    "verifyMs": 1055,
+    "totalMs": 1212,
+    "rssMiB": 117,
+    "graph": {
+      "files": 116,
+      "prodFiles": 116,
+      "symbols": 883,
+      "languages": {
+        "csharp": 116
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 13,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 121,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 19,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "33277bb6c1b1470cdc06febfab3c7d4e642b40ffb2f4678b39a95fb37e4b2536"
+  },
+  {
+    "repository": "bits-ui",
+    "run": 1,
+    "verifyMs": 23074,
+    "totalMs": 26241,
+    "rssMiB": 476,
+    "graph": {
+      "files": 1141,
+      "prodFiles": 494,
+      "symbols": 3571,
+      "languages": {
+        "ts": 470,
+        "vue": 671
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 3,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 3,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 23,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 47,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "391587a290f9e078b89316097cb831ef137efc3f82f6658ccbb7cebaee333892"
+  },
+  {
+    "repository": "bits-ui",
+    "run": 2,
+    "verifyMs": 23086,
+    "totalMs": 26233,
+    "rssMiB": 485,
+    "graph": {
+      "files": 1141,
+      "prodFiles": 494,
+      "symbols": 3571,
+      "languages": {
+        "ts": 470,
+        "vue": 671
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 3,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 3,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 23,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 47,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "391587a290f9e078b89316097cb831ef137efc3f82f6658ccbb7cebaee333892"
+  },
+  {
+    "repository": "clash-verge-rev",
+    "run": 2,
+    "verifyMs": 7325,
+    "totalMs": 8587,
+    "rssMiB": 314,
+    "graph": {
+      "files": 425,
+      "prodFiles": 408,
+      "symbols": 3677,
+      "languages": {
+        "rust": 147,
+        "ts": 277,
+        "cpp": 1
+      },
+      "bridges": 93
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 648,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 44,
+      "obligationsInconclusive": 604,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 11,
+      "unwiredOrDeadPipesCount": 2,
+      "unwiredExportsCount": 33,
+      "dataFlowBreaksCount": 1,
+      "reservedContractsCount": 10,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 20,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "203eddf440e6e3e254ae05fb7c3e5f9759660abc8d9af22f355f626d36b43c6b"
+  },
+  {
+    "repository": "clash-verge-rev",
+    "run": 1,
+    "verifyMs": 7745,
+    "totalMs": 8976,
+    "rssMiB": 304,
+    "graph": {
+      "files": 425,
+      "prodFiles": 408,
+      "symbols": 3677,
+      "languages": {
+        "rust": 147,
+        "ts": 277,
+        "cpp": 1
+      },
+      "bridges": 93
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 648,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 44,
+      "obligationsInconclusive": 604,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 11,
+      "unwiredOrDeadPipesCount": 2,
+      "unwiredExportsCount": 33,
+      "dataFlowBreaksCount": 1,
+      "reservedContractsCount": 10,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 20,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "203eddf440e6e3e254ae05fb7c3e5f9759660abc8d9af22f355f626d36b43c6b"
+  },
+  {
+    "repository": "cobra",
+    "run": 1,
+    "verifyMs": 717,
+    "totalMs": 750,
+    "rssMiB": 102,
+    "graph": {
+      "files": 36,
+      "prodFiles": 19,
+      "symbols": 612,
+      "languages": {
+        "go": 36
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 3,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 3,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 3,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 7,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "a535888047904efbd45afcbab44f2aae9845a99414edc749a0d9e8fc483367fa"
+  },
+  {
+    "repository": "cobra",
+    "run": 2,
+    "verifyMs": 683,
+    "totalMs": 721,
+    "rssMiB": 102,
+    "graph": {
+      "files": 36,
+      "prodFiles": 19,
+      "symbols": 612,
+      "languages": {
+        "go": 36
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 3,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 3,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 3,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 7,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "a535888047904efbd45afcbab44f2aae9845a99414edc749a0d9e8fc483367fa"
+  },
+  {
+    "repository": "Dapper",
+    "run": 1,
+    "verifyMs": 1621,
+    "totalMs": 1807,
+    "rssMiB": 221,
+    "graph": {
+      "files": 157,
+      "prodFiles": 64,
+      "symbols": 2164,
+      "languages": {
+        "csharp": 157
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 4,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 3,
+      "obligationsInconclusive": 1,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 8,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 4,
+      "reservedContractsCount": 16,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 2,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "4fb160f81130ea758a5c96235c2c32b3459a0200c7c368761f056a9d16856aec"
+  },
+  {
+    "repository": "Dapper",
+    "run": 2,
+    "verifyMs": 1563,
+    "totalMs": 1744,
+    "rssMiB": 230,
+    "graph": {
+      "files": 157,
+      "prodFiles": 64,
+      "symbols": 2164,
+      "languages": {
+        "csharp": 157
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 4,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 3,
+      "obligationsInconclusive": 1,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 8,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 4,
+      "reservedContractsCount": 16,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 2,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "4fb160f81130ea758a5c96235c2c32b3459a0200c7c368761f056a9d16856aec"
+  },
+  {
+    "repository": "dio",
+    "run": 1,
+    "verifyMs": 1740,
+    "totalMs": 1880,
+    "rssMiB": 282,
+    "graph": {
+      "files": 200,
+      "prodFiles": 71,
+      "symbols": 3277,
+      "languages": {
+        "dart": 156,
+        "kotlin": 2,
+        "swift": 10,
+        "cpp": 32
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 4,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 4,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 4,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 4,
+      "reservedContractsCount": 8,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 49,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "6ca7e6744a77be99dba592c70a53f999aa64cf615515783423f8d4ee1cba9baa"
+  },
+  {
+    "repository": "dio",
+    "run": 2,
+    "verifyMs": 1702,
+    "totalMs": 1843,
+    "rssMiB": 281,
+    "graph": {
+      "files": 200,
+      "prodFiles": 71,
+      "symbols": 3277,
+      "languages": {
+        "dart": 156,
+        "kotlin": 2,
+        "swift": 10,
+        "cpp": 32
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 4,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 4,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 4,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 4,
+      "reservedContractsCount": 8,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 49,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "6ca7e6744a77be99dba592c70a53f999aa64cf615515783423f8d4ee1cba9baa"
+  },
+  {
+    "repository": "fastapi",
+    "run": 2,
+    "verifyMs": 8728,
+    "totalMs": 11355,
+    "rssMiB": 338,
+    "graph": {
+      "files": 1224,
+      "prodFiles": 74,
+      "symbols": 7349,
+      "languages": {
+        "ts": 4,
+        "python": 1220
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 10,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 4,
+      "obligationsInconclusive": 6,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 1,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 6,
+      "reservedContractsCount": 3,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 116,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "5588aeb88e9902a943f0b0665b1e9897123b3543af6f55ccf9234e9df8fb4567"
+  },
+  {
+    "repository": "fastapi",
+    "run": 1,
+    "verifyMs": 8745,
+    "totalMs": 11424,
+    "rssMiB": 343,
+    "graph": {
+      "files": 1224,
+      "prodFiles": 74,
+      "symbols": 7349,
+      "languages": {
+        "ts": 4,
+        "python": 1220
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 10,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 4,
+      "obligationsInconclusive": 6,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 1,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 6,
+      "reservedContractsCount": 3,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 116,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "5588aeb88e9902a943f0b0665b1e9897123b3543af6f55ccf9234e9df8fb4567"
+  },
+  {
+    "repository": "fd",
+    "run": 2,
+    "verifyMs": 540,
+    "totalMs": 564,
+    "rssMiB": 96,
+    "graph": {
+      "files": 25,
+      "prodFiles": 23,
+      "symbols": 443,
+      "languages": {
+        "rust": 25
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 125,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 5,
+      "obligationsInconclusive": 120,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 3,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 2,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 8,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 0,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "6a457754248d14204c7a44a376ff35f027188d2fa9df556297f7c9a1fee380ec"
+  },
+  {
+    "repository": "fd",
+    "run": 1,
+    "verifyMs": 563,
+    "totalMs": 585,
+    "rssMiB": 97,
+    "graph": {
+      "files": 25,
+      "prodFiles": 23,
+      "symbols": 443,
+      "languages": {
+        "rust": 25
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 125,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 5,
+      "obligationsInconclusive": 120,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 3,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 2,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 8,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 0,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "6a457754248d14204c7a44a376ff35f027188d2fa9df556297f7c9a1fee380ec"
+  },
+  {
+    "repository": "flask",
+    "run": 2,
+    "verifyMs": 917,
+    "totalMs": 995,
+    "rssMiB": 145,
+    "graph": {
+      "files": 83,
+      "prodFiles": 24,
+      "symbols": 1621,
+      "languages": {
+        "python": 83
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 1,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 1,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 5,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 1,
+      "reservedContractsCount": 4,
+      "writeOnlyDeadEndStatesCount": 3,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 27,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "566f08a636efa533292bf4dc5c1f70c28d5c6ba1ef5ca27c192baacb41fdf8de"
+  },
+  {
+    "repository": "flask",
+    "run": 1,
+    "verifyMs": 939,
+    "totalMs": 1019,
+    "rssMiB": 146,
+    "graph": {
+      "files": 83,
+      "prodFiles": 24,
+      "symbols": 1621,
+      "languages": {
+        "python": 83
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 1,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 1,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 5,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 1,
+      "reservedContractsCount": 4,
+      "writeOnlyDeadEndStatesCount": 3,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 27,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "566f08a636efa533292bf4dc5c1f70c28d5c6ba1ef5ca27c192baacb41fdf8de"
+  },
+  {
+    "repository": "fmt",
+    "run": 1,
+    "verifyMs": 2781,
+    "totalMs": 2879,
+    "rssMiB": 326,
+    "graph": {
+      "files": 80,
+      "prodFiles": 25,
+      "symbols": 4357,
+      "languages": {
+        "ts": 1,
+        "cpp": 75,
+        "python": 4
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 22,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "a02c51386ebd4bde2385a01f3bd8d50a6222fe2e8a3e2d2b3abe63c8e3d2065e"
+  },
+  {
+    "repository": "fmt",
+    "run": 2,
+    "verifyMs": 2800,
+    "totalMs": 2889,
+    "rssMiB": 326,
+    "graph": {
+      "files": 80,
+      "prodFiles": 25,
+      "symbols": 4357,
+      "languages": {
+        "ts": 1,
+        "cpp": 75,
+        "python": 4
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 22,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "a02c51386ebd4bde2385a01f3bd8d50a6222fe2e8a3e2d2b3abe63c8e3d2065e"
+  },
+  {
+    "repository": "full-stack-fastapi-template",
+    "run": 2,
+    "verifyMs": 672,
+    "totalMs": 717,
+    "rssMiB": 99,
+    "graph": {
+      "files": 151,
+      "prodFiles": 124,
+      "symbols": 533,
+      "languages": {
+        "python": 43,
+        "ts": 108
+      },
+      "bridges": 6
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 53,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 52,
+      "obligationsInconclusive": 1,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 52,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 1,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "d15b6d34f9b5a5bb1dfe520119644d939ff58eaef83778af7bb20490e6f6c84d"
+  },
+  {
+    "repository": "full-stack-fastapi-template",
+    "run": 1,
+    "verifyMs": 709,
+    "totalMs": 755,
+    "rssMiB": 100,
+    "graph": {
+      "files": 151,
+      "prodFiles": 124,
+      "symbols": 533,
+      "languages": {
+        "python": 43,
+        "ts": 108
+      },
+      "bridges": 6
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 53,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 52,
+      "obligationsInconclusive": 1,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 52,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 1,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "d15b6d34f9b5a5bb1dfe520119644d939ff58eaef83778af7bb20490e6f6c84d"
+  },
+  {
+    "repository": "gin",
+    "run": 2,
+    "verifyMs": 1116,
+    "totalMs": 1197,
+    "rssMiB": 160,
+    "graph": {
+      "files": 99,
+      "prodFiles": 57,
+      "symbols": 1518,
+      "languages": {
+        "go": 99
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 23,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "912b6780db661b6ed04061cd5984b9503a3d75b5980bd3c409754939abb67a87"
+  },
+  {
+    "repository": "gin",
+    "run": 1,
+    "verifyMs": 1127,
+    "totalMs": 1209,
+    "rssMiB": 161,
+    "graph": {
+      "files": 99,
+      "prodFiles": 57,
+      "symbols": 1518,
+      "languages": {
+        "go": 99
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 23,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "912b6780db661b6ed04061cd5984b9503a3d75b5980bd3c409754939abb67a87"
+  },
+  {
+    "repository": "gson",
+    "run": 1,
+    "verifyMs": 2395,
+    "totalMs": 2644,
+    "rssMiB": 284,
+    "graph": {
+      "files": 266,
+      "prodFiles": 98,
+      "symbols": 4133,
+      "languages": {
+        "java": 266
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 4,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 6,
+      "writeOnlyDeadEndStatesCount": 2,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 8,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "f76befd1c61000945f8b9ae552e80f16b05f8abcdcd0b030f041baaab6ff14fd"
+  },
+  {
+    "repository": "gson",
+    "run": 2,
+    "verifyMs": 2401,
+    "totalMs": 2645,
+    "rssMiB": 299,
+    "graph": {
+      "files": 266,
+      "prodFiles": 98,
+      "symbols": 4133,
+      "languages": {
+        "java": 266
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 4,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 6,
+      "writeOnlyDeadEndStatesCount": 2,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 8,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "f76befd1c61000945f8b9ae552e80f16b05f8abcdcd0b030f041baaab6ff14fd"
+  },
+  {
+    "repository": "hono",
+    "run": 2,
+    "verifyMs": 3855,
+    "totalMs": 5034,
+    "rssMiB": 291,
+    "graph": {
+      "files": 451,
+      "prodFiles": 240,
+      "symbols": 2201,
+      "languages": {
+        "ts": 451
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 1,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 1,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 1,
+      "reservedContractsCount": 1,
+      "writeOnlyDeadEndStatesCount": 4,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 81,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "37c812e40d53ea01167c6ce92510c5787a77170af299cd615f8ccd308892c6c5"
+  },
+  {
+    "repository": "hono",
+    "run": 1,
+    "verifyMs": 3875,
+    "totalMs": 5070,
+    "rssMiB": 282,
+    "graph": {
+      "files": 451,
+      "prodFiles": 240,
+      "symbols": 2201,
+      "languages": {
+        "ts": 451
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 1,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 1,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 1,
+      "reservedContractsCount": 1,
+      "writeOnlyDeadEndStatesCount": 4,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 81,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "37c812e40d53ea01167c6ce92510c5787a77170af299cd615f8ccd308892c6c5"
+  },
+  {
+    "repository": "httpx",
+    "run": 1,
+    "verifyMs": 918,
+    "totalMs": 973,
+    "rssMiB": 146,
+    "graph": {
+      "files": 60,
+      "prodFiles": 23,
+      "symbols": 1247,
+      "languages": {
+        "python": 60
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 2,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 2,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 1,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 20,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "542c99c2e6767d90a40ccea6f205f56b67bf0f0f0844dd54570fac36b099243a"
+  },
+  {
+    "repository": "httpx",
+    "run": 2,
+    "verifyMs": 908,
+    "totalMs": 956,
+    "rssMiB": 145,
+    "graph": {
+      "files": 60,
+      "prodFiles": 23,
+      "symbols": 1247,
+      "languages": {
+        "python": 60
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 2,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 2,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 1,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 20,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "542c99c2e6767d90a40ccea6f205f56b67bf0f0f0844dd54570fac36b099243a"
+  },
+  {
+    "repository": "jq",
+    "run": 2,
+    "verifyMs": 840,
+    "totalMs": 902,
+    "rssMiB": 135,
+    "graph": {
+      "files": 57,
+      "prodFiles": 45,
+      "symbols": 699,
+      "languages": {
+        "python": 5,
+        "ts": 1,
+        "cpp": 51
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 9,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 9,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 1,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 9,
+      "reservedContractsCount": 58,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 16,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "9364b6219987636e745e0eabe07fc729a020e8ac62299fee22f408018d9acfc3"
+  },
+  {
+    "repository": "jq",
+    "run": 1,
+    "verifyMs": 878,
+    "totalMs": 939,
+    "rssMiB": 136,
+    "graph": {
+      "files": 57,
+      "prodFiles": 45,
+      "symbols": 699,
+      "languages": {
+        "python": 5,
+        "ts": 1,
+        "cpp": 51
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 9,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 9,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 1,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 9,
+      "reservedContractsCount": 58,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 16,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "9364b6219987636e745e0eabe07fc729a020e8ac62299fee22f408018d9acfc3"
+  },
+  {
+    "repository": "koel",
+    "run": 2,
+    "verifyMs": 20357,
+    "totalMs": 25320,
+    "rssMiB": 427,
+    "graph": {
+      "files": 2795,
+      "prodFiles": 1867,
+      "symbols": 10190,
+      "languages": {
+        "php": 1764,
+        "ts": 632,
+        "vue": 399
+      },
+      "bridges": 44
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 399,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 4,
+      "obligationsInconclusive": 395,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 6,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 5,
+      "reservedContractsCount": 92,
+      "writeOnlyDeadEndStatesCount": 37,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 314,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "11ff7d7cd289e98a0adb2d477e6696879faa86d9a83876b96b20ff456a22fb6b"
+  },
+  {
+    "repository": "koel",
+    "run": 1,
+    "verifyMs": 20281,
+    "totalMs": 25341,
+    "rssMiB": 418,
+    "graph": {
+      "files": 2795,
+      "prodFiles": 1867,
+      "symbols": 10190,
+      "languages": {
+        "php": 1764,
+        "ts": 632,
+        "vue": 399
+      },
+      "bridges": 44
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 399,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 4,
+      "obligationsInconclusive": 395,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 6,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 5,
+      "reservedContractsCount": 92,
+      "writeOnlyDeadEndStatesCount": 37,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 314,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "11ff7d7cd289e98a0adb2d477e6696879faa86d9a83876b96b20ff456a22fb6b"
+  },
+  {
+    "repository": "memos",
+    "run": 1,
+    "verifyMs": 24009,
+    "totalMs": 26287,
+    "rssMiB": 775,
+    "graph": {
+      "files": 1188,
+      "prodFiles": 709,
+      "symbols": 10106,
+      "languages": {
+        "go": 556,
+        "ts": 632
+      },
+      "bridges": 95
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 50,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 33,
+      "obligationsInconclusive": 17,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 1,
+      "unwiredExportsCount": 33,
+      "dataFlowBreaksCount": 2,
+      "reservedContractsCount": 2,
+      "writeOnlyDeadEndStatesCount": 1,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 340,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "db1bdc88fdf5801198de9bd3ea8599b9156c9c83474f8703e6a4e824a9b2ead4"
+  },
+  {
+    "repository": "memos",
+    "run": 2,
+    "verifyMs": 24236,
+    "totalMs": 26489,
+    "rssMiB": 756,
+    "graph": {
+      "files": 1188,
+      "prodFiles": 709,
+      "symbols": 10106,
+      "languages": {
+        "go": 556,
+        "ts": 632
+      },
+      "bridges": 95
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 50,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 33,
+      "obligationsInconclusive": 17,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 1,
+      "unwiredExportsCount": 33,
+      "dataFlowBreaksCount": 2,
+      "reservedContractsCount": 2,
+      "writeOnlyDeadEndStatesCount": 1,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 340,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "db1bdc88fdf5801198de9bd3ea8599b9156c9c83474f8703e6a4e824a9b2ead4"
+  },
+  {
+    "repository": "okhttp",
+    "run": 1,
+    "verifyMs": 9648,
+    "totalMs": 11589,
+    "rssMiB": 445,
+    "graph": {
+      "files": 646,
+      "prodFiles": 248,
+      "symbols": 9000,
+      "languages": {
+        "kotlin": 575,
+        "java": 71
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 15,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 15,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 131,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 4,
+      "reservedContractsCount": 4,
+      "writeOnlyDeadEndStatesCount": 2,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 25,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "097ee5d2ff84dcade7ca8cce82a67ac8a67802d577ed1b8f5eec33a70d69d8c8"
+  },
+  {
+    "repository": "okhttp",
+    "run": 2,
+    "verifyMs": 9781,
+    "totalMs": 11668,
+    "rssMiB": 434,
+    "graph": {
+      "files": 646,
+      "prodFiles": 248,
+      "symbols": 9000,
+      "languages": {
+        "kotlin": 575,
+        "java": 71
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 15,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 15,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 131,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 4,
+      "reservedContractsCount": 4,
+      "writeOnlyDeadEndStatesCount": 2,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 25,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "097ee5d2ff84dcade7ca8cce82a67ac8a67802d577ed1b8f5eec33a70d69d8c8"
+  },
+  {
+    "repository": "pinia",
+    "run": 1,
+    "verifyMs": 894,
+    "totalMs": 1036,
+    "rssMiB": 99,
+    "graph": {
+      "files": 162,
+      "prodFiles": 49,
+      "symbols": 465,
+      "languages": {
+        "ts": 124,
+        "vue": 38
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 9,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 9,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 3,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 0,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "59d39810cb1fc48ad8bb677ffcad44c5c697b5ffa0c9e898a3b92e7b26f8fb5c"
+  },
+  {
+    "repository": "pinia",
+    "run": 2,
+    "verifyMs": 781,
+    "totalMs": 933,
+    "rssMiB": 100,
+    "graph": {
+      "files": 162,
+      "prodFiles": 49,
+      "symbols": 465,
+      "languages": {
+        "ts": 124,
+        "vue": 38
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 9,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 9,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 3,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 0,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "59d39810cb1fc48ad8bb677ffcad44c5c697b5ffa0c9e898a3b92e7b26f8fb5c"
+  },
+  {
+    "repository": "pocketbase",
+    "run": 1,
+    "verifyMs": 8795,
+    "totalMs": 10286,
+    "rssMiB": 323,
+    "graph": {
+      "files": 651,
+      "prodFiles": 447,
+      "symbols": 3914,
+      "languages": {
+        "go": 461,
+        "ts": 190
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 35,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 19,
+      "obligationsInconclusive": 16,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 6,
+      "unwiredExportsCount": 18,
+      "dataFlowBreaksCount": 17,
+      "reservedContractsCount": 85,
+      "writeOnlyDeadEndStatesCount": 1,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 38,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "0bdf919c27f613c432f5d5b7a7e375ed00317e0fff8db778aeab25330bca31b4"
+  },
+  {
+    "repository": "pocketbase",
+    "run": 2,
+    "verifyMs": 8691,
+    "totalMs": 10160,
+    "rssMiB": 327,
+    "graph": {
+      "files": 651,
+      "prodFiles": 447,
+      "symbols": 3914,
+      "languages": {
+        "go": 461,
+        "ts": 190
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 35,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 19,
+      "obligationsInconclusive": 16,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 6,
+      "unwiredExportsCount": 18,
+      "dataFlowBreaksCount": 17,
+      "reservedContractsCount": 85,
+      "writeOnlyDeadEndStatesCount": 1,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 38,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "0bdf919c27f613c432f5d5b7a7e375ed00317e0fff8db778aeab25330bca31b4"
+  },
+  {
+    "repository": "pot-desktop",
+    "run": 1,
+    "verifyMs": 1010,
+    "totalMs": 1183,
+    "rssMiB": 119,
+    "graph": {
+      "files": 202,
+      "prodFiles": 202,
+      "symbols": 421,
+      "languages": {
+        "ts": 187,
+        "rust": 15
+      },
+      "bridges": 23
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 45,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 45,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 1,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 12,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 188,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "58987f2a277a9ee84fe8a5c32a543aaea806b968a5356b83e6454144d915901b"
+  },
+  {
+    "repository": "pot-desktop",
+    "run": 2,
+    "verifyMs": 1018,
+    "totalMs": 1186,
+    "rssMiB": 118,
+    "graph": {
+      "files": 202,
+      "prodFiles": 202,
+      "symbols": 421,
+      "languages": {
+        "ts": 187,
+        "rust": 15
+      },
+      "bridges": 23
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 45,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 45,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 1,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 12,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 188,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "58987f2a277a9ee84fe8a5c32a543aaea806b968a5356b83e6454144d915901b"
+  },
+  {
+    "repository": "retrofit",
+    "run": 1,
+    "verifyMs": 2528,
+    "totalMs": 2881,
+    "rssMiB": 339,
+    "graph": {
+      "files": 323,
+      "prodFiles": 149,
+      "symbols": 3523,
+      "languages": {
+        "java": 307,
+        "kotlin": 16
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 6,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 6,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 11,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 14,
+      "writeOnlyDeadEndStatesCount": 1,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 36,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "0217d43d6232d7063135e6a0cbdd6e70154a42589a665d5768a50868fd714cdc"
+  },
+  {
+    "repository": "retrofit",
+    "run": 2,
+    "verifyMs": 2533,
+    "totalMs": 2894,
+    "rssMiB": 338,
+    "graph": {
+      "files": 323,
+      "prodFiles": 149,
+      "symbols": 3523,
+      "languages": {
+        "java": 307,
+        "kotlin": 16
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 6,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 6,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 11,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 14,
+      "writeOnlyDeadEndStatesCount": 1,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 36,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "0217d43d6232d7063135e6a0cbdd6e70154a42589a665d5768a50868fd714cdc"
+  },
+  {
+    "repository": "ripgrep",
+    "run": 2,
+    "verifyMs": 4959,
+    "totalMs": 5503,
+    "rssMiB": 270,
+    "graph": {
+      "files": 103,
+      "prodFiles": 82,
+      "symbols": 3304,
+      "languages": {
+        "rust": 102,
+        "ruby": 1
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 1408,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 16,
+      "obligationsInconclusive": 1392,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 1,
+      "unwiredOrDeadPipesCount": 10,
+      "unwiredExportsCount": 15,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 69,
+      "writeOnlyDeadEndStatesCount": 1,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 97,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "23c80f26eb96f438c3902743eaffe584edb7de23a0ab4c7dac7cb7cf38ea9043"
+  },
+  {
+    "repository": "ripgrep",
+    "run": 1,
+    "verifyMs": 5170,
+    "totalMs": 5688,
+    "rssMiB": 267,
+    "graph": {
+      "files": 103,
+      "prodFiles": 82,
+      "symbols": 3304,
+      "languages": {
+        "rust": 102,
+        "ruby": 1
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 1408,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 16,
+      "obligationsInconclusive": 1392,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 1,
+      "unwiredOrDeadPipesCount": 10,
+      "unwiredExportsCount": 15,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 69,
+      "writeOnlyDeadEndStatesCount": 1,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 97,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "23c80f26eb96f438c3902743eaffe584edb7de23a0ab4c7dac7cb7cf38ea9043"
+  },
+  {
+    "repository": "serilog",
+    "run": 1,
+    "verifyMs": 1524,
+    "totalMs": 1801,
+    "rssMiB": 195,
+    "graph": {
+      "files": 217,
+      "prodFiles": 113,
+      "symbols": 1782,
+      "languages": {
+        "csharp": 217
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 9,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 1,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "204383ea111eff69b28cb6f98d6acb7423228d410ab3d21fb30302639e109fe6"
+  },
+  {
+    "repository": "serilog",
+    "run": 2,
+    "verifyMs": 1473,
+    "totalMs": 1771,
+    "rssMiB": 192,
+    "graph": {
+      "files": 217,
+      "prodFiles": 113,
+      "symbols": 1782,
+      "languages": {
+        "csharp": 217
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 9,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 1,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "204383ea111eff69b28cb6f98d6acb7423228d410ab3d21fb30302639e109fe6"
+  },
+  {
+    "repository": "sidekiq",
+    "run": 1,
+    "verifyMs": 1177,
+    "totalMs": 1354,
+    "rssMiB": 137,
+    "graph": {
+      "files": 174,
+      "prodFiles": 106,
+      "symbols": 1560,
+      "languages": {
+        "ruby": 168,
+        "ts": 6
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 9,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 9,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 7,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 9,
+      "reservedContractsCount": 14,
+      "writeOnlyDeadEndStatesCount": 23,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 6,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "0f7e3e7047a85480eb619e23b49270fcda3c30dc6ec87a9d62b0128b801c4a95"
+  },
+  {
+    "repository": "sidekiq",
+    "run": 2,
+    "verifyMs": 1120,
+    "totalMs": 1313,
+    "rssMiB": 151,
+    "graph": {
+      "files": 174,
+      "prodFiles": 106,
+      "symbols": 1560,
+      "languages": {
+        "ruby": 168,
+        "ts": 6
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 9,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 9,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 7,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 9,
+      "reservedContractsCount": 14,
+      "writeOnlyDeadEndStatesCount": 23,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 6,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "0f7e3e7047a85480eb619e23b49270fcda3c30dc6ec87a9d62b0128b801c4a95"
+  },
+  {
+    "repository": "SwitchHosts",
+    "run": 1,
+    "verifyMs": 2375,
+    "totalMs": 2704,
+    "rssMiB": 251,
+    "graph": {
+      "files": 219,
+      "prodFiles": 172,
+      "symbols": 1770,
+      "languages": {
+        "ts": 160,
+        "rust": 59
+      },
+      "bridges": 15
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 309,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 7,
+      "obligationsInconclusive": 302,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 1,
+      "unwiredExportsCount": 7,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 8,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 17,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "8103ee55812be2ce0d964358b5620a1982bb6181cc169fa52746bcae2094abdb"
+  },
+  {
+    "repository": "SwitchHosts",
+    "run": 2,
+    "verifyMs": 2497,
+    "totalMs": 2802,
+    "rssMiB": 254,
+    "graph": {
+      "files": 219,
+      "prodFiles": 172,
+      "symbols": 1770,
+      "languages": {
+        "ts": 160,
+        "rust": 59
+      },
+      "bridges": 15
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 309,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 7,
+      "obligationsInconclusive": 302,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 1,
+      "unwiredExportsCount": 7,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 8,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 17,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "8103ee55812be2ce0d964358b5620a1982bb6181cc169fa52746bcae2094abdb"
+  },
+  {
+    "repository": "uptime-kuma",
+    "run": 1,
+    "verifyMs": 7638,
+    "totalMs": 9937,
+    "rssMiB": 263,
+    "graph": {
+      "files": 672,
+      "prodFiles": 556,
+      "symbols": 2525,
+      "languages": {
+        "ts": 481,
+        "go": 3,
+        "csharp": 1,
+        "java": 1,
+        "php": 1,
+        "python": 1,
+        "vue": 184
+      },
+      "bridges": 39
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 24,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 11,
+      "obligationsInconclusive": 13,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 42,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 11,
+      "reservedContractsCount": 60,
+      "writeOnlyDeadEndStatesCount": 36,
+      "asymmetricLifecycleWarnings": 5,
+      "structuralClonesCount": 66,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "722f6e1a18ef98a3a0e3cb23ec96c5d3cfb47cff2fdec2b9a879ebc5a441d3e4"
+  },
+  {
+    "repository": "uptime-kuma",
+    "run": 2,
+    "verifyMs": 7476,
+    "totalMs": 9824,
+    "rssMiB": 269,
+    "graph": {
+      "files": 672,
+      "prodFiles": 556,
+      "symbols": 2525,
+      "languages": {
+        "ts": 481,
+        "go": 3,
+        "csharp": 1,
+        "java": 1,
+        "php": 1,
+        "python": 1,
+        "vue": 184
+      },
+      "bridges": 39
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 24,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 11,
+      "obligationsInconclusive": 13,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 42,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 11,
+      "reservedContractsCount": 60,
+      "writeOnlyDeadEndStatesCount": 36,
+      "asymmetricLifecycleWarnings": 5,
+      "structuralClonesCount": 66,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "722f6e1a18ef98a3a0e3cb23ec96c5d3cfb47cff2fdec2b9a879ebc5a441d3e4"
+  },
+  {
+    "repository": "zod",
+    "run": 2,
+    "verifyMs": 5353,
+    "totalMs": 6607,
+    "rssMiB": 307,
+    "graph": {
+      "files": 523,
+      "prodFiles": 177,
+      "symbols": 3276,
+      "languages": {
+        "ts": 523
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 1,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 1,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 1,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 1513,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "a83e6c95103fb7d5a8fbc581f10385699b22081e27123d8729e612102c371cf8"
+  },
+  {
+    "repository": "zod",
+    "run": 1,
+    "verifyMs": 5488,
+    "totalMs": 6680,
+    "rssMiB": 308,
+    "graph": {
+      "files": 523,
+      "prodFiles": 177,
+      "symbols": 3276,
+      "languages": {
+        "ts": 523
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 1,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 1,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 1,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 1513,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "a83e6c95103fb7d5a8fbc581f10385699b22081e27123d8729e612102c371cf8"
+  },
+  {
+    "repository": "chi",
+    "run": 1,
+    "verifyMs": 818,
+    "totalMs": 976,
+    "rssMiB": 99,
+    "graph": {
+      "files": 90,
+      "prodFiles": 55,
+      "symbols": 480,
+      "languages": {
+        "go": 90
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 9,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 9,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 9,
+      "reservedContractsCount": 10,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 8,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "62be6fcd28bcdff270ad258b48e564e514088a2f2388f122dac262dd2be00b5b"
+  },
+  {
+    "repository": "chi",
+    "run": 2,
+    "verifyMs": 832,
+    "totalMs": 985,
+    "rssMiB": 99,
+    "graph": {
+      "files": 90,
+      "prodFiles": 55,
+      "symbols": 480,
+      "languages": {
+        "go": 90
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 9,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 9,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 9,
+      "reservedContractsCount": 10,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 8,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "62be6fcd28bcdff270ad258b48e564e514088a2f2388f122dac262dd2be00b5b"
+  },
+  {
+    "repository": "click",
+    "run": 1,
+    "verifyMs": 1692,
+    "totalMs": 1863,
+    "rssMiB": 197,
+    "graph": {
+      "files": 91,
+      "prodFiles": 17,
+      "symbols": 2062,
+      "languages": {
+        "python": 91
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 5,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 3,
+      "obligationsInconclusive": 2,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 4,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 2,
+      "reservedContractsCount": 25,
+      "writeOnlyDeadEndStatesCount": 2,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 13,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "09397feb3a405992c6de97bbf33eaee994d309609981ab18ee5e721d6d1e4806"
+  },
+  {
+    "repository": "click",
+    "run": 2,
+    "verifyMs": 1744,
+    "totalMs": 1893,
+    "rssMiB": 207,
+    "graph": {
+      "files": 91,
+      "prodFiles": 17,
+      "symbols": 2062,
+      "languages": {
+        "python": 91
+      },
+      "bridges": 0
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 5,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 3,
+      "obligationsInconclusive": 2,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 4,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 2,
+      "reservedContractsCount": 25,
+      "writeOnlyDeadEndStatesCount": 2,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 13,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "09397feb3a405992c6de97bbf33eaee994d309609981ab18ee5e721d6d1e4806"
+  },
+  {
+    "repository": "p-limit",
+    "run": 1,
+    "verifyMs": 224,
+    "totalMs": 231,
+    "rssMiB": 60,
+    "graph": {
+      "files": 5,
+      "prodFiles": 4,
+      "symbols": 43,
+      "languages": {
+        "ts": 5
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 0,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "ca2dca566c43b5cb84739cbdfe55f40bc7caa20da1bbf4c10ef7b191ebecb13a"
+  },
+  {
+    "repository": "p-limit",
+    "run": 2,
+    "verifyMs": 223,
+    "totalMs": 232,
+    "rssMiB": 60,
+    "graph": {
+      "files": 5,
+      "prodFiles": 4,
+      "symbols": 43,
+      "languages": {
+        "ts": 5
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 0,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "ca2dca566c43b5cb84739cbdfe55f40bc7caa20da1bbf4c10ef7b191ebecb13a"
+  },
+  {
+    "repository": "httprouter",
+    "run": 2,
+    "verifyMs": 268,
+    "totalMs": 277,
+    "rssMiB": 62,
+    "graph": {
+      "files": 6,
+      "prodFiles": 3,
+      "symbols": 93,
+      "languages": {
+        "go": 6
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 0,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "91613492c638aeb6c6b79b87b5f3238212de8acfe2304afe7cc59c6a936723eb"
+  },
+  {
+    "repository": "httprouter",
+    "run": 1,
+    "verifyMs": 277,
+    "totalMs": 285,
+    "rssMiB": 62,
+    "graph": {
+      "files": 6,
+      "prodFiles": 3,
+      "symbols": 93,
+      "languages": {
+        "go": 6
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 0,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "91613492c638aeb6c6b79b87b5f3238212de8acfe2304afe7cc59c6a936723eb"
+  },
+  {
+    "repository": "packaging",
+    "run": 1,
+    "verifyMs": 1901,
+    "totalMs": 2031,
+    "rssMiB": 195,
+    "graph": {
+      "files": 76,
+      "prodFiles": 31,
+      "symbols": 2503,
+      "languages": {
+        "python": 75,
+        "cpp": 1
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 1,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 1,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 13,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 1,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 17,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "0acab772e0b25bc3be1f6af850bdddd46e714cfd9827994346965c838ba296b6"
+  },
+  {
+    "repository": "packaging",
+    "run": 2,
+    "verifyMs": 1908,
+    "totalMs": 2030,
+    "rssMiB": 202,
+    "graph": {
+      "files": 76,
+      "prodFiles": 31,
+      "symbols": 2503,
+      "languages": {
+        "python": 75,
+        "cpp": 1
+      },
+      "bridges": 0
+    },
+    "status": "INCONCLUSIVE",
+    "verdict": "INCONCLUSIVE",
+    "summary": {
+      "obligationsTotal": 1,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 1,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 13,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 1,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 17,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "0acab772e0b25bc3be1f6af850bdddd46e714cfd9827994346965c838ba296b6"
+  },
+  {
+    "repository": "yocto-queue",
+    "run": 2,
+    "verifyMs": 158,
+    "totalMs": 162,
+    "rssMiB": 55,
+    "graph": {
+      "files": 3,
+      "prodFiles": 2,
+      "symbols": 11,
+      "languages": {
+        "ts": 3
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 0,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "dcd29466cf06dbef23db367b506ac9dfaf3591ea2c2d758fe07d49d888dc780d"
+  },
+  {
+    "repository": "yocto-queue",
+    "run": 1,
+    "verifyMs": 169,
+    "totalMs": 173,
+    "rssMiB": 55,
+    "graph": {
+      "files": 3,
+      "prodFiles": 2,
+      "symbols": 11,
+      "languages": {
+        "ts": 3
+      },
+      "bridges": 0
+    },
+    "status": "PASS",
+    "verdict": "SATISFIED",
+    "summary": {
+      "obligationsTotal": 0,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 0,
+      "obligationsInconclusive": 0,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 0,
+      "unwiredOrDeadPipesCount": 0,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 0,
+      "reservedContractsCount": 0,
+      "writeOnlyDeadEndStatesCount": 0,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 0,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "dcd29466cf06dbef23db367b506ac9dfaf3591ea2c2d758fe07d49d888dc780d"
+  },
+  {
+    "repository": "bruno",
+    "run": 1,
+    "verifyMs": 45461,
+    "totalMs": 53551,
+    "rssMiB": 715,
+    "graph": {
+      "files": 3152,
+      "prodFiles": 1811,
+      "symbols": 11890,
+      "languages": {
+        "ts": 3152
+      },
+      "bridges": 228
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 306,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 218,
+      "obligationsInconclusive": 88,
+      "brokenCrossLanguageBridges": 4,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 1,
+      "unwiredOrDeadPipesCount": 380,
+      "unwiredExportsCount": 206,
+      "dataFlowBreaksCount": 32,
+      "reservedContractsCount": 15,
+      "writeOnlyDeadEndStatesCount": 21,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 367,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "19180fedbcba4f90cabb2939661dbaea947b5fd39cd9a7e116caf4a681d98790"
+  },
+  {
+    "repository": "bruno",
+    "run": 2,
+    "verifyMs": 40537,
+    "totalMs": 48460,
+    "rssMiB": 732,
+    "graph": {
+      "files": 3152,
+      "prodFiles": 1811,
+      "symbols": 11890,
+      "languages": {
+        "ts": 3152
+      },
+      "bridges": 228
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 306,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 218,
+      "obligationsInconclusive": 88,
+      "brokenCrossLanguageBridges": 4,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 1,
+      "unwiredOrDeadPipesCount": 380,
+      "unwiredExportsCount": 206,
+      "dataFlowBreaksCount": 32,
+      "reservedContractsCount": 15,
+      "writeOnlyDeadEndStatesCount": 21,
+      "asymmetricLifecycleWarnings": 0,
+      "structuralClonesCount": 367,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "19180fedbcba4f90cabb2939661dbaea947b5fd39cd9a7e116caf4a681d98790"
+  },
+  {
+    "repository": "llama.cpp",
+    "run": 1,
+    "verifyMs": 91986,
+    "totalMs": 98908,
+    "rssMiB": 1688,
+    "graph": {
+      "files": 2781,
+      "prodFiles": 2397,
+      "symbols": 30013,
+      "languages": {
+        "cpp": 1567,
+        "python": 258,
+        "swift": 9,
+        "kotlin": 11,
+        "ts": 513,
+        "vue": 423
+      },
+      "bridges": 48
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 386,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 151,
+      "obligationsInconclusive": 235,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 42,
+      "unwiredOrDeadPipesCount": 227,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 191,
+      "reservedContractsCount": 334,
+      "writeOnlyDeadEndStatesCount": 42,
+      "asymmetricLifecycleWarnings": 4,
+      "structuralClonesCount": 3491,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "739617fda24748dceab46e65c7fce7dd7e8df3272be7a8ec84c0bde7aff02fd7"
+  },
+  {
+    "repository": "llama.cpp",
+    "run": 2,
+    "verifyMs": 92881,
+    "totalMs": 100682,
+    "rssMiB": 1681,
+    "graph": {
+      "files": 2781,
+      "prodFiles": 2397,
+      "symbols": 30013,
+      "languages": {
+        "cpp": 1567,
+        "python": 258,
+        "swift": 9,
+        "kotlin": 11,
+        "ts": 513,
+        "vue": 423
+      },
+      "bridges": 48
+    },
+    "status": "ISSUES_FOUND",
+    "verdict": "VIOLATED",
+    "summary": {
+      "obligationsTotal": 386,
+      "obligationsSatisfied": 0,
+      "obligationsViolated": 151,
+      "obligationsInconclusive": 235,
+      "brokenCrossLanguageBridges": 0,
+      "preExistingBrokenBridgesCount": 0,
+      "sandboxReverseDependencyLeaks": 42,
+      "unwiredOrDeadPipesCount": 227,
+      "unwiredExportsCount": 0,
+      "dataFlowBreaksCount": 191,
+      "reservedContractsCount": 334,
+      "writeOnlyDeadEndStatesCount": 42,
+      "asymmetricLifecycleWarnings": 4,
+      "structuralClonesCount": 3491,
+      "antiPatternsCount": 0
+    },
+    "resultHash": "739617fda24748dceab46e65c7fce7dd7e8df3272be7a8ec84c0bde7aff02fd7"
+  }
+]

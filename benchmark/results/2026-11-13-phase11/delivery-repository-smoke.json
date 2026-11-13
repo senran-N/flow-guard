@@ -1,0 +1,17 @@
+[
+  {
+    "repository": "pinia",
+    "deliveryMatchesMeasuredReport": true,
+    "reportHash": "98ed1b70f65ace8c036d4481a91cd33474952d648f96a8f9952cf9080ec84e13"
+  },
+  {
+    "repository": "full-stack-fastapi-template",
+    "deliveryMatchesMeasuredReport": true,
+    "reportHash": "d6d6ecc342617802e84f0f547eb4ac68dc10f50d9b54e81f08db4e29cd009d4d"
+  },
+  {
+    "repository": "axum",
+    "deliveryMatchesMeasuredReport": true,
+    "reportHash": "ac98883dfa061e2b3c035ae1e801905e0a7a007d9247330c9393e84719c600dc"
+  }
+]

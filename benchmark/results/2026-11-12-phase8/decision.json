@@ -1,0 +1,41 @@
+{
+  "status": "REJECTED_AND_REVERTED",
+  "candidateSourceHash": "00540c37c276e25b897f0917a2b2505f166d2beec4dbafc227123d792772b512",
+  "retainedSourceHash": "2231f027c2f51200665ccad5803903b796588c4c0003eb444a6cb300d5a0f724",
+  "changedFiles": [
+    "graph-builder.mjs",
+    "lexer.mjs",
+    "similarity-index.mjs"
+  ],
+  "reason": "The candidate completed only 38/39 paired repository scans and both isolated candidate runs were slower and used more final RSS than both phase7 runs. Complete reports matched, but the performance claim was not supported.",
+  "before": {
+    "elapsedMs": [
+      86798,
+      101474
+    ],
+    "verifyMs": [
+      81356,
+      93550
+    ],
+    "finalRssMiB": [
+      1646,
+      1635
+    ]
+  },
+  "candidate": {
+    "elapsedMs": [
+      106474,
+      106097
+    ],
+    "verifyMs": [
+      98370,
+      98032
+    ],
+    "finalRssMiB": [
+      1755,
+      1744
+    ]
+  },
+  "limitations": "Four same-machine runs, OS background load not controlled; no attribution of the regression to an individual change",
+  "unresolvedSourceFindings": "residual-audit.json"
+}

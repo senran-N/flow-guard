@@ -1,0 +1,84 @@
+{
+  "startedAt": "2026-11-12T11:06:05.743Z",
+  "workspace": "D:\\Myproject\\crack\\llama.cpp",
+  "initialCommit": "aa75ff3239f9cc675b081697deda9e1b112345c6",
+  "initialStatus": "",
+  "timeoutMs": 120000,
+  "order": [
+    "phase9",
+    "candidate",
+    "candidate",
+    "phase9"
+  ],
+  "engines": {
+    "phase9": {
+      "root": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase9-corpus\\engine-snapshot",
+      "worker": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase9-corpus\\engine-snapshot\\benchmark\\real-world-worker.mjs",
+      "sourceHash": "f207e484472b84030e0baebb2ef3336feb631e146e193047b9da77bcda9f16fc"
+    },
+    "candidate": {
+      "root": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\performance-argument-sites-rerun\\candidate-engine",
+      "worker": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\performance-argument-sites-rerun\\candidate-engine\\benchmark\\real-world-worker.mjs",
+      "sourceHash": "6830b2806aa18f887d7d59d0e6e9b4ffa979ee3653bcf1a0b58072fcf25c2f91"
+    }
+  },
+  "runs": [
+    {
+      "phase": "phase9",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "elapsedMs": 107935,
+      "stderr": "",
+      "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\performance-argument-sites-rerun\\1-phase9.json",
+      "verifyMs": 101763,
+      "rssMiB": 1680,
+      "resultHash": "9598cc02b040e2b19b8286c0c667ef3b0985373a1446821782378c8030ddda02"
+    },
+    {
+      "phase": "candidate",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "elapsedMs": 98803,
+      "stderr": "",
+      "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\performance-argument-sites-rerun\\2-candidate.json",
+      "verifyMs": 90114,
+      "rssMiB": 1666,
+      "resultHash": "9598cc02b040e2b19b8286c0c667ef3b0985373a1446821782378c8030ddda02"
+    },
+    {
+      "phase": "candidate",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "elapsedMs": 99357,
+      "stderr": "",
+      "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\performance-argument-sites-rerun\\3-candidate.json",
+      "verifyMs": 92795,
+      "rssMiB": 1677,
+      "resultHash": "9598cc02b040e2b19b8286c0c667ef3b0985373a1446821782378c8030ddda02"
+    },
+    {
+      "phase": "phase9",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "elapsedMs": 97741,
+      "stderr": "",
+      "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\performance-argument-sites-rerun\\4-phase9.json",
+      "verifyMs": 91129,
+      "rssMiB": 1682,
+      "resultHash": "9598cc02b040e2b19b8286c0c667ef3b0985373a1446821782378c8030ddda02"
+    }
+  ],
+  "limitations": [
+    "same-machine serial measurement",
+    "final RSS is not peak RSS"
+  ],
+  "finalCommit": "aa75ff3239f9cc675b081697deda9e1b112345c6",
+  "finalStatus": "",
+  "completed": true,
+  "identicalReports": true,
+  "finishedAt": "2026-11-12T11:12:49.780Z"
+}

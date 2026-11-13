@@ -1,0 +1,1014 @@
+{
+  "generatedAt": "2026-11-12T09:41:55.993Z",
+  "phase": "phase9",
+  "sourceHash": "7b87e5da00133c12252c5c2d8650569ee7b56155662b7e0629b0191090d2a9a6",
+  "engineFiles": {
+    "arch-vision.mjs": "42aca858fadcdc9facb50c39023e39ca7a731a61f509cc360ac1b4c3f061c0af",
+    "bridge-linker.mjs": "74881f2229d820952e6195d75011e0b5d397800d53597cb731dac5268c0f99d0",
+    "conditional-context.mjs": "5d103366c9c6d52d57b2a660b56ba486706ff611f9962ed808fae744923d7913",
+    "file-parser.mjs": "de4ac3b67d3993cd0e734a92b9053ec94b51cfeb5965e6501a4c850c66c19674",
+    "fingerprint.mjs": "1ce92e329c8f0e850bc135218ca64c0a012f73697ce02633799e3f47f895e096",
+    "flow-tools.mjs": "f906e00c9a8dbcac775fb81ac2b0c9ed1faa0917135a290e6561c66059b180e8",
+    "flow-verifier.mjs": "8e283ce70eb8f769a9aa1e3a082302599fbfb264a49d8a39d55055c4ac765d9f",
+    "graph-builder.mjs": "c6442ee36afc58e34f83d7a8eb32f1ca5202f95d484a283db8d584ac7d878338",
+    "graph-diff.mjs": "015fd2773c9cc4aefe18d0d4e7532cefb7e752c75cbade74d76334eb05ee7c0b",
+    "hook-runner.mjs": "29825bd3de8242490f7a05ea049d7c67e623a75405b410d18bb9c2db4881d916",
+    "lang-presets.mjs": "7a0fb842ecc95d442eda0a953bd4275786005848f0b9af950ab560068c338d59",
+    "lexer.mjs": "b485a3251743b648f4fa48d12386d34fbb111022f56b673b473fd269186c651a",
+    "package-boundaries.mjs": "2822804fe29d6fcb8b900c557ce8158276158778514107579be4e40ed0061826",
+    "rust-imports.mjs": "eae7db62baca4d99908a697cf8b42f88bb4b6e88686e249a748ea7100a8f89e5",
+    "server.mjs": "6cfe69703e0a668c1e00f30075ce0b849a9139bd5c29af1bd636286d4576d7f6",
+    "similarity-index.mjs": "28f6fad21014dc102d63e582c4853b503ccd6e7c58ee8bdb1f19bd8cd7365b3e",
+    "state-store.mjs": "78dc567a3a89ba93ba06d127e0254600e66ccfba8341ebfedc0b7a6c38825d19",
+    "test-process.mjs": "5aa0c6abb00079f4ff23d10978c319f4510f95661d8dfd67b982a260cf75a285",
+    "test-runner.mjs": "1e8dc1730f74b499f5ddf744a03f0a531f637d854289c09fb6e72a2b81e83ff2",
+    "wiring-contract.mjs": "96c0ece8e9e080aba54a9d353227f3e7804eeacede5167a9d7066de2d7044b44"
+  },
+  "environment": {
+    "node": "v24.14.0",
+    "platform": "win32",
+    "arch": "x64",
+    "release": "10.0.26300",
+    "cpus": 16
+  },
+  "stats": {
+    "repositories": 39,
+    "completed": 38,
+    "deterministic": 38,
+    "originalCompleted": 35,
+    "scans": 78,
+    "completedScans": 76,
+    "timeouts": 2,
+    "p50VerifyMs": 2283,
+    "p95VerifyMs": 33207,
+    "maxFinalRssMiB": 718,
+    "defaultFull": {
+      "defects": 12,
+      "controls": 12,
+      "diagnostics": 12,
+      "targetedBlocked": 2,
+      "controlsBlocked": 1,
+      "controlsWithNewDiagnostics": 0,
+      "defectVerdicts": {
+        "SATISFIED": 0,
+        "INCONCLUSIVE": 9,
+        "VIOLATED": 3
+      },
+      "errors": 0
+    },
+    "defaultIncremental": {
+      "defects": 12,
+      "controls": 12,
+      "diagnostics": 12,
+      "targetedBlocked": 2,
+      "controlsBlocked": 0,
+      "controlsWithNewDiagnostics": 0,
+      "defectVerdicts": {
+        "SATISFIED": 0,
+        "INCONCLUSIVE": 10,
+        "VIOLATED": 2
+      },
+      "errors": 0
+    },
+    "explicitPlans": {
+      "defects": 10,
+      "targetedBlocked": 10,
+      "controls": 10,
+      "controlsBlocked": 0,
+      "errors": 0
+    },
+    "newFull": {
+      "defects": 3,
+      "controls": 3,
+      "diagnostics": 3,
+      "targetedBlocked": 0,
+      "controlsBlocked": 0,
+      "controlsWithNewDiagnostics": 0,
+      "defectVerdicts": {
+        "SATISFIED": 0,
+        "INCONCLUSIVE": 3,
+        "VIOLATED": 0
+      },
+      "errors": 0
+    },
+    "newIncremental": {
+      "defects": 3,
+      "controls": 3,
+      "diagnostics": 3,
+      "targetedBlocked": 0,
+      "controlsBlocked": 0,
+      "controlsWithNewDiagnostics": 0,
+      "defectVerdicts": {
+        "SATISFIED": 0,
+        "INCONCLUSIVE": 3,
+        "VIOLATED": 0
+      },
+      "errors": 0
+    },
+    "newPlanned": {
+      "defects": 3,
+      "controls": 3,
+      "diagnostics": 3,
+      "targetedBlocked": 3,
+      "controlsBlocked": 0,
+      "controlsWithNewDiagnostics": 0,
+      "defectVerdicts": {
+        "SATISFIED": 0,
+        "INCONCLUSIVE": 0,
+        "VIOLATED": 3
+      },
+      "errors": 0
+    },
+    "timerBehavior": [
+      {
+        "variant": "control",
+        "behaviorPassed": true,
+        "targetStatus": "SATISFIED"
+      },
+      {
+        "variant": "defect",
+        "behaviorPassed": false,
+        "targetStatus": "VIOLATED"
+      }
+    ]
+  },
+  "repositories": [
+    {
+      "name": "Alamofire",
+      "cohort": "original",
+      "commit": "6c2892ea5adb5a03fa81c510933dd782c5ddd9cb",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        2276,
+        2283
+      ],
+      "files": 107,
+      "symbols": 2552,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0,
+      "rssMiB": 279,
+      "firstViolations": []
+    },
+    {
+      "name": "axum",
+      "cohort": "original",
+      "commit": "47399621c4017601ea493cd63c3af581f4fb33e3",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        2371,
+        2357
+      ],
+      "files": 310,
+      "symbols": 2976,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0,
+      "rssMiB": 257,
+      "firstViolations": []
+    },
+    {
+      "name": "BepInEx",
+      "cohort": "original",
+      "commit": "dbc82f05b8ea34833de5b6a723eb60dd8398e0b1",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        951,
+        948
+      ],
+      "files": 116,
+      "symbols": 883,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0,
+      "rssMiB": 125,
+      "firstViolations": []
+    },
+    {
+      "name": "bits-ui",
+      "cohort": "original",
+      "commit": "a6f32ab5adf3f927ac8ec16d2059cb8ea38e717b",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        17316,
+        17143
+      ],
+      "files": 1141,
+      "symbols": 3571,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0,
+      "rssMiB": 474,
+      "firstViolations": []
+    },
+    {
+      "name": "bruno",
+      "cohort": "original",
+      "commit": "60d7517d0545ef82c032c10dcbb6a3c815d246cf",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        84387,
+        84396
+      ],
+      "files": 3152,
+      "symbols": 11890,
+      "verdict": "VIOLATED",
+      "violated": 350,
+      "inconclusive": 94,
+      "rssMiB": 710,
+      "firstViolations": [
+        {
+          "target": "packages/bruno-app/src/components/AiChatSidebar/Popout/index.js:7-21 (AiChatPopout)",
+          "finding": "违反：导出函数 \"AiChatPopout\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "packages/bruno-app/src/components/ApiSpecPanel/FileEditor/CodeEditor/index.js:31-40 (CodeEditor.componentWillMount)",
+          "finding": "违反：导出函数 \"componentWillMount\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "packages/bruno-app/src/components/ApiSpecPanel/FileEditor/CodeEditor/index.js:42-87 (CodeEditor.componentDidMount)",
+          "finding": "违反：导出函数 \"componentDidMount\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        }
+      ]
+    },
+    {
+      "name": "clash-verge-rev",
+      "cohort": "original",
+      "commit": "389dddf51204984e91a9769c3dee08db2eeefbb2",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        5943,
+        6063
+      ],
+      "files": 425,
+      "symbols": 3677,
+      "verdict": "VIOLATED",
+      "violated": 67,
+      "inconclusive": 10,
+      "rssMiB": 305,
+      "firstViolations": [
+        {
+          "target": "crates/clash-verge-i18n/src/lib.rs:58-60 (sync_locale)",
+          "finding": "违反：导出函数 \"sync_locale\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "crates/clash-verge-logging/src/lib.rs:107-113 (LogRing.append_log)",
+          "finding": "违反：导出函数 \"append_log\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "crates/clash-verge-logging/src/lib.rs:115-118 (LogRing.get_logs)",
+          "finding": "违反：导出函数 \"get_logs\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        }
+      ]
+    },
+    {
+      "name": "cobra",
+      "cohort": "original",
+      "commit": "adbc8813901bba65827259daa8e22ff94ec1f30e",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        857,
+        870
+      ],
+      "files": 36,
+      "symbols": 612,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 3,
+      "rssMiB": 109,
+      "firstViolations": []
+    },
+    {
+      "name": "Dapper",
+      "cohort": "original",
+      "commit": "eb47546a408bbf6c178bda4f04dc205bc51ffbfe",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        2295,
+        2360
+      ],
+      "files": 157,
+      "symbols": 2164,
+      "verdict": "VIOLATED",
+      "violated": 3,
+      "inconclusive": 1,
+      "rssMiB": 236,
+      "firstViolations": [
+        {
+          "target": "Dapper/SqlMapper.Async.cs:451 (QueryAsync)",
+          "finding": "违反：出水口断流：调用 Nullable.GetUnderlyingType() 的返回值赋给了局部变量 \"convertToType\"，但后续从未被读取或传递"
+        },
+        {
+          "target": "Dapper/SqlMapper.Async.cs:1323 (Impl)",
+          "finding": "违反：出水口断流：调用 Nullable.GetUnderlyingType() 的返回值赋给了局部变量 \"convertToType\"，但后续从未被读取或传递"
+        },
+        {
+          "target": "Dapper/SqlMapper.cs:1235 (QueryImpl)",
+          "finding": "违反：出水口断流：调用 Nullable.GetUnderlyingType() 的返回值赋给了局部变量 \"convertToType\"，但后续从未被读取或传递"
+        }
+      ]
+    },
+    {
+      "name": "dio",
+      "cohort": "original",
+      "commit": "f1bef462289b40992d625d4eb2a2f42321217573",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        2531,
+        2545
+      ],
+      "files": 200,
+      "symbols": 3277,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 4,
+      "rssMiB": 288,
+      "firstViolations": []
+    },
+    {
+      "name": "fastapi",
+      "cohort": "original",
+      "commit": "e1144f6954eb8dd8c306f8dd2f5f0a14bbeb2cfd",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        19250,
+        19422
+      ],
+      "files": 1224,
+      "symbols": 7349,
+      "verdict": "VIOLATED",
+      "violated": 4,
+      "inconclusive": 6,
+      "rssMiB": 341,
+      "firstViolations": [
+        {
+          "target": "scripts/sponsors.py:54 (Tier)",
+          "finding": "违反：实现类 \"Tier\" (契约 BaseModel) 未加入工厂/分发器注册，导致运行期无法派发到该实现"
+        },
+        {
+          "target": "scripts/sponsors.py:69 (SponsorshipAsMaintainer)",
+          "finding": "违反：实现类 \"SponsorshipAsMaintainer\" (契约 BaseModel) 未加入工厂/分发器注册，导致运行期无法派发到该实现"
+        },
+        {
+          "target": "scripts/sponsors.py:73 (SponsorsUser)",
+          "finding": "违反：实现类 \"SponsorsUser\" (契约 BaseModel) 未加入工厂/分发器注册，导致运行期无法派发到该实现"
+        }
+      ]
+    },
+    {
+      "name": "fd",
+      "cohort": "original",
+      "commit": "24d90b28d25438af2a8f2e7f7e46d03d6828da94",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        593,
+        570
+      ],
+      "files": 25,
+      "symbols": 443,
+      "verdict": "VIOLATED",
+      "violated": 9,
+      "inconclusive": 0,
+      "rssMiB": 101,
+      "firstViolations": [
+        {
+          "target": "src/config.rs:137-139 (Config.is_printing)",
+          "finding": "违反：导出函数 \"is_printing\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "src/exec/mod.rs:72-74 (CommandSet.in_batch_mode)",
+          "finding": "违反：导出函数 \"in_batch_mode\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "src/exec/mod.rs:90-120 (CommandSet.execute_batch)",
+          "finding": "违反：导出函数 \"execute_batch\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        }
+      ]
+    },
+    {
+      "name": "flask",
+      "cohort": "original",
+      "commit": "49943b5a94413a530761350f04e896f76e8d620e",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1200,
+        1227
+      ],
+      "files": 83,
+      "symbols": 1621,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 1,
+      "rssMiB": 152,
+      "firstViolations": []
+    },
+    {
+      "name": "fmt",
+      "cohort": "original",
+      "commit": "e7e6e3f71033fbfc71eba1709789328bcb0ceb28",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        6490,
+        7263
+      ],
+      "files": 80,
+      "symbols": 4357,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0,
+      "rssMiB": 323,
+      "firstViolations": []
+    },
+    {
+      "name": "full-stack-fastapi-template",
+      "cohort": "original",
+      "commit": "aabb90126964a164e02aff39e7c385bb0598236d",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        994,
+        942
+      ],
+      "files": 151,
+      "symbols": 533,
+      "verdict": "VIOLATED",
+      "violated": 124,
+      "inconclusive": 1,
+      "rssMiB": 104,
+      "firstViolations": [
+        {
+          "target": "backend/app/api/deps.py:52-57 (get_current_active_superuser)",
+          "finding": "违反：导出函数 \"get_current_active_superuser\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "frontend/src/client/core/params.gen.ts:105-169 (buildClientParams)",
+          "finding": "违反：导出函数 \"buildClientParams\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "frontend/src/client/core/queryKeySerializer.gen.ts:83-117 (serializeQueryKeyValue)",
+          "finding": "违反：导出函数 \"serializeQueryKeyValue\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        }
+      ]
+    },
+    {
+      "name": "gin",
+      "cohort": "original",
+      "commit": "0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1248,
+        1256
+      ],
+      "files": 99,
+      "symbols": 1518,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0,
+      "rssMiB": 157,
+      "firstViolations": []
+    },
+    {
+      "name": "gson",
+      "cohort": "original",
+      "commit": "a961b0fe088f8558d00cc1b56e506a3656907a91",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        3725,
+        3753
+      ],
+      "files": 266,
+      "symbols": 4133,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0,
+      "rssMiB": 299,
+      "firstViolations": []
+    },
+    {
+      "name": "hono",
+      "cohort": "original",
+      "commit": "61f7c59e50244ab4d2dd83c151928cf7ea448510",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        7848,
+        8241
+      ],
+      "files": 451,
+      "symbols": 2201,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 1,
+      "rssMiB": 290,
+      "firstViolations": []
+    },
+    {
+      "name": "httpx",
+      "cohort": "original",
+      "commit": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1077,
+        1029
+      ],
+      "files": 60,
+      "symbols": 1247,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 2,
+      "rssMiB": 154,
+      "firstViolations": []
+    },
+    {
+      "name": "jq",
+      "cohort": "original",
+      "commit": "5c001b18d7237cce1fdba63608732163f978dd23",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1153,
+        1095
+      ],
+      "files": 57,
+      "symbols": 699,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 9,
+      "rssMiB": 136,
+      "firstViolations": []
+    },
+    {
+      "name": "koel",
+      "cohort": "original",
+      "commit": "80a21bb34c5f8e6ac5c848821833affc4d01176c",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        33207,
+        33346
+      ],
+      "files": 2795,
+      "symbols": 10189,
+      "verdict": "VIOLATED",
+      "violated": 4,
+      "inconclusive": 10,
+      "rssMiB": 428,
+      "firstViolations": [
+        {
+          "target": "app/Exceptions/AudioAnalysisFailedException.php:7 (AudioAnalysisFailedException)",
+          "finding": "违反：实现类 \"AudioAnalysisFailedException\" (契约 RuntimeException) 未加入工厂/分发器注册，导致运行期无法派发到该实现"
+        },
+        {
+          "target": "app/Exceptions/InstallationFailedException.php:7 (InstallationFailedException)",
+          "finding": "违反：实现类 \"InstallationFailedException\" (契约 RuntimeException) 未加入工厂/分发器注册，导致运行期无法派发到该实现"
+        },
+        {
+          "target": "app/Exceptions/PlaylistCollaborationTokenExpiredException.php:10 (PlaylistCollaborationTokenExpiredException)",
+          "finding": "违反：实现类 \"PlaylistCollaborationTokenExpiredException\" (契约 RuntimeException) 未加入工厂/分发器注册，导致运行期无法派发到该实现"
+        }
+      ]
+    },
+    {
+      "name": "llama.cpp",
+      "cohort": "original",
+      "commit": "aa75ff3239f9cc675b081697deda9e1b112345c6",
+      "completed": false,
+      "deterministic": false,
+      "verifyMs": []
+    },
+    {
+      "name": "memos",
+      "cohort": "original",
+      "commit": "abdeb8a57cc40ecc0b2527d55f604bbe36491dfb",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        24847,
+        25213
+      ],
+      "files": 1188,
+      "symbols": 10106,
+      "verdict": "VIOLATED",
+      "violated": 83,
+      "inconclusive": 9,
+      "rssMiB": 652,
+      "firstViolations": [
+        {
+          "target": "web/src/components/AppSidebar/AppSidebar.tsx:456-467 (MobileAppSidebar)",
+          "finding": "违反：导出函数 \"MobileAppSidebar\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "web/src/components/AttachmentLibrary/AttachmentFileRows.tsx:48-76 (AttachmentDocumentRows)",
+          "finding": "违反：导出函数 \"AttachmentDocumentRows\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "web/src/components/AttachmentLibrary/AttachmentFileRows.tsx:78-101 (AttachmentAudioRows)",
+          "finding": "违反：导出函数 \"AttachmentAudioRows\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        }
+      ]
+    },
+    {
+      "name": "okhttp",
+      "cohort": "original",
+      "commit": "4162e9da32f636442bc789a7576144fe5972d0a5",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        13566,
+        13598
+      ],
+      "files": 646,
+      "symbols": 9000,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 15,
+      "rssMiB": 434,
+      "firstViolations": []
+    },
+    {
+      "name": "pinia",
+      "cohort": "original",
+      "commit": "4817135a25431172d363bd928476db7cdbf875c4",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1137,
+        1137
+      ],
+      "files": 162,
+      "symbols": 465,
+      "verdict": "VIOLATED",
+      "violated": 1,
+      "inconclusive": 0,
+      "rssMiB": 97,
+      "firstViolations": [
+        {
+          "target": "packages/online-playground/src/download/download.ts:10-51 (downloadProject)",
+          "finding": "违反：导出函数 \"downloadProject\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        }
+      ]
+    },
+    {
+      "name": "pocketbase",
+      "cohort": "original",
+      "commit": "7f2773ec234b62d0b80ca47c508397cb3d0da3ea",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        10879,
+        10869
+      ],
+      "files": 651,
+      "symbols": 3914,
+      "verdict": "VIOLATED",
+      "violated": 19,
+      "inconclusive": 16,
+      "rssMiB": 321,
+      "firstViolations": [
+        {
+          "target": "ui/src/collections/collectionAuthOptionsTab.js:8-89 (collectionAuthOptionsTab)",
+          "finding": "违反：导出函数 \"collectionAuthOptionsTab\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "ui/src/collections/collectionFieldsTab.js:1-82 (collectionFieldsTab)",
+          "finding": "违反：导出函数 \"collectionFieldsTab\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "ui/src/collections/collectionRulesTab.js:1-275 (collectionRulesTab)",
+          "finding": "违反：导出函数 \"collectionRulesTab\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        }
+      ]
+    },
+    {
+      "name": "pot-desktop",
+      "cohort": "original",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1609,
+        1681
+      ],
+      "files": 202,
+      "symbols": 421,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 13,
+      "rssMiB": 108,
+      "firstViolations": []
+    },
+    {
+      "name": "retrofit",
+      "cohort": "original",
+      "commit": "ac37c61643860b0ab09a165cd5aa4a986484e872",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        3169,
+        3216
+      ],
+      "files": 323,
+      "symbols": 3523,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 6,
+      "rssMiB": 339,
+      "firstViolations": []
+    },
+    {
+      "name": "ripgrep",
+      "cohort": "original",
+      "commit": "178cc027e283fd965cb72d0a7395b219eada170c",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        2724,
+        2797
+      ],
+      "files": 103,
+      "symbols": 3304,
+      "verdict": "VIOLATED",
+      "violated": 65,
+      "inconclusive": 5,
+      "rssMiB": 337,
+      "firstViolations": [
+        {
+          "target": "crates/cli/src/decompress.rs:191-193 (DecompressionMatcher.has_command)",
+          "finding": "违反：导出函数 \"has_command\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "crates/cli/src/decompress.rs:260-262 (DecompressionReaderBuilder.get_matcher)",
+          "finding": "违反：导出函数 \"get_matcher\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "crates/cli/src/escape.rs:77-79 (unescape_os)",
+          "finding": "违反：导出函数 \"unescape_os\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        }
+      ]
+    },
+    {
+      "name": "serilog",
+      "cohort": "original",
+      "commit": "43105b35095337d77f022561a8f2d3db2f9a7937",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1423,
+        1532
+      ],
+      "files": 217,
+      "symbols": 1782,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0,
+      "rssMiB": 190,
+      "firstViolations": []
+    },
+    {
+      "name": "sidekiq",
+      "cohort": "original",
+      "commit": "75982898ff6dc984988da8b9ecf5371eba68e120",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1564,
+        1554
+      ],
+      "files": 174,
+      "symbols": 1560,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 9,
+      "rssMiB": 150,
+      "firstViolations": []
+    },
+    {
+      "name": "SwitchHosts",
+      "cohort": "original",
+      "commit": "7c8eaa50a6c45dde8ce7614c5659747000b36671",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        2356,
+        2365
+      ],
+      "files": 218,
+      "symbols": 1768,
+      "verdict": "VIOLATED",
+      "violated": 28,
+      "inconclusive": 16,
+      "rssMiB": 242,
+      "firstViolations": [
+        {
+          "target": "src/common/hostsFn.ts:26-44 (cleanHostsList)",
+          "finding": "违反：导出函数 \"cleanHostsList\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "src/common/hostsFn.ts:53-65 (updateOneItem)",
+          "finding": "违反：导出函数 \"updateOneItem\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        },
+        {
+          "target": "src/common/hostsFn.ts:178-186 (deleteItemById)",
+          "finding": "违反：导出函数 \"deleteItemById\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）"
+        }
+      ]
+    },
+    {
+      "name": "uptime-kuma",
+      "cohort": "original",
+      "commit": "fb8ef0fa8200bb989f3a115dda3b0e09a3c31167",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        4892,
+        4921
+      ],
+      "files": 672,
+      "symbols": 2488,
+      "verdict": "VIOLATED",
+      "violated": 11,
+      "inconclusive": 13,
+      "rssMiB": 259,
+      "firstViolations": [
+        {
+          "target": "server/model/api_key.js:5 (APIKey)",
+          "finding": "违反：实现类 \"APIKey\" (契约 BeanModel) 未加入工厂/分发器注册，导致运行期无法派发到该实现"
+        },
+        {
+          "target": "server/model/group.js:4 (Group)",
+          "finding": "违反：实现类 \"Group\" (契约 BeanModel) 未加入工厂/分发器注册，导致运行期无法派发到该实现"
+        },
+        {
+          "target": "server/model/heartbeat.js:13 (Heartbeat)",
+          "finding": "违反：实现类 \"Heartbeat\" (契约 BeanModel) 未加入工厂/分发器注册，导致运行期无法派发到该实现"
+        }
+      ]
+    },
+    {
+      "name": "zod",
+      "cohort": "original",
+      "commit": "19c40d2072288b4cafec851e9d056a72a88e5973",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        4518,
+        4600
+      ],
+      "files": 523,
+      "symbols": 3276,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 1,
+      "rssMiB": 303,
+      "firstViolations": []
+    },
+    {
+      "name": "chi",
+      "cohort": "previous-holdout",
+      "commit": "c64ed7d6635f33a8b2feaff7dcfa55677023ac7d",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        928,
+        953
+      ],
+      "files": 90,
+      "symbols": 480,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 9,
+      "rssMiB": 105,
+      "firstViolations": []
+    },
+    {
+      "name": "click",
+      "cohort": "previous-holdout",
+      "commit": "8abb77a8432e03ed14a95f972b44f905279415a7",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1861,
+        1846
+      ],
+      "files": 91,
+      "symbols": 2062,
+      "verdict": "VIOLATED",
+      "violated": 3,
+      "inconclusive": 2,
+      "rssMiB": 207,
+      "firstViolations": [
+        {
+          "target": "src/click/core.py:3043 (Option)",
+          "finding": "违反：同族/另一平台分支 \"Option\" 遗漏实现方法 \"_check_name_is_usable()\"（共享契约 \"Parameter\" 已声明该方法）"
+        },
+        {
+          "target": "src/click/core.py:3876 (Argument)",
+          "finding": "违反：同族/另一平台分支 \"Argument\" 遗漏实现方法 \"_check_name_is_usable()\"（共享契约 \"Parameter\" 已声明该方法）"
+        },
+        {
+          "target": "src/click/core.py:3876 (Argument)",
+          "finding": "违反：同族/另一平台分支 \"Argument\" 遗漏实现方法 \"consume_value()\"（共享契约 \"Parameter\" 已声明该方法）"
+        }
+      ]
+    },
+    {
+      "name": "p-limit",
+      "cohort": "previous-holdout",
+      "commit": "a8a6fbec4e0e866d6d779b10889bb4f5567e70eb",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        256,
+        259
+      ],
+      "files": 5,
+      "symbols": 43,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0,
+      "rssMiB": 65,
+      "firstViolations": []
+    },
+    {
+      "name": "httprouter",
+      "cohort": "new-holdout",
+      "commit": "484018016424d215c0b87c42f4c9b57d980fbd00",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        297,
+        307
+      ],
+      "files": 6,
+      "symbols": 93,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0,
+      "rssMiB": 69,
+      "firstViolations": []
+    },
+    {
+      "name": "packaging",
+      "cohort": "new-holdout",
+      "commit": "9afc187996400b417b7109b1b3452d7fdcfe7696",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        2081,
+        2129
+      ],
+      "files": 76,
+      "symbols": 2503,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 1,
+      "rssMiB": 206,
+      "firstViolations": []
+    },
+    {
+      "name": "yocto-queue",
+      "cohort": "new-holdout",
+      "commit": "72a8fa96a9d389765cdf2bb9c6daba8302fc375d",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        204,
+        197
+      ],
+      "files": 3,
+      "symbols": 11,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0,
+      "rssMiB": 60,
+      "firstViolations": []
+    }
+  ],
+  "evidenceRoots": {
+    "root": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening",
+    "baseline": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020"
+  },
+  "limitations": [
+    "手选输入丢失与桥接案例，不是全局准确率估计",
+    "默认扫描待确认项不能当作证明通过",
+    "仍有框架入口/反射/类型作用域误报",
+    "结束时 RSS 不是峰值内存",
+    "部分扫描与测试并发，耗时仅供当前环境复现参考"
+  ]
+}

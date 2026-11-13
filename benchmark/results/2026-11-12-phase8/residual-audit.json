@@ -1,0 +1,247 @@
+{
+  "sourceHash": "00540c37c276e25b897f0917a2b2505f166d2beec4dbafc227123d792772b512",
+  "selection": "Targeted follow-up of small residual sets, not a representative precision estimate",
+  "cases": [
+    {
+      "repo": "pot-desktop",
+      "label": "CONFIRMED_STATIC_FALSE_POSITIVE",
+      "scope": "Four entry-wiring violations; runtime execution was not tested",
+      "reason": "All four functions have setup or tray callback wiring in main. The Rust import extractor misses ordinary mod declarations and use paths without crate/self/super; main remains parsed but its import scope is empty.",
+      "findings": [
+        {
+          "id": "AUTO-EXP-3",
+          "station": "ENTRY_WIRING",
+          "layer": "L1_STRUCTURAL",
+          "required": true,
+          "targetLocation": "src-tauri/src/hotkey.rs:43-71 (register_shortcut)",
+          "reason": "应用工程中的新增或导出功能必须连通真实运行入口，不能仅因带有 export 就视为已接入",
+          "expectedRelation": "建立从真实入口（UI/IPC/路由/主循环）到 register_shortcut 的调用连接",
+          "sourceBasis": "项目模式识别: application",
+          "status": "VIOLATED",
+          "evidence": [
+            "src-tauri/src/hotkey.rs:43-71 (register_shortcut)"
+          ],
+          "finding": "违反：导出函数 \"register_shortcut\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）",
+          "remediation": "请将 \"register_shortcut\" 接入真实上游入口；若该函数应作为公共 SDK 导出，请通过包主入口模块暴露或声明库导出配置。"
+        },
+        {
+          "id": "AUTO-EXP-4",
+          "station": "ENTRY_WIRING",
+          "layer": "L1_STRUCTURAL",
+          "required": true,
+          "targetLocation": "src-tauri/src/server.rs:8-32 (start_server)",
+          "reason": "应用工程中的新增或导出功能必须连通真实运行入口，不能仅因带有 export 就视为已接入",
+          "expectedRelation": "建立从真实入口（UI/IPC/路由/主循环）到 start_server 的调用连接",
+          "sourceBasis": "项目模式识别: application",
+          "status": "VIOLATED",
+          "evidence": [
+            "src-tauri/src/server.rs:8-32 (start_server)"
+          ],
+          "finding": "违反：导出函数 \"start_server\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）",
+          "remediation": "请将 \"start_server\" 接入真实上游入口；若该函数应作为公共 SDK 导出，请通过包主入口模块暴露或声明库导出配置。"
+        },
+        {
+          "id": "AUTO-EXP-5",
+          "station": "ENTRY_WIRING",
+          "layer": "L1_STRUCTURAL",
+          "required": true,
+          "targetLocation": "src-tauri/src/tray.rs:99-121 (tray_event_handler)",
+          "reason": "应用工程中的新增或导出功能必须连通真实运行入口，不能仅因带有 export 就视为已接入",
+          "expectedRelation": "建立从真实入口（UI/IPC/路由/主循环）到 tray_event_handler 的调用连接",
+          "sourceBasis": "项目模式识别: application",
+          "status": "VIOLATED",
+          "evidence": [
+            "src-tauri/src/tray.rs:99-121 (tray_event_handler)"
+          ],
+          "finding": "违反：导出函数 \"tray_event_handler\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）",
+          "remediation": "请将 \"tray_event_handler\" 接入真实上游入口；若该函数应作为公共 SDK 导出，请通过包主入口模块暴露或声明库导出配置。"
+        },
+        {
+          "id": "AUTO-EXP-6",
+          "station": "ENTRY_WIRING",
+          "layer": "L1_STRUCTURAL",
+          "required": true,
+          "targetLocation": "src-tauri/src/updater.rs:5-28 (check_update)",
+          "reason": "应用工程中的新增或导出功能必须连通真实运行入口，不能仅因带有 export 就视为已接入",
+          "expectedRelation": "建立从真实入口（UI/IPC/路由/主循环）到 check_update 的调用连接",
+          "sourceBasis": "项目模式识别: application",
+          "status": "VIOLATED",
+          "evidence": [
+            "src-tauri/src/updater.rs:5-28 (check_update)"
+          ],
+          "finding": "违反：导出函数 \"check_update\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）",
+          "remediation": "请将 \"check_update\" 接入真实上游入口；若该函数应作为公共 SDK 导出，请通过包主入口模块暴露或声明库导出配置。"
+        }
+      ],
+      "sources": [
+        {
+          "repo": "pot-desktop",
+          "file": "src-tauri/src/main.rs",
+          "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+          "sha256": "30f6ae3b2470a3ddb68038a4d70e4fd684463a5baf7a75f35786a79e6ba1e5ef",
+          "start": 4,
+          "end": 36,
+          "excerpt": "mod backup;\nmod clipboard;\nmod cmd;\nmod config;\nmod error;\nmod hotkey;\nmod lang_detect;\nmod screenshot;\nmod server;\nmod system_ocr;\nmod tray;\nmod updater;\nmod window;\n\nuse backup::*;\nuse clipboard::*;\nuse cmd::*;\nuse config::*;\nuse hotkey::*;\nuse lang_detect::*;\nuse log::info;\nuse once_cell::sync::OnceCell;\nuse screenshot::screenshot;\nuse server::*;\nuse std::sync::Mutex;\nuse system_ocr::*;\nuse tauri::api::notification::Notification;\nuse tauri::Manager;\nuse tauri_plugin_log::LogTarget;\nuse tray::*;\nuse updater::check_update;\nuse window::config_window;\nuse window::updater_window;"
+        },
+        {
+          "repo": "pot-desktop",
+          "file": "src-tauri/src/main.rs",
+          "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+          "sha256": "30f6ae3b2470a3ddb68038a4d70e4fd684463a5baf7a75f35786a79e6ba1e5ef",
+          "start": 44,
+          "end": 45,
+          "excerpt": "fn main() {\n    tauri::Builder::default()"
+        },
+        {
+          "repo": "pot-desktop",
+          "file": "src-tauri/src/main.rs",
+          "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+          "sha256": "30f6ae3b2470a3ddb68038a4d70e4fd684463a5baf7a75f35786a79e6ba1e5ef",
+          "start": 63,
+          "end": 112,
+          "excerpt": "        .plugin(tauri_plugin_sql::Builder::default().build())\n        .plugin(tauri_plugin_store::Builder::default().build())\n        .plugin(tauri_plugin_fs_watch::init())\n        .system_tray(tauri::SystemTray::new())\n        .setup(|app| {\n            info!(\"============== Start App ==============\");\n            #[cfg(target_os = \"macos\")]\n            {\n                app.set_activation_policy(tauri::ActivationPolicy::Accessory);\n                let trusted =\n                    macos_accessibility_client::accessibility::application_is_trusted_with_prompt();\n                info!(\"MacOS Accessibility Trusted: {}\", trusted);\n            }\n            // Global AppHandle\n            APP.get_or_init(|| app.handle());\n            // Init Config\n            info!(\"Init Config Store\");\n            init_config(app);\n            // Check First Run\n            if is_first_run() {\n                // Open Config Window\n                info!(\"First Run, opening config window\");\n                config_window();\n            }\n            app.manage(StringWrapper(Mutex::new(\"\".to_string())));\n            // Update Tray Menu\n            update_tray(app.app_handle(), \"\".to_string(), \"\".to_string());\n            // Start http server\n            start_server();\n            // Register Global Shortcut\n            match register_shortcut(\"all\") {\n                Ok(()) => {}\n                Err(e) => Notification::new(app.config().tauri.bundle.identifier.clone())\n                    .title(\"Failed to register global shortcut\")\n                    .body(&e)\n                    .icon(\"pot\")\n                    .show()\n                    .unwrap(),\n            }\n            match get(\"proxy_enable\") {\n                Some(v) => {\n                    if v.as_bool().unwrap() && get(\"proxy_host\").map_or(false, |host| !host.as_str().unwrap().is_empty()) {\n                        let _ = set_proxy();\n                    }\n                }\n                None => {}\n            }\n            // Check Update\n            check_update(app.handle());\n            if let Some(engine) = get(\"translate_detect_engine\") {"
+        },
+        {
+          "repo": "pot-desktop",
+          "file": "src-tauri/src/main.rs",
+          "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+          "sha256": "30f6ae3b2470a3ddb68038a4d70e4fd684463a5baf7a75f35786a79e6ba1e5ef",
+          "start": 150,
+          "end": 161,
+          "excerpt": "            aliyun\n        ])\n        .on_system_tray_event(tray_event_handler)\n        .build(tauri::generate_context!())\n        .expect(\"error while running tauri application\")\n        // 窗口关闭不退出\n        .run(|_app_handle, event| {\n            if let tauri::RunEvent::ExitRequested { api, .. } = event {\n                api.prevent_exit();\n            }\n        });\n}"
+        }
+      ],
+      "parserEvidence": {
+        "importedStems": [],
+        "importedPaths": [],
+        "mainCalls": [
+          "start_server",
+          "register_shortcut",
+          "check_update",
+          "register_shortcut_by_frontend",
+          "tray_event_handler"
+        ]
+      }
+    },
+    {
+      "repo": "zod",
+      "label": "CONFIRMED_STATIC_FALSE_POSITIVE",
+      "scope": "One entry-wiring violation; benchmark script was not executed",
+      "reason": "generate is consumed by benchmark scripts in the same private tsc performance-test package. Lack of a production entry is not evidence that this benchmark helper is unwired.",
+      "findings": [
+        {
+          "id": "AUTO-EXP-1",
+          "station": "ENTRY_WIRING",
+          "layer": "L1_STRUCTURAL",
+          "required": true,
+          "targetLocation": "packages/tsc/generate.ts:49-182 (generate)",
+          "reason": "应用工程中的新增或导出功能必须连通真实运行入口，不能仅因带有 export 就视为已接入",
+          "expectedRelation": "建立从真实入口（UI/IPC/路由/主循环）到 generate 的调用连接",
+          "sourceBasis": "项目模式识别: hybrid",
+          "status": "VIOLATED",
+          "evidence": [
+            "packages/tsc/generate.ts:49-182 (generate)"
+          ],
+          "finding": "违反：导出函数 \"generate\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）",
+          "remediation": "请将 \"generate\" 接入真实上游入口；若该函数应作为公共 SDK 导出，请通过包主入口模块暴露或声明库导出配置。"
+        }
+      ],
+      "sources": [
+        {
+          "repo": "zod",
+          "file": "packages/tsc/bench/lots-of-objects.ts",
+          "commit": "19c40d2072288b4cafec851e9d056a72a88e5973",
+          "sha256": "5cdf7b9fc493b4701d81f9fef871fb8669104e8bf6f1a88fec156cd2dc2d6a3e",
+          "start": 1,
+          "end": 29,
+          "excerpt": "import { execa } from \"execa\";\n\nconst $ = execa({ stdout: \"inherit\", stderr: \"inherit\" });\nimport * as gen from \"../generate.js\";\n\nconst SHARED = {\n  numSchemas: 500,\n  numKeys: 5,\n  numExtends: 1,\n};\nconsole.log(\"╔════════════════╗\");\nconsole.log(\"║     Zod v3     ║\");\nconsole.log(\"╚════════════════╝\");\nawait gen.generate({\n  ...gen.ZOD3,\n  schemaType: \"z.object\",\n  ...SHARED,\n});\n\nawait $`nub run build:bench`;\n\nconsole.log(\"╔════════════════╗\");\nconsole.log(\"║     Zod v4     ║\");\nconsole.log(\"╚════════════════╝\");\nawait gen.generate({\n  ...gen.ZOD,\n  schemaType: \"z.object\",\n  ...SHARED,\n});"
+        },
+        {
+          "repo": "zod",
+          "file": "packages/tsc/package.json",
+          "commit": "19c40d2072288b4cafec851e9d056a72a88e5973",
+          "sha256": "75ff7833b8b6ff4f5b6a58e3be335c4e5ccd4a26e269d9ba36945629dd790b79",
+          "start": 1,
+          "end": 35,
+          "excerpt": "{\n  \"name\": \"@zod/tsc-perftest\",\n  \"type\": \"module\",\n  \"private\": true,\n  \"version\": \"1.0.0\",\n  \"main\": \"./lib/index.js\",\n  \"license\": \"MIT\",\n  \"devDependencies\": {\n    \"@types/node\": \"^22.10.5\",\n    \"@typescript/analyze-trace\": \"^0.10.1\",\n    \"arktype\": \"^2.0.0\",\n    \"execa\": \"^9.5.2\",\n    \"valibot\": \"^1.3.1\",\n    \"zod\": \"workspace:*\",\n    \"zod3\": \"npm:zod@^3.0.0\",\n    \"zod4\": \"npm:zod@4.0.0-beta.20250420T053007\"\n  },\n  \"files\": [\n    \"./bin/*\",\n    \"./lib/*\"\n  ],\n  \"typings\": \"./lib/index.d.ts\",\n  \"scripts\": {\n    \"generate\": \"nub generate.ts\",\n    \"build\": \"nub exec --node tsc\",\n    \"build:bench\": \"nub exec --node tsc -p tsconfig.bench.json\",\n    \"lint\": \"nub exec --node tslint -c tslint.json src/**/*.ts\",\n    \"prepublish\": \"nub run build\",\n    \"bench\": \"nub ./bench/index.ts\",\n    \"bisect\": \"nub bisect.ts\"\n  }\n}\n"
+        }
+      ]
+    },
+    {
+      "repo": "Dapper",
+      "label": "CONFIRMED_UNUSED_ASSIGNMENT",
+      "scope": "Three source-level unused local assignments; business impact is not established",
+      "reason": "convertToType is assigned but subsequent GetValue calls use effectiveType directly. This supports the unused-value finding; it does not demonstrate broken query results.",
+      "findings": [
+        {
+          "id": "DIAGNOSTIC-1",
+          "station": "DATA_FLOW_CONSUMPTION",
+          "layer": "L2_DATA_FLOW",
+          "required": true,
+          "status": "VIOLATED",
+          "targetLocation": "Dapper/SqlMapper.Async.cs:451 (QueryAsync)",
+          "finding": "违反：出水口断流：调用 Nullable.GetUnderlyingType() 的返回值赋给了局部变量 \"convertToType\"，但后续从未被读取或传递",
+          "evidence": [
+            "Dapper/SqlMapper.Async.cs:451 (QueryAsync)"
+          ],
+          "sourceBasis": "全量静态分析"
+        },
+        {
+          "id": "DIAGNOSTIC-2",
+          "station": "DATA_FLOW_CONSUMPTION",
+          "layer": "L2_DATA_FLOW",
+          "required": true,
+          "status": "VIOLATED",
+          "targetLocation": "Dapper/SqlMapper.Async.cs:1323 (Impl)",
+          "finding": "违反：出水口断流：调用 Nullable.GetUnderlyingType() 的返回值赋给了局部变量 \"convertToType\"，但后续从未被读取或传递",
+          "evidence": [
+            "Dapper/SqlMapper.Async.cs:1323 (Impl)"
+          ],
+          "sourceBasis": "全量静态分析"
+        },
+        {
+          "id": "DIAGNOSTIC-3",
+          "station": "DATA_FLOW_CONSUMPTION",
+          "layer": "L2_DATA_FLOW",
+          "required": true,
+          "status": "VIOLATED",
+          "targetLocation": "Dapper/SqlMapper.cs:1235 (QueryImpl)",
+          "finding": "违反：出水口断流：调用 Nullable.GetUnderlyingType() 的返回值赋给了局部变量 \"convertToType\"，但后续从未被读取或传递",
+          "evidence": [
+            "Dapper/SqlMapper.cs:1235 (QueryImpl)"
+          ],
+          "sourceBasis": "全量静态分析"
+        }
+      ],
+      "sources": [
+        {
+          "repo": "Dapper",
+          "file": "Dapper/SqlMapper.Async.cs",
+          "commit": "eb47546a408bbf6c178bda4f04dc205bc51ffbfe",
+          "sha256": "db398197bcf0ab46a130924adda9d23eb95004867e1a01a0869eaf405db5c647",
+          "start": 446,
+          "end": 464,
+          "excerpt": "                var func = tuple.Func;\n\n                if (command.Buffered)\n                {\n                    var buffer = new List<T>();\n                    var convertToType = Nullable.GetUnderlyingType(effectiveType) ?? effectiveType;\n                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))\n                    {\n                        object val = func(reader);\n                        buffer.Add(GetValue<T>(reader, effectiveType, val));\n                    }\n                    while (await reader.NextResultAsync(cancel).ConfigureAwait(false)) { /* ignore subsequent result sets */ }\n                    command.OnCompleted();\n                    return buffer;\n                }\n                else\n                {\n                    // can't use ReadAsync / cancellation; but this will have to do\n                    wasClosed = false; // don't close if handing back an open reader; rely on the command-behavior"
+        },
+        {
+          "repo": "Dapper",
+          "file": "Dapper/SqlMapper.Async.cs",
+          "commit": "eb47546a408bbf6c178bda4f04dc205bc51ffbfe",
+          "sha256": "db398197bcf0ab46a130924adda9d23eb95004867e1a01a0869eaf405db5c647",
+          "start": 1319,
+          "end": 1335,
+          "excerpt": "                    }\n\n                    var func = tuple.Func;\n\n                    var convertToType = Nullable.GetUnderlyingType(effectiveType) ?? effectiveType;\n                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))\n                    {\n                        object val = func(reader);\n                        yield return GetValue<T>(reader, effectiveType, val);\n                    }\n                    while (await reader.NextResultAsync(cancel).ConfigureAwait(false)) { /* ignore subsequent result sets */ }\n                    command.OnCompleted();\n                }\n                finally\n                {\n                    if (reader is not null)\n                    {"
+        },
+        {
+          "repo": "Dapper",
+          "file": "Dapper/SqlMapper.cs",
+          "commit": "eb47546a408bbf6c178bda4f04dc205bc51ffbfe",
+          "sha256": "86b7b8e2fec90482eda1d87807c850d495131270175e11b188446c39fcc87cec",
+          "start": 1233,
+          "end": 1245,
+          "excerpt": "\n                var func = tuple.Func;\n                var convertToType = Nullable.GetUnderlyingType(effectiveType) ?? effectiveType;\n                while (reader.Read())\n                {\n                    object? val = func(reader);\n                    yield return GetValue<T>(reader, effectiveType, val);\n                }\n                while (reader.NextResult()) { /* ignore subsequent result sets */ }\n                // happy path; close the reader cleanly - no\n                // need for \"Cancel\" etc\n                reader.Dispose();\n                reader = null;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "stateScope": {
+    "workspaceRoot": "C:\\Users\\21143\\.gemini\\config\\plugins\\flow-guard",
+    "sessionId": "default",
+    "taskId": "default"
+  },
+  "stateDiagnostics": [],
+  "baseline": null,
+  "executionErrors": [],
+  "status": "PASS",
+  "verificationVerdict": "SATISFIED",
+  "headlineSummary": "静态检查未发现契约违反；当前无待验收义务，结果不代表行为测试已通过。",
+  "scanMode": "FULL_WORKSPACE",
+  "workspaceProfile": {
+    "projectMode": "hybrid",
+    "manifestKind": "package.json"
+  },
+  "changedFilesScanned": [
+    "src/file-parser.mjs",
+    "src/flow-tools.mjs",
+    "src/flow-verifier.mjs",
+    "src/graph-builder.mjs",
+    "src/graph-diff.mjs",
+    "src/hook-runner.mjs",
+    "src/lang-presets.mjs",
+    "src/server.mjs",
+    "src/wiring-contract.mjs",
+    "test/task-benchmark-suite.mjs",
+    "src/conditional-context.mjs",
+    "src/package-boundaries.mjs",
+    "src/rust-imports.mjs",
+    "src/similarity-index.mjs",
+    "src/state-store.mjs",
+    "src/test-process.mjs",
+    "src/test-runner.mjs",
+    "test/engine-integrity.test.mjs",
+    "test/real-world-regression.test.mjs",
+    "test/verification-regression.test.mjs"
+  ],
+  "impactedUntouchedFiles": [],
+  "wiringReport": {
+    "planId": null,
+    "source": "STATIC_WORKSPACE_SCAN",
+    "causalPipelineGoal": null,
+    "ambiguitiesToConfirm": [],
+    "counts": {
+      "total": 0,
+      "satisfied": 0,
+      "violated": 0,
+      "inconclusive": 0
+    },
+    "obligations": []
+  },
+  "flowDiff": null,
+  "summary": {
+    "obligationsTotal": 0,
+    "obligationsSatisfied": 0,
+    "obligationsViolated": 0,
+    "obligationsInconclusive": 0,
+    "brokenCrossLanguageBridges": 0,
+    "preExistingBrokenBridgesCount": 0,
+    "sandboxReverseDependencyLeaks": 0,
+    "unwiredOrDeadPipesCount": 0,
+    "unwiredExportsCount": 0,
+    "dataFlowBreaksCount": 0,
+    "reservedContractsCount": 0,
+    "writeOnlyDeadEndStatesCount": 0,
+    "asymmetricLifecycleWarnings": 0,
+    "structuralClonesCount": 0,
+    "antiPatternsCount": 0
+  },
+  "brokenBridges": [],
+  "sandboxViolations": [],
+  "dataFlowBreaks": [],
+  "unwiredOrDeadPipes": [],
+  "unwiredExports": [],
+  "reservedContracts": [],
+  "writeOnlyDeadEndStates": [],
+  "asymmetricLifecycleWarnings": [],
+  "structuralClones": [],
+  "antiPatterns": []
+}

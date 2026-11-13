@@ -1,0 +1,877 @@
+{
+  "generatedAt": "2026-11-11T17:51:53.026Z",
+  "environment": {
+    "node": "v24.14.0",
+    "platform": "win32",
+    "arch": "x64",
+    "release": "10.0.26300",
+    "cpus": 16
+  },
+  "stats": {
+    "metricVersion": 2,
+    "engineHash": "4269e4f5a97c37ce57317df790db51fa571fbe35d2f6fe215023c346b31ecb36",
+    "repositories": 36,
+    "attemptedScans": 72,
+    "completedRepositories": 33,
+    "deterministicRepositories": 33,
+    "completedScans": 66,
+    "timeoutScans": 6,
+    "p50VerifyMs": 3002,
+    "p95VerifyMs": 27110,
+    "maxObservedFinalRssMiB": 3296,
+    "parsedFiles": 11860,
+    "symbols": 83977,
+    "violations": 6670,
+    "default": {
+      "full": {
+        "defects": 12,
+        "detected": 11,
+        "targetedBlocked": 2,
+        "legalControls": 12,
+        "targetedFalseAlarms": 0,
+        "overallControlViolations": 9
+      },
+      "incremental": {
+        "defects": 12,
+        "detected": 11,
+        "targetedBlocked": 2,
+        "legalControls": 12,
+        "targetedFalseAlarms": 0,
+        "overallControlViolations": 0
+      }
+    },
+    "explicitPlans": {
+      "defects": 10,
+      "targetedBlocked": 7,
+      "defectErrors": 2,
+      "legalControls": 10,
+      "controlErrors": 2,
+      "overallControlViolations": 4
+    },
+    "review": {
+      "total": 29,
+      "confirmedFalsePositives": 28,
+      "unresolved": 1
+    }
+  },
+  "repositories": [
+    {
+      "name": "Alamofire",
+      "holdout": false,
+      "commit": "6c2892ea5adb5a03fa81c510933dd782c5ddd9cb",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        5425,
+        5446
+      ],
+      "files": 107,
+      "symbols": 2546,
+      "rssMiB": 917,
+      "violations": 80,
+      "projectMode": "library",
+      "oomObserved": false
+    },
+    {
+      "name": "axum",
+      "holdout": false,
+      "commit": "47399621c4017601ea493cd63c3af581f4fb33e3",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        2464,
+        2497
+      ],
+      "files": 310,
+      "symbols": 2976,
+      "rssMiB": 263,
+      "violations": 1,
+      "projectMode": "hybrid",
+      "oomObserved": false
+    },
+    {
+      "name": "BepInEx",
+      "holdout": false,
+      "commit": "dbc82f05b8ea34833de5b6a723eb60dd8398e0b1",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        925,
+        915
+      ],
+      "files": 116,
+      "symbols": 883,
+      "rssMiB": 123,
+      "violations": 20,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "bits-ui",
+      "holdout": false,
+      "commit": "a6f32ab5adf3f927ac8ec16d2059cb8ea38e717b",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        19838,
+        20587
+      ],
+      "files": 1141,
+      "symbols": 3176,
+      "rssMiB": 496,
+      "violations": 53,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "bruno",
+      "holdout": false,
+      "commit": "60d7517d0545ef82c032c10dcbb6a3c815d246cf",
+      "completed": false,
+      "deterministic": false,
+      "verifyMs": [
+        null,
+        null
+      ],
+      "rssMiB": null,
+      "oomObserved": false
+    },
+    {
+      "name": "clash-verge-rev",
+      "holdout": false,
+      "commit": "389dddf51204984e91a9769c3dee08db2eeefbb2",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        11535,
+        12011
+      ],
+      "files": 425,
+      "symbols": 3410,
+      "rssMiB": 308,
+      "violations": 235,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "cobra",
+      "holdout": false,
+      "commit": "adbc8813901bba65827259daa8e22ff94ec1f30e",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1120,
+        1275
+      ],
+      "files": 36,
+      "symbols": 612,
+      "rssMiB": 114,
+      "violations": 0,
+      "projectMode": "library",
+      "oomObserved": false
+    },
+    {
+      "name": "Dapper",
+      "holdout": false,
+      "commit": "eb47546a408bbf6c178bda4f04dc205bc51ffbfe",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        3002,
+        2860
+      ],
+      "files": 157,
+      "symbols": 2164,
+      "rssMiB": 251,
+      "violations": 127,
+      "projectMode": "library",
+      "oomObserved": false
+    },
+    {
+      "name": "dio",
+      "holdout": false,
+      "commit": "f1bef462289b40992d625d4eb2a2f42321217573",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        6949,
+        7993
+      ],
+      "files": 200,
+      "symbols": 3305,
+      "rssMiB": 889,
+      "violations": 84,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "fastapi",
+      "holdout": false,
+      "commit": "e1144f6954eb8dd8c306f8dd2f5f0a14bbeb2cfd",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        13979,
+        14555
+      ],
+      "files": 1224,
+      "symbols": 7346,
+      "rssMiB": 416,
+      "violations": 108,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "fd",
+      "holdout": false,
+      "commit": "24d90b28d25438af2a8f2e7f7e46d03d6828da94",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        787,
+        813
+      ],
+      "files": 25,
+      "symbols": 443,
+      "rssMiB": 102,
+      "violations": 7,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "flask",
+      "holdout": false,
+      "commit": "49943b5a94413a530761350f04e896f76e8d620e",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1634,
+        1731
+      ],
+      "files": 83,
+      "symbols": 1621,
+      "rssMiB": 179,
+      "violations": 84,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "fmt",
+      "holdout": false,
+      "commit": "e7e6e3f71033fbfc71eba1709789328bcb0ceb28",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        35257,
+        36405
+      ],
+      "files": 80,
+      "symbols": 4352,
+      "rssMiB": 666,
+      "violations": 5,
+      "projectMode": "library",
+      "oomObserved": false
+    },
+    {
+      "name": "full-stack-fastapi-template",
+      "holdout": false,
+      "commit": "aabb90126964a164e02aff39e7c385bb0598236d",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        965,
+        1000
+      ],
+      "files": 151,
+      "symbols": 466,
+      "rssMiB": 95,
+      "violations": 144,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "gin",
+      "holdout": false,
+      "commit": "0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1815,
+        1920
+      ],
+      "files": 99,
+      "symbols": 1518,
+      "rssMiB": 176,
+      "violations": 0,
+      "projectMode": "hybrid",
+      "oomObserved": false
+    },
+    {
+      "name": "gson",
+      "holdout": false,
+      "commit": "a961b0fe088f8558d00cc1b56e506a3656907a91",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        5771,
+        6152
+      ],
+      "files": 266,
+      "symbols": 4133,
+      "rssMiB": 365,
+      "violations": 182,
+      "projectMode": "library",
+      "oomObserved": false
+    },
+    {
+      "name": "hono",
+      "holdout": false,
+      "commit": "61f7c59e50244ab4d2dd83c151928cf7ea448510",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        4575,
+        4977
+      ],
+      "files": 451,
+      "symbols": 1769,
+      "rssMiB": 444,
+      "violations": 6,
+      "projectMode": "library",
+      "oomObserved": false
+    },
+    {
+      "name": "httpx",
+      "holdout": false,
+      "commit": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1344,
+        1506
+      ],
+      "files": 60,
+      "symbols": 1247,
+      "rssMiB": 157,
+      "violations": 125,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "jq",
+      "holdout": false,
+      "commit": "5c001b18d7237cce1fdba63608732163f978dd23",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1606,
+        1592
+      ],
+      "files": 57,
+      "symbols": 698,
+      "rssMiB": 141,
+      "violations": 0,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "koel",
+      "holdout": false,
+      "commit": "80a21bb34c5f8e6ac5c848821833affc4d01176c",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        24619,
+        25231
+      ],
+      "files": 2795,
+      "symbols": 9630,
+      "rssMiB": 472,
+      "violations": 191,
+      "projectMode": "hybrid",
+      "oomObserved": false
+    },
+    {
+      "name": "llama.cpp",
+      "holdout": false,
+      "commit": "aa75ff3239f9cc675b081697deda9e1b112345c6",
+      "completed": false,
+      "deterministic": false,
+      "verifyMs": [
+        null,
+        null
+      ],
+      "rssMiB": null,
+      "oomObserved": false
+    },
+    {
+      "name": "memos",
+      "holdout": false,
+      "commit": "abdeb8a57cc40ecc0b2527d55f604bbe36491dfb",
+      "completed": false,
+      "deterministic": false,
+      "verifyMs": [
+        null,
+        null
+      ],
+      "rssMiB": null,
+      "oomObserved": true
+    },
+    {
+      "name": "okhttp",
+      "holdout": false,
+      "commit": "4162e9da32f636442bc789a7576144fe5972d0a5",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        16332,
+        18741
+      ],
+      "files": 646,
+      "symbols": 8444,
+      "rssMiB": 516,
+      "violations": 475,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "pinia",
+      "holdout": false,
+      "commit": "4817135a25431172d363bd928476db7cdbf875c4",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1002,
+        875
+      ],
+      "files": 162,
+      "symbols": 333,
+      "rssMiB": 78,
+      "violations": 9,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "pocketbase",
+      "holdout": false,
+      "commit": "7f2773ec234b62d0b80ca47c508397cb3d0da3ea",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        10740,
+        10499
+      ],
+      "files": 651,
+      "symbols": 3865,
+      "rssMiB": 346,
+      "violations": 348,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "pot-desktop",
+      "holdout": false,
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1290,
+        1310
+      ],
+      "files": 202,
+      "symbols": 408,
+      "rssMiB": 106,
+      "violations": 49,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "retrofit",
+      "holdout": false,
+      "commit": "ac37c61643860b0ab09a165cd5aa4a986484e872",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        25050,
+        24397
+      ],
+      "files": 323,
+      "symbols": 3512,
+      "rssMiB": 3296,
+      "violations": 248,
+      "projectMode": "hybrid",
+      "oomObserved": false
+    },
+    {
+      "name": "ripgrep",
+      "holdout": false,
+      "commit": "178cc027e283fd965cb72d0a7395b219eada170c",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        27110,
+        27238
+      ],
+      "files": 103,
+      "symbols": 3304,
+      "rssMiB": 1860,
+      "violations": 75,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "serilog",
+      "holdout": false,
+      "commit": "43105b35095337d77f022561a8f2d3db2f9a7937",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        2504,
+        2727
+      ],
+      "files": 217,
+      "symbols": 1782,
+      "rssMiB": 378,
+      "violations": 81,
+      "projectMode": "library",
+      "oomObserved": false
+    },
+    {
+      "name": "sidekiq",
+      "holdout": false,
+      "commit": "75982898ff6dc984988da8b9ecf5371eba68e120",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1738,
+        1816
+      ],
+      "files": 174,
+      "symbols": 1555,
+      "rssMiB": 165,
+      "violations": 295,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "SwitchHosts",
+      "holdout": false,
+      "commit": "7c8eaa50a6c45dde8ce7614c5659747000b36671",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        3102,
+        3193
+      ],
+      "files": 218,
+      "symbols": 1661,
+      "rssMiB": 199,
+      "violations": 66,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "uptime-kuma",
+      "holdout": false,
+      "commit": "fb8ef0fa8200bb989f3a115dda3b0e09a3c31167",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        5784,
+        5766
+      ],
+      "files": 672,
+      "symbols": 2128,
+      "rssMiB": 248,
+      "violations": 503,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "zod",
+      "holdout": false,
+      "commit": "19c40d2072288b4cafec851e9d056a72a88e5973",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        6949,
+        6943
+      ],
+      "files": 523,
+      "symbols": 2107,
+      "rssMiB": 250,
+      "violations": 2700,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "chi",
+      "holdout": true,
+      "commit": "c64ed7d6635f33a8b2feaff7dcfa55677023ac7d",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        1015,
+        1057
+      ],
+      "files": 90,
+      "symbols": 480,
+      "rssMiB": 99,
+      "violations": 46,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "click",
+      "holdout": true,
+      "commit": "8abb77a8432e03ed14a95f972b44f905279415a7",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        3099,
+        2880
+      ],
+      "files": 91,
+      "symbols": 2062,
+      "rssMiB": 283,
+      "violations": 323,
+      "projectMode": "application",
+      "oomObserved": false
+    },
+    {
+      "name": "p-limit",
+      "holdout": true,
+      "commit": "a8a6fbec4e0e866d6d779b10889bb4f5567e70eb",
+      "completed": true,
+      "deterministic": true,
+      "verifyMs": [
+        242,
+        213
+      ],
+      "files": 5,
+      "symbols": 41,
+      "rssMiB": 57,
+      "violations": 0,
+      "projectMode": "library",
+      "oomObserved": false
+    }
+  ],
+  "integrity": [
+    {
+      "repository": "Alamofire",
+      "commit": "6c2892ea5adb5a03fa81c510933dd782c5ddd9cb",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "axum",
+      "commit": "47399621c4017601ea493cd63c3af581f4fb33e3",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "BepInEx",
+      "commit": "dbc82f05b8ea34833de5b6a723eb60dd8398e0b1",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "bits-ui",
+      "commit": "a6f32ab5adf3f927ac8ec16d2059cb8ea38e717b",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "bruno",
+      "commit": "60d7517d0545ef82c032c10dcbb6a3c815d246cf",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "clash-verge-rev",
+      "commit": "389dddf51204984e91a9769c3dee08db2eeefbb2",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "cobra",
+      "commit": "adbc8813901bba65827259daa8e22ff94ec1f30e",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "Dapper",
+      "commit": "eb47546a408bbf6c178bda4f04dc205bc51ffbfe",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "dio",
+      "commit": "f1bef462289b40992d625d4eb2a2f42321217573",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "fastapi",
+      "commit": "e1144f6954eb8dd8c306f8dd2f5f0a14bbeb2cfd",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "fd",
+      "commit": "24d90b28d25438af2a8f2e7f7e46d03d6828da94",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "flask",
+      "commit": "49943b5a94413a530761350f04e896f76e8d620e",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "fmt",
+      "commit": "e7e6e3f71033fbfc71eba1709789328bcb0ceb28",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "full-stack-fastapi-template",
+      "commit": "aabb90126964a164e02aff39e7c385bb0598236d",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "gin",
+      "commit": "0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "gson",
+      "commit": "a961b0fe088f8558d00cc1b56e506a3656907a91",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "hono",
+      "commit": "61f7c59e50244ab4d2dd83c151928cf7ea448510",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "httpx",
+      "commit": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "jq",
+      "commit": "5c001b18d7237cce1fdba63608732163f978dd23",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "koel",
+      "commit": "80a21bb34c5f8e6ac5c848821833affc4d01176c",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "llama.cpp",
+      "commit": "aa75ff3239f9cc675b081697deda9e1b112345c6",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "memos",
+      "commit": "abdeb8a57cc40ecc0b2527d55f604bbe36491dfb",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "okhttp",
+      "commit": "4162e9da32f636442bc789a7576144fe5972d0a5",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "pinia",
+      "commit": "4817135a25431172d363bd928476db7cdbf875c4",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "pocketbase",
+      "commit": "7f2773ec234b62d0b80ca47c508397cb3d0da3ea",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "retrofit",
+      "commit": "ac37c61643860b0ab09a165cd5aa4a986484e872",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "ripgrep",
+      "commit": "178cc027e283fd965cb72d0a7395b219eada170c",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "serilog",
+      "commit": "43105b35095337d77f022561a8f2d3db2f9a7937",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "sidekiq",
+      "commit": "75982898ff6dc984988da8b9ecf5371eba68e120",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "SwitchHosts",
+      "commit": "7c8eaa50a6c45dde8ce7614c5659747000b36671",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "uptime-kuma",
+      "commit": "fb8ef0fa8200bb989f3a115dda3b0e09a3c31167",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "zod",
+      "commit": "19c40d2072288b4cafec851e9d056a72a88e5973",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "chi",
+      "commit": "c64ed7d6635f33a8b2feaff7dcfa55677023ac7d",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "click",
+      "commit": "8abb77a8432e03ed14a95f972b44f905279415a7",
+      "status": "",
+      "unchanged": true
+    },
+    {
+      "repository": "p-limit",
+      "commit": "a8a6fbec4e0e866d6d779b10889bb4f5567e70eb",
+      "status": "",
+      "unchanged": true
+    }
+  ]
+}

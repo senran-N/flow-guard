@@ -1,0 +1,206 @@
+[
+  {
+    "id": "flow-guard@0.2.0",
+    "name": "flow-guard",
+    "version": "0.2.0",
+    "size": 172493,
+    "unpackedSize": 601844,
+    "shasum": "51d766c36fa9d3cd18bb26be542957c58b6bbd66",
+    "integrity": "sha512-zxdtxMvc5xGRj6HUI1Ym4KMprtU5t/07Z1yQupBSTmnMyeHQFZ93jv+sbrvUuxNbGryYmKhg4SlVk7nz5guCOg==",
+    "filename": "flow-guard-0.2.0.tgz",
+    "files": [
+      {
+        "path": "CHANGELOG.md",
+        "size": 22624,
+        "mode": 420
+      },
+      {
+        "path": "LICENSE",
+        "size": 1065,
+        "mode": 420
+      },
+      {
+        "path": "OPERATIONS.md",
+        "size": 1768,
+        "mode": 420
+      },
+      {
+        "path": "README.en.md",
+        "size": 16316,
+        "mode": 420
+      },
+      {
+        "path": "README.md",
+        "size": 25835,
+        "mode": 420
+      },
+      {
+        "path": "assets/banner.svg",
+        "size": 8066,
+        "mode": 420
+      },
+      {
+        "path": "assets/logo.svg",
+        "size": 1073,
+        "mode": 420
+      },
+      {
+        "path": "hooks.json",
+        "size": 357,
+        "mode": 420
+      },
+      {
+        "path": "mcp_config.json",
+        "size": 146,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 2022,
+        "mode": 420
+      },
+      {
+        "path": "plugin.json",
+        "size": 981,
+        "mode": 420
+      },
+      {
+        "path": "rules/AGENTS.md",
+        "size": 2947,
+        "mode": 420
+      },
+      {
+        "path": "skills/flow-engineering/SKILL.md",
+        "size": 4935,
+        "mode": 420
+      },
+      {
+        "path": "src/arch-vision.mjs",
+        "size": 13226,
+        "mode": 420
+      },
+      {
+        "path": "src/bridge-linker.mjs",
+        "size": 19280,
+        "mode": 420
+      },
+      {
+        "path": "src/cargo-loader.mjs",
+        "size": 962,
+        "mode": 420
+      },
+      {
+        "path": "src/conditional-context.mjs",
+        "size": 3307,
+        "mode": 420
+      },
+      {
+        "path": "src/file-parser.mjs",
+        "size": 110121,
+        "mode": 420
+      },
+      {
+        "path": "src/fingerprint.mjs",
+        "size": 3653,
+        "mode": 420
+      },
+      {
+        "path": "src/flow-tools.mjs",
+        "size": 23529,
+        "mode": 420
+      },
+      {
+        "path": "src/flow-verifier.mjs",
+        "size": 24054,
+        "mode": 420
+      },
+      {
+        "path": "src/graph-builder.mjs",
+        "size": 80061,
+        "mode": 420
+      },
+      {
+        "path": "src/graph-diff.mjs",
+        "size": 34089,
+        "mode": 420
+      },
+      {
+        "path": "src/hook-runner.mjs",
+        "size": 5752,
+        "mode": 420
+      },
+      {
+        "path": "src/js-imports.mjs",
+        "size": 9280,
+        "mode": 420
+      },
+      {
+        "path": "src/lang-presets.mjs",
+        "size": 30602,
+        "mode": 420
+      },
+      {
+        "path": "src/lexer.mjs",
+        "size": 28178,
+        "mode": 420
+      },
+      {
+        "path": "src/package-boundaries.mjs",
+        "size": 8099,
+        "mode": 420
+      },
+      {
+        "path": "src/react-lifecycle.mjs",
+        "size": 1958,
+        "mode": 420
+      },
+      {
+        "path": "src/rpc-input.mjs",
+        "size": 2360,
+        "mode": 420
+      },
+      {
+        "path": "src/rust-imports.mjs",
+        "size": 10581,
+        "mode": 420
+      },
+      {
+        "path": "src/rust-project.mjs",
+        "size": 7023,
+        "mode": 420
+      },
+      {
+        "path": "src/server.mjs",
+        "size": 17003,
+        "mode": 420
+      },
+      {
+        "path": "src/similarity-index.mjs",
+        "size": 2166,
+        "mode": 420
+      },
+      {
+        "path": "src/state-store.mjs",
+        "size": 3251,
+        "mode": 420
+      },
+      {
+        "path": "src/test-process.mjs",
+        "size": 2269,
+        "mode": 420
+      },
+      {
+        "path": "src/test-runner.mjs",
+        "size": 1696,
+        "mode": 420
+      },
+      {
+        "path": "src/wiring-contract.mjs",
+        "size": 71209,
+        "mode": 420
+      }
+    ],
+    "entryCount": 38,
+    "bundled": []
+  }
+]

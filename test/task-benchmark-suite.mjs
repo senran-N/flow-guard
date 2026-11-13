@@ -100,15 +100,15 @@ function privateDeadHelper(x: number): number {
     );
     assert.ok(
       verifyInc.unwiredOrDeadPipes.some(
-        (u) => u.symbol.includes("privateDeadHelper") && u.evidenceStrength === "CONFIRMED_SAFE_TO_DELETE"
+        (u) => u.symbol.includes("privateDeadHelper") && u.evidenceStrength === "NO_STATIC_CALLER_EVIDENCE"
       ),
-      "Private dead pipe should carry CONFIRMED_SAFE_TO_DELETE"
+      "Private dead pipe should carry NO_STATIC_CALLER_EVIDENCE"
     );
 
-    // Also verify standalone fullScan catches unwired app export (the exact non-diff repro)
+    // A historical export in a standalone scan has no established task requirement.
     const verifyFull = verifyWorkspaceFlow(dir, { fullScan: true });
-    assert.equal(verifyFull.status, "ISSUES_FOUND");
-    assert.equal(verifyFull.verificationVerdict, "VIOLATED");
+    assert.equal(verifyFull.status, "INCONCLUSIVE");
+    assert.equal(verifyFull.verificationVerdict, "INCONCLUSIVE");
 
     assertionsVerified += 8;
     defectResults.push({ id: "TASK-01", detected: verifyInc.verificationVerdict === "VIOLATED" });
@@ -813,7 +813,7 @@ fn main() {
   },
   (dir) => {
     const verify = verifyWorkspaceFlow(dir, { fullScan: true });
-    assert.equal(verify.status, "PASS");
+    assert.equal(verify.status, "INCONCLUSIVE");
     assert.equal(verify.summary.obligationsViolated, 0);
     assert.equal(verify.unwiredOrDeadPipes.length, 0);
 
@@ -848,10 +848,14 @@ export function main() {
     });
 
     const verify = verifyWorkspaceFlow(dir);
-    assert.equal(verify.status, "PASS", "External event bus emission must not fail build status");
+    assert.equal(verify.status, "INCONCLUSIVE", "External event bus emission must not be reported as PASS by default");
     assert.equal(verify.verificationVerdict, "INCONCLUSIVE", "Unmatched event bus must report honest INCONCLUSIVE");
     assert.equal(verify.summary.obligationsViolated, 0);
     assert.ok(verify.summary.obligationsInconclusive >= 1);
+
+    const advisoryVerify = verifyWorkspaceFlow(dir, { allowInconclusive: true });
+    assert.equal(advisoryVerify.status, "INCONCLUSIVE", "Advisory mode must not disguise an inconclusive report as PASS");
+    assert.equal(advisoryVerify.verificationVerdict, "INCONCLUSIVE");
 
     const stopDecision = runHook("stop", {
       workspacePaths: [dir],
@@ -860,7 +864,7 @@ export function main() {
     });
     assert.equal(stopDecision.decision, "allow", "Stop hook must NEVER block on INCONCLUSIVE findings");
 
-    assertionsVerified += 5;
+    assertionsVerified += 7;
     counterexampleResults.push({ id: "LEGAL-03", falseViolation: verify.summary.obligationsViolated > 0 });
   }
 );
@@ -914,7 +918,7 @@ export function main() {
     });
 
     const verify = verifyWorkspaceFlow(dir);
-    assert.equal(verify.status, "PASS");
+    assert.equal(verify.status, "INCONCLUSIVE", "Potentially unconsumed non-telemetry input must remain visible as INCONCLUSIVE");
     assert.equal(verify.writeOnlyDeadEndStates.length, 0, "Telemetry/metrics fields must not false-positive write-only");
     assert.equal(verify.summary.obligationsViolated, 0);
 

@@ -1,0 +1,1228 @@
+{
+  "selection": "First VIOLATED obligation per completed repository with any violations; deterministic, non-random, not a population precision estimate.",
+  "reviewer": "Codex source inspection; no independent second reviewer",
+  "records": [
+    {
+      "repository": "Alamofire",
+      "commit": "6c2892ea5adb5a03fa81c510933dd782c5ddd9cb",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\Alamofire.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "Source/Core/DownloadRequest.swift:28 (DownloadRequest)",
+        "reason": "同族/跨平台实现共享契约 \"Request\"，新增契约方法需在所有激活平台/分支实现中同步补齐",
+        "expectedRelation": "在 DownloadRequest (Source/Core/DownloadRequest.swift) 中实现方法 didReceive()",
+        "sourceBasis": "已实现分支: DataRequest.didReceive, DataStreamRequest.didReceive",
+        "status": "VIOLATED",
+        "evidence": [
+          "Source/Core/DownloadRequest.swift:28 (DownloadRequest)",
+          "Source/Core/DataRequest.swift:86 (DataRequest.didReceive)",
+          "Source/Core/DataStreamRequest.swift:159 (DataStreamRequest.didReceive)",
+          "Source/Core/SessionDelegate.swift:260 (SessionDelegate.urlSession)",
+          "Source/Core/SessionDelegate.swift:260 (SessionDelegate.urlSession)"
+        ],
+        "finding": "违反：同族/另一平台分支 \"DownloadRequest\" 遗漏实现方法 \"didReceive()\"（上游已按共享契约 \"Request\" 调用）",
+        "remediation": "请在 Source/Core/DownloadRequest.swift 的 DownloadRequest 中同步实现 \"didReceive()\"，保持多态/跨平台契约一致。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "错误泛化具体类型调用",
+      "rationale": "调用者明确将 request 转为 DataRequest / DataStreamRequest；没有以 Request 契约调用 DownloadRequest.didReceive。",
+      "evidence": [
+        {
+          "file": "Source/Core/SessionDelegate.swift",
+          "startLine": 260,
+          "endLine": 269,
+          "sourceSha256": "034ce6877e71e06d536f2c75b047984aaa7543c1971cf0e98776b9d2f449628b",
+          "excerpt": "    open func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {\n        eventMonitor?.urlSession(session, dataTask: dataTask, didReceive: data)\n\n        if let request = request(for: dataTask, as: DataRequest.self) {\n            request.didReceive(data: data)\n        } else if let request = request(for: dataTask, as: DataStreamRequest.self) {\n            request.didReceive(data: data)\n        } else {\n            assertionFailure(\"dataTask did not find DataRequest or DataStreamRequest in didReceive data\")\n            return"
+        },
+        {
+          "file": "Source/Core/DownloadRequest.swift",
+          "startLine": 25,
+          "endLine": 28,
+          "sourceSha256": "6e23d21d942b76438f6d7f370633c0ca10a9fb054b1bb5e1e23b86e44b2fa9e9",
+          "excerpt": "import Foundation\n\n/// `Request` subclass which downloads `Data` to a file on disk using `URLSessionDownloadTask`.\npublic final class DownloadRequest: Request, @unchecked Sendable {"
+        }
+      ]
+    },
+    {
+      "repository": "axum",
+      "commit": "47399621c4017601ea493cd63c3af581f4fb33e3",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\axum.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "axum/src/routing/method_routing.rs:1397 (MethodRouter.call) | axum/src/routing/method_routing.rs:1419 (MethodRouter.call)",
+        "reason": "同一符号的多平台条件编译分支（#[cfg] / #ifdef）必须保持签名一致",
+        "expectedRelation": "对齐 call 在各平台分支中的参数签名",
+        "sourceBasis": "条件编译对称契约",
+        "status": "VIOLATED",
+        "evidence": [
+          "axum/src/routing/method_routing.rs:1397 (MethodRouter.call) -> params(req, state)",
+          "axum/src/routing/method_routing.rs:1419 (MethodRouter.call) -> params()"
+        ],
+        "finding": "违反：条件编译同名函数 \"call\" 在不同平台分支中参数数量不一致",
+        "remediation": "请同步更新 axum/src/routing/method_routing.rs 中所有条件编译分支的 \"call\" 签名与处理逻辑。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "trait 作用域合并",
+      "rationale": "两个 call 分属 Handler<(), S> 和 Service<IncomingStream>，参数数目不同是两个接口的正常要求。",
+      "evidence": [
+        {
+          "file": "axum/src/routing/method_routing.rs",
+          "startLine": 1390,
+          "endLine": 1422,
+          "sourceSha256": "d80ad61ab11ec16b94fc8964a349569b354432d0704421f75f73249ed51a7d24",
+          "excerpt": "#[diagnostic::do_not_recommend]\nimpl<S> Handler<(), S> for MethodRouter<S>\nwhere\n    S: Clone + 'static,\n{\n    type Future = InfallibleRouteFuture;\n\n    fn call(self, req: Request, state: S) -> Self::Future {\n        InfallibleRouteFuture::new(self.call_with_state(req, state))\n    }\n}\n\n// for `axum::serve(listener, router)`\n#[cfg(all(feature = \"tokio\", any(feature = \"http1\", feature = \"http2\")))]\nconst _: () = {\n    use crate::serve;\n\n    impl<L> Service<serve::IncomingStream<'_, L>> for MethodRouter<()>\n    where\n        L: serve::Listener,\n    {\n        type Response = Self;\n        type Error = Infallible;\n        type Future = std::future::Ready<Result<Self::Response, Self::Error>>;\n\n        fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {\n            Poll::Ready(Ok(()))\n        }\n\n        fn call(&mut self, _req: serve::IncomingStream<'_, L>) -> Self::Future {\n            std::future::ready(Ok(self.clone().with_state(())))\n        }\n    }"
+        }
+      ]
+    },
+    {
+      "repository": "BepInEx",
+      "commit": "dbc82f05b8ea34833de5b6a723eb60dd8398e0b1",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\BepInEx.1.json",
+      "obligation": {
+        "id": "AUTO-7",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "BepInEx.Core/Configuration/AcceptableValueList.cs:9 (AcceptableValueList)",
+        "reason": "同族/跨平台实现共享契约 \"T\"，新增契约方法需在所有激活平台/分支实现中同步补齐",
+        "expectedRelation": "在 AcceptableValueList (BepInEx.Core/Configuration/AcceptableValueList.cs) 中实现方法 Add()",
+        "sourceBasis": "已实现分支: ThreadSafeCollection.Add",
+        "status": "VIOLATED",
+        "evidence": [
+          "BepInEx.Core/Configuration/AcceptableValueList.cs:9 (AcceptableValueList)",
+          "BepInEx.Core/Logging/Logger.cs:205 (ThreadSafeCollection.Add)",
+          "BepInEx.Core/Bootstrap/BaseChainloader.cs:15 (BaseChainloader)",
+          "BepInEx.Core/Bootstrap/BaseChainloader.cs:219 (BaseChainloader.ModifyLoadOrder)"
+        ],
+        "finding": "违反：同族/另一平台分支 \"AcceptableValueList\" 遗漏实现方法 \"Add()\"（上游已按共享契约 \"T\" 调用）",
+        "remediation": "请在 BepInEx.Core/Configuration/AcceptableValueList.cs 的 AcceptableValueList 中同步实现 \"Add()\"，保持多态/跨平台契约一致。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "泛型约束误作继承",
+      "rationale": "类继承 AcceptableValueBase；where T : IEquatable<T> 是泛型约束，T 不是共享基类，更无 Add 契约。",
+      "evidence": [
+        {
+          "file": "BepInEx.Core/Configuration/AcceptableValueList.cs",
+          "startLine": 1,
+          "endLine": 16,
+          "sourceSha256": "f8c1a0e795e54b9b83c6f94ffda44e9c69201f80501fe7f39d6fd89029ac4042",
+          "excerpt": "﻿using System;\nusing System.Linq;\n\nnamespace BepInEx.Configuration;\n\n/// <summary>\n///     Specify the list of acceptable values for a setting.\n/// </summary>\npublic class AcceptableValueList<T> : AcceptableValueBase where T : IEquatable<T>\n{\n    /// <summary>\n    ///     Specify the list of acceptable values for a setting.\n    ///     If the setting does not equal any of the values, it will be set to the first one.\n    /// </summary>\n    public AcceptableValueList(params T[] acceptableValues) : base(typeof(T))\n    {"
+        }
+      ]
+    },
+    {
+      "repository": "bits-ui",
+      "commit": "a6f32ab5adf3f927ac8ec16d2059cb8ea38e717b",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\bits-ui.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "packages/bits-ui/src/lib/bits/time-range-field/time-range-field.svelte.ts:66 (TimeRangeFieldRootState)",
+        "reason": "同族/跨平台实现共享契约 \"TimeValue\"，新增契约方法需在所有激活平台/分支实现中同步补齐",
+        "expectedRelation": "在 TimeRangeFieldRootState (packages/bits-ui/src/lib/bits/time-range-field/time-range-field.svelte.ts) 中实现方法 setName()",
+        "sourceBasis": "已实现分支: TimeFieldRootState.setName",
+        "status": "VIOLATED",
+        "evidence": [
+          "packages/bits-ui/src/lib/bits/time-range-field/time-range-field.svelte.ts:66 (TimeRangeFieldRootState)",
+          "packages/bits-ui/src/lib/bits/time-field/time-field.svelte.ts:347 (TimeFieldRootState.setName)",
+          "packages/bits-ui/src/lib/bits/time-field/time-field.svelte.ts:625 (TimeFieldInputState)",
+          "packages/bits-ui/src/lib/bits/time-field/time-field.svelte.ts:634 (TimeFieldInputState.constructor)"
+        ],
+        "finding": "违反：同族/另一平台分支 \"TimeRangeFieldRootState\" 遗漏实现方法 \"setName()\"（上游已按共享契约 \"TimeValue\" 调用）",
+        "remediation": "请在 packages/bits-ui/src/lib/bits/time-range-field/time-range-field.svelte.ts 的 TimeRangeFieldRootState 中同步实现 \"setName()\"，保持多态/跨平台契约一致。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "泛型约束误作继承",
+      "rationale": "TimeRangeFieldRootState 的 T extends TimeValue 是类型参数约束；类没有继承 TimeValue。",
+      "evidence": [
+        {
+          "file": "packages/bits-ui/src/lib/bits/time-range-field/time-range-field.svelte.ts",
+          "startLine": 64,
+          "endLine": 73,
+          "sourceSha256": "8db40e5982ba747af67e6ea206c9eaa5cf8fb286e1e9b9d08a1efad8b87a7271",
+          "excerpt": "\t\t}> {}\n\nexport class TimeRangeFieldRootState<T extends TimeValue = Time> {\n\tstatic create<T extends TimeValue = Time>(opts: TimeRangeFieldRootStateOpts<T>) {\n\t\treturn TimeRangeFieldRootContext.set(\n\t\t\tnew TimeRangeFieldRootState(opts) as unknown as TimeRangeFieldRootState\n\t\t);\n\t}\n\treadonly opts: TimeRangeFieldRootStateOpts<T>;\n\treadonly attachment: RefAttachment;"
+        }
+      ]
+    },
+    {
+      "repository": "clash-verge-rev",
+      "commit": "389dddf51204984e91a9769c3dee08db2eeefbb2",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\clash-verge-rev.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "src-tauri/src/core/proxy_control.rs:141 (was_a_failed_system_call) | src-tauri/src/core/proxy_control.rs:151 (was_a_failed_system_call)",
+        "reason": "同一符号的多平台条件编译分支（#[cfg] / #ifdef）必须保持签名一致",
+        "expectedRelation": "对齐 was_a_failed_system_call 在各平台分支中的参数签名",
+        "sourceBasis": "条件编译对称契约",
+        "status": "VIOLATED",
+        "evidence": [
+          "src-tauri/src/core/proxy_control.rs:141 (was_a_failed_system_call) -> params(error)",
+          "src-tauri/src/core/proxy_control.rs:151 (was_a_failed_system_call) -> params()"
+        ],
+        "finding": "违反：条件编译同名函数 \"was_a_failed_system_call\" 在不同平台分支中参数数量不一致",
+        "remediation": "请同步更新 src-tauri/src/core/proxy_control.rs 中所有条件编译分支的 \"was_a_failed_system_call\" 签名与处理逻辑。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "忽略保留形参导致参数计数错误",
+      "rationale": "两个平台版本都接收一个 &anyhow::Error；_error 仍是形参。",
+      "evidence": [
+        {
+          "file": "src-tauri/src/core/proxy_control.rs",
+          "startLine": 140,
+          "endLine": 153,
+          "sourceSha256": "91e5829f8055ab90dc93988e335ce4caeb9b582e4c894d7deadd76d54994f566",
+          "excerpt": "#[cfg(target_os = \"windows\")]\nfn was_a_failed_system_call(error: &anyhow::Error) -> bool {\n    error.chain().any(|cause| {\n        matches!(\n            cause.downcast_ref::<sysproxy::Error>(),\n            Some(sysproxy::Error::SystemCall(_))\n        )\n    })\n}\n\n#[cfg(not(target_os = \"windows\"))]\nconst fn was_a_failed_system_call(_error: &anyhow::Error) -> bool {\n    false\n}"
+        }
+      ]
+    },
+    {
+      "repository": "Dapper",
+      "commit": "eb47546a408bbf6c178bda4f04dc205bc51ffbfe",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\Dapper.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "Dapper/CustomPropertyTypeMap.cs:9 (CustomPropertyTypeMap)",
+        "reason": "继承/实现 \"SqlMapper\" 的新增或变更子类必须同步加入工厂或分流注册表",
+        "expectedRelation": "在 [Dapper/SqlMapper.cs:267 (SqlMapper.ResetTypeHandlers), Dapper/SqlMapper.cs:30 (SqlMapper), Dapper/SqlMapper.cs:3514 (SqlMapper.GenerateDeserializerFromMap), Dapper/SqlMapper.cs:441 (SqlMapper.SetDbType)] 中建立对 CustomPropertyTypeMap 的构造或注册引用",
+        "sourceBasis": "同族实现挂载证据: DataTableHandler, DefaultTypeMap, DynamicParameters, SimpleMemberMap, SqlDataRecordHandler, SqlDataRecordListTVPParameter, TableValuedParameter",
+        "status": "VIOLATED",
+        "evidence": [
+          "Dapper/CustomPropertyTypeMap.cs:9 (CustomPropertyTypeMap)",
+          "Dapper/SqlMapper.cs:267 (SqlMapper.ResetTypeHandlers)",
+          "Dapper/SqlMapper.cs:30 (SqlMapper)",
+          "Dapper/SqlMapper.cs:3514 (SqlMapper.GenerateDeserializerFromMap)",
+          "Dapper/SqlMapper.cs:441 (SqlMapper.SetDbType)"
+        ],
+        "finding": "违反：实现类 \"CustomPropertyTypeMap\" (契约 SqlMapper) 未加入工厂/分发器注册，导致运行期无法派发到该实现",
+        "remediation": "请参照 [DataTableHandler, DefaultTypeMap, DynamicParameters, SimpleMemberMap, SqlDataRecordHandler, SqlDataRecordListTVPParameter, TableValuedParameter] 在 Dapper/SqlMapper.cs:267 (SqlMapper.ResetTypeHandlers) / Dapper/SqlMapper.cs:30 (SqlMapper) / Dapper/SqlMapper.cs:3514 (SqlMapper.GenerateDeserializerFromMap) / Dapper/SqlMapper.cs:441 (SqlMapper.SetDbType) 中补齐 \"CustomPropertyTypeMap\" 的注册分支。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "限定类型名截断",
+      "rationale": "实现的是 SqlMapper.ITypeMap，不是 SqlMapper；官方用例通过 SetTypeMap 显式注入。",
+      "evidence": [
+        {
+          "file": "Dapper/CustomPropertyTypeMap.cs",
+          "startLine": 5,
+          "endLine": 22,
+          "sourceSha256": "6852ea19449787a2fc7a1b69f1a041883473c765ff4431caa8407a521fa0994e",
+          "excerpt": "{\n    /// <summary>\n    /// Implements custom property mapping by user provided criteria (usually presence of some custom attribute with column to member mapping)\n    /// </summary>\n    public sealed class CustomPropertyTypeMap : SqlMapper.ITypeMap\n    {\n        private readonly Type _type;\n        private readonly Func<Type, string, PropertyInfo> _propertySelector;\n\n        /// <summary>\n        /// Creates custom property mapping\n        /// </summary>\n        /// <param name=\"type\">Target entity type</param>\n        /// <param name=\"propertySelector\">Property selector based on target type and DataReader column name</param>\n        public CustomPropertyTypeMap(Type type, Func<Type, string, PropertyInfo> propertySelector)\n        {\n            _type = type ?? throw new ArgumentNullException(nameof(type));\n            _propertySelector = propertySelector ?? throw new ArgumentNullException(nameof(propertySelector));"
+        },
+        {
+          "file": "tests/Dapper.Tests/TypeHandlerTests.cs",
+          "startLine": 74,
+          "endLine": 87,
+          "sourceSha256": "aab9ec018c6a4534aedc6af75309a2879e11c4e97ec7f342a0cdd5e27ca554c9",
+          "excerpt": "            Assert.Equal(\"AVal\", item.A);\n            Assert.Equal(\"BVal\", item.B);\n\n            // custom mapping\n            var map = new CustomPropertyTypeMap(typeof(TypeWithMapping),\n                (type, columnName) => type.GetProperties().FirstOrDefault(prop => GetDescriptionFromAttribute(prop) == columnName)!);\n            SqlMapper.SetTypeMap(typeof(TypeWithMapping), map);\n\n            item = connection.Query<TypeWithMapping>(\"Select 'AVal' as A, 'BVal' as B\").Single();\n            Assert.Equal(\"BVal\", item.A);\n            Assert.Equal(\"AVal\", item.B);\n\n            // reset to default\n            SqlMapper.SetTypeMap(typeof(TypeWithMapping), null);"
+        }
+      ]
+    },
+    {
+      "repository": "dio",
+      "commit": "f1bef462289b40992d625d4eb2a2f42321217573",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\dio.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "plugins/native_dio_adapter/lib/src/native_adapter.dart:20 (NativeAdapter)",
+        "reason": "继承/实现 \"HttpClientAdapter\" 的新增或变更子类必须同步加入工厂或分流注册表",
+        "expectedRelation": "在 [dio/lib/src/adapters/io_adapter.dart:29 (createAdapter), dio/lib/src/dio/dio_for_native.dart:21 (DioForNative.DioForNative), plugins/http2_adapter/lib/src/http2_adapter.dart:26 (Http2Adapter), dio/lib/src/dio/dio_for_native.dart:28 (DioForNative.download)] 中建立对 NativeAdapter 的构造或注册引用",
+        "sourceBasis": "同族实现挂载证据: IOHttpClientAdapter, ConversionLayerAdapter, Http2Adapter, ConversionLayerAdapter, CronetAdapter, CronetWithFallbackAdapter, CupertinoAdapter, BrowserHttpClientAdapter",
+        "status": "VIOLATED",
+        "evidence": [
+          "plugins/native_dio_adapter/lib/src/native_adapter.dart:20 (NativeAdapter)",
+          "dio/lib/src/adapters/io_adapter.dart:29 (createAdapter)",
+          "dio/lib/src/dio/dio_for_native.dart:21 (DioForNative.DioForNative)",
+          "plugins/http2_adapter/lib/src/http2_adapter.dart:26 (Http2Adapter)",
+          "dio/lib/src/dio/dio_for_native.dart:28 (DioForNative.download)"
+        ],
+        "finding": "违反：实现类 \"NativeAdapter\" (契约 HttpClientAdapter) 未加入工厂/分发器注册，导致运行期无法派发到该实现",
+        "remediation": "请参照 [IOHttpClientAdapter, ConversionLayerAdapter, Http2Adapter, ConversionLayerAdapter, CronetAdapter, CronetWithFallbackAdapter, CupertinoAdapter, BrowserHttpClientAdapter] 在 dio/lib/src/adapters/io_adapter.dart:29 (createAdapter) / dio/lib/src/dio/dio_for_native.dart:21 (DioForNative.DioForNative) / plugins/http2_adapter/lib/src/http2_adapter.dart:26 (Http2Adapter) / dio/lib/src/dio/dio_for_native.dart:28 (DioForNative.download) 中补齐 \"NativeAdapter\" 的注册分支。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "可选插件误要求内建注册",
+      "rationale": "NativeAdapter 是按需安装并赋给 dio.httpClientAdapter 的独立插件，README 和示例已有接入。",
+      "evidence": [
+        {
+          "file": "plugins/native_dio_adapter/README.md",
+          "startLine": 28,
+          "endLine": 44,
+          "sourceSha256": "1a5ed75f3fe94f6c77950ff36f0bfb6d0ed7457b1709b084b69b7d0ebdb35d63",
+          "excerpt": "- It supports more HTTP features such as HTTP/3 and custom redirect handling.\n\n## Get started\n\n### Install\n\nAdd the `native_dio_adapter` package to your\n[pubspec dependencies](https://pub.dev/packages/native_dio_adapter/install).\n\n### Example\n\n```dart\nfinal dioClient = Dio();\ndioClient.httpClientAdapter = NativeAdapter();\n```\n\n### Opt-in Cronet provider fallback (Android)"
+        },
+        {
+          "file": "plugins/native_dio_adapter/example/lib/main.dart",
+          "startLine": 68,
+          "endLine": 80,
+          "sourceSha256": "3a5d7247a2362b244afff44673f8f37a129cdbc4b1bec4f981c64ff6347137a0",
+          "excerpt": "\n  void _doGetRequest() async {\n    final dio = Dio();\n\n    dio.httpClientAdapter = NativeAdapter(\n      createCupertinoConfiguration: () =>\n          URLSessionConfiguration.ephemeralSessionConfiguration()\n            ..allowsCellularAccess = false\n            ..allowsConstrainedNetworkAccess = false\n            ..allowsExpensiveNetworkAccess = false,\n    );\n    final response = await dio.get<String>('https://flutter.dev');\n"
+        }
+      ]
+    },
+    {
+      "repository": "fastapi",
+      "commit": "e1144f6954eb8dd8c306f8dd2f5f0a14bbeb2cfd",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\fastapi.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "fastapi/openapi/models.py:99 (Discriminator)",
+        "reason": "继承/实现 \"BaseModel\" 的新增或变更子类必须同步加入工厂或分流注册表",
+        "expectedRelation": "在 [fastapi/openapi/models.py:61 (Contact), fastapi/openapi/models.py:67 (License), fastapi/openapi/models.py:73 (Info), fastapi/openapi/models.py:83 (ServerVariable)] 中建立对 Discriminator 的构造或注册引用",
+        "sourceBasis": "同族实现挂载证据: BaseModelWithConfig, Reference, HTTPBasicCredentials, HTTPAuthorizationCredentials, ServerSentEvent, LinkData, SponsorEntity, SponsorshipAsMaintainerNode, SponsorshipAsMaintainerEdge, SponsorsResponse, Repo",
+        "status": "VIOLATED",
+        "evidence": [
+          "fastapi/openapi/models.py:99 (Discriminator)",
+          "fastapi/openapi/models.py:61 (Contact)",
+          "fastapi/openapi/models.py:67 (License)",
+          "fastapi/openapi/models.py:73 (Info)",
+          "fastapi/openapi/models.py:83 (ServerVariable)"
+        ],
+        "finding": "违反：实现类 \"Discriminator\" (契约 BaseModel) 未加入工厂/分发器注册，导致运行期无法派发到该实现",
+        "remediation": "请参照 [BaseModelWithConfig, Reference, HTTPBasicCredentials, HTTPAuthorizationCredentials, ServerSentEvent, LinkData, SponsorEntity, SponsorshipAsMaintainerNode, SponsorshipAsMaintainerEdge, SponsorsResponse, Repo] 在 fastapi/openapi/models.py:61 (Contact) / fastapi/openapi/models.py:67 (License) / fastapi/openapi/models.py:73 (Info) / fastapi/openapi/models.py:83 (ServerVariable) 中补齐 \"Discriminator\" 的注册分支。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "声明式模型误要求工厂注册",
+      "rationale": "Discriminator 是 Pydantic 字段类型，已在 Schema.discriminator 声明；模型无需加入其它 BaseModel 子类的工厂。",
+      "evidence": [
+        {
+          "file": "fastapi/openapi/models.py",
+          "startLine": 95,
+          "endLine": 105,
+          "sourceSha256": "74f730b07fad2883b73cfa1d09ef8d1cb52c2f492bd57703df8244beb4875df6",
+          "excerpt": "class Reference(BaseModel):\n    ref: str = Field(alias=\"$ref\")\n\n\nclass Discriminator(BaseModel):\n    propertyName: str\n    mapping: dict[str, str] | None = None\n\n\nclass XML(BaseModelWithConfig):\n    name: str | None = None"
+        },
+        {
+          "file": "fastapi/openapi/models.py",
+          "startLine": 185,
+          "endLine": 197,
+          "sourceSha256": "74f730b07fad2883b73cfa1d09ef8d1cb52c2f492bd57703df8244beb4875df6",
+          "excerpt": "    # A Vocabulary for Basic Meta-Data Annotations\n    title: str | None = None\n    description: str | None = None\n    default: Any | None = None\n    deprecated: bool | None = None\n    readOnly: bool | None = None\n    writeOnly: bool | None = None\n    examples: list[Any] | None = None\n    # Ref: OpenAPI 3.1.0: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#schema-object\n    # Schema Object\n    discriminator: Discriminator | None = None\n    xml: XML | None = None\n    externalDocs: ExternalDocumentation | None = None"
+        }
+      ]
+    },
+    {
+      "repository": "fd",
+      "commit": "24d90b28d25438af2a8f2e7f7e46d03d6828da94",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\fd.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "src/filesystem.rs:122 (is_block_device) | src/filesystem.rs:127 (is_block_device)",
+        "reason": "同一符号的多平台条件编译分支（#[cfg] / #ifdef）必须保持签名一致",
+        "expectedRelation": "对齐 is_block_device 在各平台分支中的参数签名",
+        "sourceBasis": "条件编译对称契约",
+        "status": "VIOLATED",
+        "evidence": [
+          "src/filesystem.rs:122 (is_block_device) -> params(ft)",
+          "src/filesystem.rs:127 (is_block_device) -> params()"
+        ],
+        "finding": "违反：条件编译同名函数 \"is_block_device\" 在不同平台分支中参数数量不一致",
+        "remediation": "请同步更新 src/filesystem.rs 中所有条件编译分支的 \"is_block_device\" 签名与处理逻辑。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "忽略保留形参导致参数计数错误",
+      "rationale": "Unix 和 Windows 两版本均有一个 fs::FileType 形参，Windows 使用 _ 并不改变签名。",
+      "evidence": [
+        {
+          "file": "src/filesystem.rs",
+          "startLine": 121,
+          "endLine": 129,
+          "sourceSha256": "5b633ae1e68ed8f816e6864166c4ef299081d3a7cefb79aabe985f84fa750687",
+          "excerpt": "#[cfg(any(unix, target_os = \"redox\"))]\npub fn is_block_device(ft: fs::FileType) -> bool {\n    ft.is_block_device()\n}\n\n#[cfg(windows)]\npub fn is_block_device(_: fs::FileType) -> bool {\n    false\n}"
+        }
+      ]
+    },
+    {
+      "repository": "flask",
+      "commit": "49943b5a94413a530761350f04e896f76e8d620e",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\flask.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "src/flask/cli.py:37 (NoAppException)",
+        "reason": "同族/跨平台实现共享契约 \"click\"，新增契约方法需在所有激活平台/分支实现中同步补齐",
+        "expectedRelation": "在 NoAppException (src/flask/cli.py) 中实现方法 decorator()",
+        "sourceBasis": "已实现分支: AppGroup.decorator",
+        "status": "VIOLATED",
+        "evidence": [
+          "src/flask/cli.py:37 (NoAppException)",
+          "src/flask/cli.py:422 (AppGroup.decorator)",
+          "src/flask/cli.py:380 (with_appcontext)",
+          "src/flask/cli.py:395 (decorator)"
+        ],
+        "finding": "违反：同族/另一平台分支 \"NoAppException\" 遗漏实现方法 \"decorator()\"（上游已按共享契约 \"click\" 调用）",
+        "remediation": "请在 src/flask/cli.py 的 NoAppException 中同步实现 \"decorator()\"，保持多态/跨平台契约一致。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "限定类型名截断及嵌套函数归属错误",
+      "rationale": "NoAppException 继承 click.UsageError，AppGroup 继承 click.Group；模块 click 不是共享基类，decorator 不是异常类契约。",
+      "evidence": [
+        {
+          "file": "src/flask/cli.py",
+          "startLine": 35,
+          "endLine": 38,
+          "sourceSha256": "d7c3a84947b4404a657f7bf770dbebcd9ae02073b49cf0e7827dd7d6049e3d16",
+          "excerpt": "\n\nclass NoAppException(click.UsageError):\n    \"\"\"Raised if an application cannot be found or loaded.\"\"\""
+        },
+        {
+          "file": "src/flask/cli.py",
+          "startLine": 405,
+          "endLine": 431,
+          "sourceSha256": "d7c3a84947b4404a657f7bf770dbebcd9ae02073b49cf0e7827dd7d6049e3d16",
+          "excerpt": "class AppGroup(click.Group):\n    \"\"\"This works similar to a regular click :class:`~click.Group` but it\n    changes the behavior of the :meth:`command` decorator so that it\n    automatically wraps the functions in :func:`with_appcontext`.\n\n    Not to be confused with :class:`FlaskGroup`.\n    \"\"\"\n\n    def command(  # type: ignore[override]\n        self, *args: t.Any, **kwargs: t.Any\n    ) -> t.Callable[[t.Callable[..., t.Any]], click.Command]:\n        \"\"\"This works exactly like the method of the same name on a regular\n        :class:`click.Group` but it wraps callbacks in :func:`with_appcontext`\n        unless it's disabled by passing ``with_appcontext=False``.\n        \"\"\"\n        wrap_for_ctx = kwargs.pop(\"with_appcontext\", True)\n\n        def decorator(f: t.Callable[..., t.Any]) -> click.Command:\n            if wrap_for_ctx:\n                f = with_appcontext(f)\n            return super(AppGroup, self).command(*args, **kwargs)(f)  # type: ignore[no-any-return]\n\n        return decorator\n\n    def group(  # type: ignore[override]\n        self, *args: t.Any, **kwargs: t.Any\n    ) -> t.Callable[[t.Callable[..., t.Any]], click.Group]:"
+        }
+      ]
+    },
+    {
+      "repository": "fmt",
+      "commit": "e7e6e3f71033fbfc71eba1709789328bcb0ceb28",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\fmt.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "support/docopt.py:133 (BranchPattern)",
+        "reason": "同族/跨平台实现共享契约 \"Pattern\"，新增契约方法需在所有激活平台/分支实现中同步补齐",
+        "expectedRelation": "在 BranchPattern (support/docopt.py) 中实现方法 match()",
+        "sourceBasis": "已实现分支: LeafPattern.match",
+        "status": "VIOLATED",
+        "evidence": [
+          "support/docopt.py:133 (BranchPattern)",
+          "support/docopt.py:112 (LeafPattern.match)",
+          "support/docopt.py:99 (LeafPattern)",
+          "support/docopt.py:219 (Required)"
+        ],
+        "finding": "违反：同族/另一平台分支 \"BranchPattern\" 遗漏实现方法 \"match()\"（上游已按共享契约 \"Pattern\" 调用）",
+        "remediation": "请在 support/docopt.py 的 BranchPattern 中同步实现 \"match()\"，保持多态/跨平台契约一致。"
+      },
+      "label": "UNRESOLVED",
+      "category": "中间基类契约需进一步确认",
+      "rationale": "BranchPattern 是模式树的中间类，Required/Optional 等子类实现 match；此次未穷尽动态构造路径，不将该告警计为已确认缺陷或误报。",
+      "evidence": [
+        {
+          "file": "support/docopt.py",
+          "startLine": 133,
+          "endLine": 147,
+          "sourceSha256": "63b6992f568d582808af851d75b83e1eb6672c2946e7d6039545b0dda9c714ce",
+          "excerpt": "class BranchPattern(Pattern):\n\n    \"\"\"Branch/inner node of a pattern tree.\"\"\"\n\n    def __init__(self, *children):\n        self.children = list(children)\n\n    def __repr__(self):\n        return '%s(%s)' % (self.__class__.__name__,\n                           ', '.join(repr(a) for a in self.children))\n\n    def flat(self, *types):\n        if type(self) in types:\n            return [self]\n        return sum([child.flat(*types) for child in self.children], [])"
+        },
+        {
+          "file": "support/docopt.py",
+          "startLine": 219,
+          "endLine": 240,
+          "sourceSha256": "63b6992f568d582808af851d75b83e1eb6672c2946e7d6039545b0dda9c714ce",
+          "excerpt": "class Required(BranchPattern):\n\n    def match(self, left, collected=None):\n        collected = [] if collected is None else collected\n        l = left\n        c = collected\n        for pattern in self.children:\n            matched, l, c = pattern.match(l, c)\n            if not matched:\n                return False, left, collected\n        return True, l, c\n\n\nclass Optional(BranchPattern):\n\n    def match(self, left, collected=None):\n        collected = [] if collected is None else collected\n        for pattern in self.children:\n            m, left, collected = pattern.match(left, collected)\n        return True, left, collected\n\n"
+        }
+      ]
+    },
+    {
+      "repository": "full-stack-fastapi-template",
+      "commit": "aabb90126964a164e02aff39e7c385bb0598236d",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\full-stack-fastapi-template.1.json",
+      "obligation": {
+        "id": "AUTO-EXP-1",
+        "station": "ENTRY_WIRING",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "backend/app/alembic/versions/1a31ce608336_add_cascade_delete_relationships.py:20-26 (upgrade)",
+        "reason": "应用工程中的新增或导出功能必须连通真实运行入口，不能仅因带有 export 就视为已接入",
+        "expectedRelation": "建立从真实入口（UI/IPC/路由/主循环）到 upgrade 的调用连接",
+        "sourceBasis": "项目模式识别: application",
+        "status": "VIOLATED",
+        "evidence": [
+          "backend/app/alembic/versions/1a31ce608336_add_cascade_delete_relationships.py:20-26 (upgrade)"
+        ],
+        "finding": "违反：导出函数 \"upgrade\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）",
+        "remediation": "请将 \"upgrade\" 接入真实上游入口；若该函数应作为公共 SDK 导出，请通过包主入口模块暴露或声明库导出配置。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "框架入口未识别",
+      "rationale": "upgrade 是 Alembic revision 的标准入口；项目 prestart 脚本通过 alembic upgrade head 调用迁移。",
+      "evidence": [
+        {
+          "file": "backend/app/alembic/versions/1a31ce608336_add_cascade_delete_relationships.py",
+          "startLine": 12,
+          "endLine": 26,
+          "sourceSha256": "21edcee58e77454faf02cffec4b8221a7f7d953225678b912a782dcd4ea1becf",
+          "excerpt": "\n# revision identifiers, used by Alembic.\nrevision = '1a31ce608336'\ndown_revision = 'd98dd8ec85a3'\nbranch_labels = None\ndepends_on = None\n\n\ndef upgrade():\n    # ### commands auto generated by Alembic - please adjust! ###\n    op.alter_column('item', 'owner_id',\n               existing_type=sa.UUID(),\n               nullable=False)\n    op.drop_constraint('item_owner_id_fkey', 'item', type_='foreignkey')\n    op.create_foreign_key(None, 'item', 'user', ['owner_id'], ['id'], ondelete='CASCADE')"
+        },
+        {
+          "file": "backend/scripts/prestart.sh",
+          "startLine": 1,
+          "endLine": 8,
+          "sourceSha256": "0f5800314811d06f5ffd6902c946cd0720541604f9666b3f4b29f66d253179ea",
+          "excerpt": "#! /usr/bin/env bash\n\nset -e\nset -x\n\n# Run migrations\nalembic upgrade head\n"
+        }
+      ]
+    },
+    {
+      "repository": "gson",
+      "commit": "a961b0fe088f8558d00cc1b56e506a3656907a91",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\gson.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "extras/src/main/java/com/google/gson/interceptors/InterceptorFactory.java:28 (InterceptorFactory)",
+        "reason": "继承/实现 \"TypeAdapterFactory\" 的新增或变更子类必须同步加入工厂或分流注册表",
+        "expectedRelation": "在 [gson/src/main/java/com/google/gson/GsonBuilder.java:926 (GsonBuilder.createFactories), gson/src/main/java/com/google/gson/Gson.java:156 (Gson), gson/src/main/java/com/google/gson/GsonBuilder.java:93 (GsonBuilder), gson/src/main/java/com/google/gson/Gson.java:340 (Gson.getAdapter)] 中建立对 InterceptorFactory 的构造或注册引用",
+        "sourceBasis": "同族实现挂载证据: CollectionTypeAdapterFactory, JsonAdapterAnnotationTypeAdapterFactory, DummyTypeAdapterFactory, MapTypeAdapterFactory, ReflectiveTypeAdapterFactory, SingleTypeFactory, Excluder",
+        "status": "VIOLATED",
+        "evidence": [
+          "extras/src/main/java/com/google/gson/interceptors/InterceptorFactory.java:28 (InterceptorFactory)",
+          "gson/src/main/java/com/google/gson/GsonBuilder.java:926 (GsonBuilder.createFactories)",
+          "gson/src/main/java/com/google/gson/Gson.java:156 (Gson)",
+          "gson/src/main/java/com/google/gson/GsonBuilder.java:93 (GsonBuilder)",
+          "gson/src/main/java/com/google/gson/Gson.java:340 (Gson.getAdapter)"
+        ],
+        "finding": "违反：实现类 \"InterceptorFactory\" (契约 TypeAdapterFactory) 未加入工厂/分发器注册，导致运行期无法派发到该实现",
+        "remediation": "请参照 [CollectionTypeAdapterFactory, JsonAdapterAnnotationTypeAdapterFactory, DummyTypeAdapterFactory, MapTypeAdapterFactory, ReflectiveTypeAdapterFactory, SingleTypeFactory, Excluder] 在 gson/src/main/java/com/google/gson/GsonBuilder.java:926 (GsonBuilder.createFactories) / gson/src/main/java/com/google/gson/Gson.java:156 (Gson) / gson/src/main/java/com/google/gson/GsonBuilder.java:93 (GsonBuilder) / gson/src/main/java/com/google/gson/Gson.java:340 (Gson.getAdapter) 中补齐 \"InterceptorFactory\" 的注册分支。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "可选扩展误要求内建注册",
+      "rationale": "extras 的 InterceptorFactory 由用户 registerTypeAdapterFactory 注入，仓内测试有完整调用。",
+      "evidence": [
+        {
+          "file": "extras/src/main/java/com/google/gson/interceptors/InterceptorFactory.java",
+          "startLine": 27,
+          "endLine": 37,
+          "sourceSha256": "5f2a93dd31283e3199891b2dfcaf4f8b358f5f33e28431a3a8d708a4c98a5bdf",
+          "excerpt": "/** A type adapter factory that implements {@code @Intercept}. */\npublic final class InterceptorFactory implements TypeAdapterFactory {\n  @Override\n  public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {\n    Intercept intercept = type.getRawType().getAnnotation(Intercept.class);\n    if (intercept == null) {\n      return null;\n    }\n\n    TypeAdapter<T> delegate = gson.getDelegateAdapter(this, type);\n    return new InterceptorAdapter<>(delegate, intercept);"
+        },
+        {
+          "file": "extras/src/test/java/com/google/gson/interceptors/InterceptorTest.java",
+          "startLine": 44,
+          "endLine": 55,
+          "sourceSha256": "50047e340c5976c12e4081121c79077fbb15c6748e6a7af4eea7f32951479cbf",
+          "excerpt": "\n  private Gson gson;\n\n  @Before\n  public void setUp() throws Exception {\n    this.gson =\n        new GsonBuilder()\n            .registerTypeAdapterFactory(new InterceptorFactory())\n            .enableComplexMapKeySerialization()\n            .create();\n  }\n"
+        }
+      ]
+    },
+    {
+      "repository": "hono",
+      "commit": "61f7c59e50244ab4d2dd83c151928cf7ea448510",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\hono.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "src/router/reg-exp-router/prepared-router.ts:9 (PreparedRegExpRouter)",
+        "reason": "同族/跨平台实现共享契约 \"Router\"，新增契约方法需在所有激活平台/分支实现中同步补齐",
+        "expectedRelation": "在 PreparedRegExpRouter (src/router/reg-exp-router/prepared-router.ts) 中实现方法 match()",
+        "sourceBasis": "已实现分支: LinearRouter.match, PatternRouter.match, SmartRouter.match, TrieRouter.match",
+        "status": "VIOLATED",
+        "evidence": [
+          "src/router/reg-exp-router/prepared-router.ts:9 (PreparedRegExpRouter)",
+          "src/router/linear-router/router.ts:25 (LinearRouter.match)",
+          "src/router/pattern-router/router.ts:38 (PatternRouter.match)",
+          "src/router/smart-router/router.ts:21 (SmartRouter.match)",
+          "src/router/trie-router/router.ts:15 (TrieRouter.match)",
+          "src/helper/ssg/utils.ts:20 (getUncRoot)",
+          "src/helper/ssg/utils.ts:84 (getPathRoot)"
+        ],
+        "finding": "违反：同族/另一平台分支 \"PreparedRegExpRouter\" 遗漏实现方法 \"match()\"（上游已按共享契约 \"Router\" 调用）",
+        "remediation": "请在 src/router/reg-exp-router/prepared-router.ts 的 PreparedRegExpRouter 中同步实现 \"match()\"，保持多态/跨平台契约一致。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "方法属性未识别",
+      "rationale": "PreparedRegExpRouter 已通过 match: typeof match<Router<T>, T> = match 实现 match，解析器漏掉了函数属性。",
+      "evidence": [
+        {
+          "file": "src/router/reg-exp-router/prepared-router.ts",
+          "startLine": 87,
+          "endLine": 104,
+          "sourceSha256": "f39824c5382597c28f2888a6913ee9c12137449958edb01fbec6ddd3b6cbd2fb",
+          "excerpt": "\n  protected buildAllMatchers(): MatcherMap<T> {\n    return this.#matchers\n  }\n\n  match: typeof match<Router<T>, T> = match\n}\n\nexport const buildInitParams: (params: {\n  paths: string[]\n}) => ConstructorParameters<typeof PreparedRegExpRouter> = ({ paths }) => {\n  const RegExpRouterWithMatcherExport = class<T> extends RegExpRouter<T> {\n    buildAndExportAllMatchers() {\n      return this.buildAllMatchers()\n    }\n  }\n  const router = new RegExpRouterWithMatcherExport<string>()\n  for (const path of paths) {"
+        }
+      ]
+    },
+    {
+      "repository": "httpx",
+      "commit": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\httpx.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "httpx/_auth.py:113 (FunctionAuth)",
+        "reason": "同族/跨平台实现共享契约 \"Auth\"，新增契约方法需在所有激活平台/分支实现中同步补齐",
+        "expectedRelation": "在 FunctionAuth (httpx/_auth.py) 中实现方法 digest()",
+        "sourceBasis": "已实现分支: DigestAuth.digest",
+        "status": "VIOLATED",
+        "evidence": [
+          "httpx/_auth.py:113 (FunctionAuth)",
+          "httpx/_auth.py:260 (DigestAuth.digest)"
+        ],
+        "finding": "违反：同族/另一平台分支 \"FunctionAuth\" 遗漏实现方法 \"digest()\"（上游已按共享契约 \"Auth\" 调用）",
+        "remediation": "请在 httpx/_auth.py 的 FunctionAuth 中同步实现 \"digest()\"，保持多态/跨平台契约一致。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "嵌套函数误作类方法",
+      "rationale": "digest 是 DigestAuth._build_auth_header 内的局部函数，不是 Auth 要求 FunctionAuth 实现的方法。",
+      "evidence": [
+        {
+          "file": "httpx/_auth.py",
+          "startLine": 113,
+          "endLine": 123,
+          "sourceSha256": "82a26adfda516d0545288b1b37c6bd3a99d8bac56bfc53e1779571db3e1863fc",
+          "excerpt": "class FunctionAuth(Auth):\n    \"\"\"\n    Allows the 'auth' argument to be passed as a simple callable function,\n    that takes the request, and returns a new, modified request.\n    \"\"\"\n\n    def __init__(self, func: typing.Callable[[Request], Request]) -> None:\n        self._func = func\n\n    def auth_flow(self, request: Request) -> typing.Generator[Request, Response, None]:\n        yield self._func(request)"
+        },
+        {
+          "file": "httpx/_auth.py",
+          "startLine": 255,
+          "endLine": 270,
+          "sourceSha256": "82a26adfda516d0545288b1b37c6bd3a99d8bac56bfc53e1779571db3e1863fc",
+          "excerpt": "    def _build_auth_header(\n        self, request: Request, challenge: _DigestAuthChallenge\n    ) -> str:\n        hash_func = self._ALGORITHM_TO_HASH_FUNCTION[challenge.algorithm.upper()]\n\n        def digest(data: bytes) -> bytes:\n            return hash_func(data).hexdigest().encode()\n\n        A1 = b\":\".join((self._username, challenge.realm, self._password))\n\n        path = request.url.raw_path\n        A2 = b\":\".join((request.method.encode(), path))\n        # TODO: implement auth-int\n        HA2 = digest(A2)\n\n        nc_value = b\"%08x\" % self._nonce_count"
+        }
+      ]
+    },
+    {
+      "repository": "koel",
+      "commit": "80a21bb34c5f8e6ac5c848821833affc4d01176c",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\koel.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "app/Attributes/RequiresDemo.php:8 (RequiresDemo)",
+        "reason": "继承/实现 \"DemoConstraint\" 的新增或变更子类必须同步加入工厂或分流注册表",
+        "expectedRelation": "在 [app/Http/Controllers/API/ChangePasswordController.php:16 (ChangePasswordController), app/Http/Controllers/API/Podcast/PodcastController.php:20 (PodcastController), app/Http/Controllers/API/ProfileController.php:14 (ProfileController), app/Http/Controllers/API/RadioStationController.php:17 (RadioStationController)] 中建立对 RequiresDemo 的构造或注册引用",
+        "sourceBasis": "同族实现挂载证据: DisabledInDemo",
+        "status": "VIOLATED",
+        "evidence": [
+          "app/Attributes/RequiresDemo.php:8 (RequiresDemo)",
+          "app/Http/Controllers/API/ChangePasswordController.php:16 (ChangePasswordController)",
+          "app/Http/Controllers/API/Podcast/PodcastController.php:20 (PodcastController)",
+          "app/Http/Controllers/API/ProfileController.php:14 (ProfileController)",
+          "app/Http/Controllers/API/RadioStationController.php:17 (RadioStationController)"
+        ],
+        "finding": "违反：实现类 \"RequiresDemo\" (契约 DemoConstraint) 未加入工厂/分发器注册，导致运行期无法派发到该实现",
+        "remediation": "请参照 [DisabledInDemo] 在 app/Http/Controllers/API/ChangePasswordController.php:16 (ChangePasswordController) / app/Http/Controllers/API/Podcast/PodcastController.php:20 (PodcastController) / app/Http/Controllers/API/ProfileController.php:14 (ProfileController) / app/Http/Controllers/API/RadioStationController.php:17 (RadioStationController) 中补齐 \"RequiresDemo\" 的注册分支。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "属性反射注册未识别",
+      "rationale": "RequiresDemo 被用于控制器属性，HandleDemoMode 通过 RequiresDemo::class 查找并处理。",
+      "evidence": [
+        {
+          "file": "app/Attributes/RequiresDemo.php",
+          "startLine": 1,
+          "endLine": 8,
+          "sourceSha256": "ea9c5c40f7079e55f7300bba979797004aab77b50f4794ff897931f1d0e7714b",
+          "excerpt": "<?php\n\nnamespace App\\Attributes;\n\nuse Attribute;\n\n#[Attribute(Attribute::TARGET_METHOD | Attribute::TARGET_CLASS)]\nclass RequiresDemo extends DemoConstraint {}"
+        },
+        {
+          "file": "app/Http/Controllers/Demo/IndexController.php",
+          "startLine": 1,
+          "endLine": 18,
+          "sourceSha256": "7f16ec7547a759a23f4bc0a2f73fe27af77d5c6477d98c26a543781e01f42af0",
+          "excerpt": "<?php\n\nnamespace App\\Http\\Controllers\\Demo;\n\nuse App\\Attributes\\RequiresDemo;\nuse App\\Http\\Controllers\\Controller;\n\n#[RequiresDemo]\nclass IndexController extends Controller\n{\n    public function __invoke()\n    {\n        if (!request()->session()->has('demo_account')) {\n            // redirect to the new session controller to create or get a demo account\n            return redirect()->route('demo.new-session');\n        }\n\n        return view('index', ["
+        },
+        {
+          "file": "app/Http/Middleware/HandleDemoMode.php",
+          "startLine": 26,
+          "endLine": 43,
+          "sourceSha256": "a9a57f272e6b7a76a85adfb2dc83d7db05311aa8bfdefd2f508f3a20420037a2",
+          "excerpt": "            /** @var DemoConstraint $instance */\n            $instance = $attribute->newInstance();\n\n            if ($instance->allowAdminOverride && auth()->user()?->role === Role::ADMIN) {\n                return;\n            }\n\n            abort($attribute->newInstance()->code, 'This action is disabled in demo mode.');\n        };\n\n        if (config('koel.misc.demo')) {\n            optional(Arr::get(self::getAttributeUsageFromRequest($request, DisabledInDemo::class), 0), $callback);\n        } else {\n            optional(Arr::get(self::getAttributeUsageFromRequest($request, RequiresDemo::class), 0), $callback);\n        }\n\n        return $next($request);\n    }"
+        }
+      ]
+    },
+    {
+      "repository": "okhttp",
+      "commit": "4162e9da32f636442bc789a7576144fe5972d0a5",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\okhttp.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "okhttp/src/androidMain/kotlin/okhttp3/internal/platform/android/BouncyCastleSocketAdapter.kt:27 (BouncyCastleSocketAdapter)",
+        "reason": "同族/跨平台实现共享契约 \"SocketAdapter\"，新增契约方法需在所有激活平台/分支实现中同步补齐",
+        "expectedRelation": "在 BouncyCastleSocketAdapter (okhttp/src/androidMain/kotlin/okhttp3/internal/platform/android/BouncyCastleSocketAdapter.kt) 中实现方法 buildIfSupported()",
+        "sourceBasis": "已实现分支: Android10SocketAdapter.buildIfSupported",
+        "status": "VIOLATED",
+        "evidence": [
+          "okhttp/src/androidMain/kotlin/okhttp3/internal/platform/android/BouncyCastleSocketAdapter.kt:27 (BouncyCastleSocketAdapter)",
+          "okhttp/src/androidMain/kotlin/okhttp3/internal/platform/android/Android10SocketAdapter.kt:80 (Android10SocketAdapter.buildIfSupported)",
+          "okhttp/src/androidMain/kotlin/okhttp3/internal/platform/Android10Platform.kt:131 (Android10Platform.buildCertificateChainCleaner)"
+        ],
+        "finding": "违反：同族/另一平台分支 \"BouncyCastleSocketAdapter\" 遗漏实现方法 \"buildIfSupported()\"（上游已按共享契约 \"SocketAdapter\" 调用）",
+        "remediation": "请在 okhttp/src/androidMain/kotlin/okhttp3/internal/platform/android/BouncyCastleSocketAdapter.kt 的 BouncyCastleSocketAdapter 中同步实现 \"buildIfSupported()\"，保持多态/跨平台契约一致。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "companion 方法误作接口要求",
+      "rationale": "buildIfSupported 位于 Android10SocketAdapter.companion object；SocketAdapter 接口没有该方法。",
+      "evidence": [
+        {
+          "file": "okhttp/src/androidMain/kotlin/okhttp3/internal/platform/android/Android10SocketAdapter.kt",
+          "startLine": 78,
+          "endLine": 85,
+          "sourceSha256": "b09a4c44ed9bf8615015e3a7116bf8e540bd9c52dbfe99c9ebf60841baa42a20",
+          "excerpt": "  @SuppressSignatureCheck\n  companion object {\n    fun buildIfSupported(): SocketAdapter? = if (isSupported()) Android10SocketAdapter() else null\n\n    @androidx.annotation.ChecksSdkIntAtLeast(api = 29)\n    fun isSupported() = isAndroid && Build.VERSION.SDK_INT >= 29\n  }\n}"
+        },
+        {
+          "file": "okhttp/src/androidMain/kotlin/okhttp3/internal/platform/android/SocketAdapter.kt",
+          "startLine": 24,
+          "endLine": 42,
+          "sourceSha256": "fba62182a85a7426822458aa17834b9a3eb9b6b48977db625e0cb8bf8f482dfa",
+          "excerpt": "interface SocketAdapter {\n  fun isSupported(): Boolean\n\n  fun trustManager(sslSocketFactory: SSLSocketFactory): X509TrustManager? = null\n\n  fun matchesSocket(sslSocket: SSLSocket): Boolean\n\n  fun matchesSocketFactory(sslSocketFactory: SSLSocketFactory): Boolean = false\n\n  fun configureTlsExtensions(\n    sslSocket: SSLSocket,\n    hostname: String?,\n    protocols: List<Protocol>,\n    echConfigList: ByteString?,\n  )\n\n  fun getSelectedProtocol(sslSocket: SSLSocket): String?\n}\n"
+        }
+      ]
+    },
+    {
+      "repository": "pinia",
+      "commit": "4817135a25431172d363bd928476db7cdbf875c4",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\pinia.1.json",
+      "obligation": {
+        "id": "AUTO-EXP-1",
+        "station": "ENTRY_WIRING",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "packages/nuxt/src/runtime/composables.ts:5-5 (usePinia)",
+        "reason": "应用工程中的新增或导出功能必须连通真实运行入口，不能仅因带有 export 就视为已接入",
+        "expectedRelation": "建立从真实入口（UI/IPC/路由/主循环）到 usePinia 的调用连接",
+        "sourceBasis": "项目模式识别: application",
+        "status": "VIOLATED",
+        "evidence": [
+          "packages/nuxt/src/runtime/composables.ts:5-5 (usePinia)"
+        ],
+        "finding": "违反：导出函数 \"usePinia\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）",
+        "remediation": "请将 \"usePinia\" 接入真实上游入口；若该函数应作为公共 SDK 导出，请通过包主入口模块暴露或声明库导出配置。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "框架自动导入未识别",
+      "rationale": "Nuxt 模块已经用 addImports 注册 usePinia。",
+      "evidence": [
+        {
+          "file": "packages/nuxt/src/runtime/composables.ts",
+          "startLine": 1,
+          "endLine": 5,
+          "sourceSha256": "53c29837679a84d6eef26516f9350882fd6e7774352732adb6d058a88f7cc6c7",
+          "excerpt": "import { useNuxtApp } from '#app'\nimport type { Pinia } from 'pinia'\nexport * from 'pinia'\n\nexport const usePinia = () => useNuxtApp().$pinia as Pinia"
+        },
+        {
+          "file": "packages/nuxt/src/module.ts",
+          "startLine": 61,
+          "endLine": 74,
+          "sourceSha256": "715f25ecb9dd733958477014cdd6144109e76496d95955afa05ebdf835f37714",
+          "excerpt": "      addPlugin(resolve(runtimeDir, 'payload-plugin'))\n    })\n\n    // Add auto imports\n    const composables = resolve(runtimeDir, 'composables')\n    addImports([\n      { from: composables, name: 'defineStore' },\n      { from: composables, name: 'acceptHMRUpdate' },\n      { from: composables, name: 'usePinia' },\n      { from: composables, name: 'storeToRefs' },\n    ])\n\n    if (!options.storesDirs) {\n      // keep it relative so it gets resolved against each layer's app dir below"
+        }
+      ]
+    },
+    {
+      "repository": "pocketbase",
+      "commit": "7f2773ec234b62d0b80ca47c508397cb3d0da3ea",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\pocketbase.1.json",
+      "obligation": {
+        "id": "AUTO-EXP-1",
+        "station": "ENTRY_WIRING",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "apis/api_error_aliases.go:15-17 (NewApiError)",
+        "reason": "应用工程中的新增或导出功能必须连通真实运行入口，不能仅因带有 export 就视为已接入",
+        "expectedRelation": "建立从真实入口（UI/IPC/路由/主循环）到 NewApiError 的调用连接",
+        "sourceBasis": "项目模式识别: application",
+        "status": "VIOLATED",
+        "evidence": [
+          "apis/api_error_aliases.go:15-17 (NewApiError)"
+        ],
+        "finding": "违反：导出函数 \"NewApiError\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）",
+        "remediation": "请将 \"NewApiError\" 接入真实上游入口；若该函数应作为公共 SDK 导出，请通过包主入口模块暴露或声明库导出配置。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "库与应用模式识别错误",
+      "rationale": "项目明确支持作为 Go library 使用；NewApiError 是公开别名接口，无仓内调用者不构成接入违规。",
+      "evidence": [
+        {
+          "file": "apis/api_error_aliases.go",
+          "startLine": 1,
+          "endLine": 17,
+          "sourceSha256": "cb60e28236d59e50e54dd6274115f51a652c6d4a5ac61d029e4d1419b340208a",
+          "excerpt": "package apis\n\nimport \"github.com/pocketbase/pocketbase/tools/router\"\n\n// ApiError aliases to minimize the breaking changes with earlier versions\n// and for consistency with the JSVM binds.\n// -------------------------------------------------------------------\n\n// ToApiError wraps err into ApiError instance (if not already).\nfunc ToApiError(err error) *router.ApiError {\n\treturn router.ToApiError(err)\n}\n\n// NewApiError is an alias for [router.NewApiError].\nfunc NewApiError(status int, message string, errData any) *router.ApiError {\n\treturn router.NewApiError(status, message, errData)\n}"
+        },
+        {
+          "file": "README.md",
+          "startLine": 49,
+          "endLine": 55,
+          "sourceSha256": "ec673eda5bc7916e662322b57ef43617cdc40cb8ed15b79fe93b8bd99e4c966c",
+          "excerpt": "### Use as a Go framework/toolkit\n\nPocketBase is distributed as a regular Go library package which allows you to build\nyour own custom app specific business logic and still have a single portable executable at the end.\n\nHere is a minimal example:\n"
+        }
+      ]
+    },
+    {
+      "repository": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\pot-desktop.1.json",
+      "obligation": {
+        "id": "AUTO-EXP-3",
+        "station": "ENTRY_WIRING",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "src/components/WindowControl/index.jsx:10-57 (WindowControl)",
+        "reason": "应用工程中的新增或导出功能必须连通真实运行入口，不能仅因带有 export 就视为已接入",
+        "expectedRelation": "建立从真实入口（UI/IPC/路由/主循环）到 WindowControl 的调用连接",
+        "sourceBasis": "项目模式识别: application",
+        "status": "VIOLATED",
+        "evidence": [
+          "src/components/WindowControl/index.jsx:10-57 (WindowControl)"
+        ],
+        "finding": "违反：导出函数 \"WindowControl\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）",
+        "remediation": "请将 \"WindowControl\" 接入真实上游入口；若该函数应作为公共 SDK 导出，请通过包主入口模块暴露或声明库导出配置。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "JSX 调用未识别",
+      "rationale": "WindowControl 已被 Config 和 Recognize 页面导入并作为 JSX 组件渲染。",
+      "evidence": [
+        {
+          "file": "src/components/WindowControl/index.jsx",
+          "startLine": 1,
+          "endLine": 12,
+          "sourceSha256": "715f5be3493ffca310b17bb0e8078d40e283fb223ea8147f00917a44d6afa275",
+          "excerpt": "import { VscChromeClose, VscChromeMinimize, VscChromeMaximize, VscChromeRestore } from 'react-icons/vsc';\nimport React, { useEffect, useState } from 'react';\nimport { appWindow } from '@tauri-apps/api/window';\nimport { listen } from '@tauri-apps/api/event';\nimport { Button } from '@nextui-org/react';\n\nimport { osType } from '../../utils/env';\nimport './style.css';\n\nexport default function WindowControl() {\n    const [isMax, setIsMax] = useState(false);\n"
+        },
+        {
+          "file": "src/window/Config/index.jsx",
+          "startLine": 62,
+          "endLine": 72,
+          "sourceSha256": "19ffab540ba5fe3d6416e433f8c0d7b7d57c4ba43864f18ad0ce6e2324769046",
+          "excerpt": "                />\n                <div className='h-[35px] flex justify-between'>\n                    <div className='flex'>\n                        <h2 className='m-auto ml-[10px]'>{t(`config.${location.pathname.slice(1)}.title`)}</h2>\n                    </div>\n\n                    <div className='flex'>{osType !== 'Darwin' && <WindowControl />}</div>\n                </div>\n                <Divider />\n                <div\n                    className={`p-[10px] overflow-y-auto ${"
+        },
+        {
+          "file": "src/window/Recognize/index.jsx",
+          "startLine": 135,
+          "endLine": 143,
+          "sourceSha256": "e6f16e6f5cab6330d67384e34a41829ded5a05556ca4c77ce853de6c2477b384",
+          "excerpt": "                        }}\n                    >\n                        <BsPinFill className={`text-[20px] ${pined ? 'text-primary' : 'text-default-400'}`} />\n                    </Button>\n                    {osType !== 'Darwin' && <WindowControl />}\n                </div>\n                <div\n                    className={`${\n                        osType === 'Linux' ? 'h-[calc(100vh-87px)]' : 'h-[calc(100vh-85px)]'"
+        }
+      ]
+    },
+    {
+      "repository": "retrofit",
+      "commit": "ac37c61643860b0ab09a165cd5aa4a986484e872",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\retrofit.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "retrofit/src/main/java/retrofit2/OptionalConverterFactory.java:60 (OptionalConverterFactory.OptionalConverter)",
+        "reason": "继承/实现 \"Converter\" 的新增或变更子类必须同步加入工厂或分流注册表",
+        "expectedRelation": "在 [retrofit/src/main/java/retrofit2/Retrofit.java:670 (Builder.build), retrofit/src/main/java/retrofit2/BuiltInConverters.java:68 (BuiltInConverters.UnitResponseBodyConverter), retrofit/src/main/java/retrofit2/BuiltInConverters.java:72 (UnitResponseBodyConverter.convert), retrofit/src/main/java/retrofit2/BuiltInConverters.java:78 (BuiltInConverters.RequestBodyConverter)] 中建立对 OptionalConverter 的构造或注册引用",
+        "sourceBasis": "同族实现挂载证据: BuiltInConverters, VoidResponseBodyConverter, UnitResponseBodyConverter, RequestBodyConverter, ToStringConverter, OptionalConverterFactory, JaxbConverterFactory, JaxbConverterFactory, StringResponseBodyConverter, BooleanResponseBodyConverter, ByteResponseBodyConverter, CharacterResponseBodyConverter, DoubleResponseBodyConverter, FloatResponseBodyConverter, IntegerResponseBodyConverter, LongResponseBodyConverter, ShortResponseBodyConverter",
+        "status": "VIOLATED",
+        "evidence": [
+          "retrofit/src/main/java/retrofit2/OptionalConverterFactory.java:60 (OptionalConverterFactory.OptionalConverter)",
+          "retrofit/src/main/java/retrofit2/Retrofit.java:670 (Builder.build)",
+          "retrofit/src/main/java/retrofit2/BuiltInConverters.java:68 (BuiltInConverters.UnitResponseBodyConverter)",
+          "retrofit/src/main/java/retrofit2/BuiltInConverters.java:72 (UnitResponseBodyConverter.convert)",
+          "retrofit/src/main/java/retrofit2/BuiltInConverters.java:78 (BuiltInConverters.RequestBodyConverter)"
+        ],
+        "finding": "违反：实现类 \"OptionalConverter\" (契约 Converter) 未加入工厂/分发器注册，导致运行期无法派发到该实现",
+        "remediation": "请参照 [BuiltInConverters, VoidResponseBodyConverter, UnitResponseBodyConverter, RequestBodyConverter, ToStringConverter, OptionalConverterFactory, JaxbConverterFactory, JaxbConverterFactory, StringResponseBodyConverter, BooleanResponseBodyConverter, ByteResponseBodyConverter, CharacterResponseBodyConverter, DoubleResponseBodyConverter, FloatResponseBodyConverter, IntegerResponseBodyConverter, LongResponseBodyConverter, ShortResponseBodyConverter] 在 retrofit/src/main/java/retrofit2/Retrofit.java:670 (Builder.build) / retrofit/src/main/java/retrofit2/BuiltInConverters.java:68 (BuiltInConverters.UnitResponseBodyConverter) / retrofit/src/main/java/retrofit2/BuiltInConverters.java:72 (UnitResponseBodyConverter.convert) / retrofit/src/main/java/retrofit2/BuiltInConverters.java:78 (BuiltInConverters.RequestBodyConverter) 中补齐 \"OptionalConverter\" 的注册分支。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "工厂返回实例未正确归属",
+      "rationale": "responseBodyConverter 已 return new OptionalConverter<>(delegate)，并非没有注册或创建路径。",
+      "evidence": [
+        {
+          "file": "retrofit/src/main/java/retrofit2/OptionalConverterFactory.java",
+          "startLine": 46,
+          "endLine": 69,
+          "sourceSha256": "3e30f76a87607de252f8714a16316438e436e8a402d387eb7bf01c95017e751c",
+          "excerpt": "  @Override\n  public @Nullable Converter<ResponseBody, ?> responseBodyConverter(\n      Type type, Annotation[] annotations, Retrofit retrofit) {\n    if (getRawType(type) != Optional.class) {\n      return null;\n    }\n\n    Type innerType = getParameterUpperBound(0, (ParameterizedType) type);\n    Converter<ResponseBody, Object> delegate =\n        retrofit.responseBodyConverter(innerType, annotations);\n    return new OptionalConverter<>(delegate);\n  }\n\n  @IgnoreJRERequirement\n  static final class OptionalConverter<T> implements Converter<ResponseBody, Optional<T>> {\n    private final Converter<ResponseBody, T> delegate;\n\n    OptionalConverter(Converter<ResponseBody, T> delegate) {\n      this.delegate = delegate;\n    }\n\n    @Override\n    public Optional<T> convert(ResponseBody value) throws IOException {\n      return Optional.ofNullable(delegate.convert(value));"
+        }
+      ]
+    },
+    {
+      "repository": "ripgrep",
+      "commit": "178cc027e283fd965cb72d0a7395b219eada170c",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\ripgrep.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "crates/ignore/src/pathutil.rs:21 (imp) | crates/ignore/src/pathutil.rs:26 (imp) | crates/ignore/src/pathutil.rs:58 (imp) | crates/ignore/src/pathutil.rs:63 (imp) | crates/ignore/src/pathutil.rs:101 (imp) | crates/ignore/src/pathutil.rs:114 (imp) | crates/ignore/src/pathutil.rs:146 (imp) | crates/ignore/src/pathutil.rs:166 (imp)",
+        "reason": "同一符号的多平台条件编译分支（#[cfg] / #ifdef）必须保持签名一致",
+        "expectedRelation": "对齐 imp 在各平台分支中的参数签名",
+        "sourceBasis": "条件编译对称契约",
+        "status": "VIOLATED",
+        "evidence": [
+          "crates/ignore/src/pathutil.rs:21 (imp) -> params(path)",
+          "crates/ignore/src/pathutil.rs:26 (imp) -> params(path)",
+          "crates/ignore/src/pathutil.rs:58 (imp) -> params(dent)",
+          "crates/ignore/src/pathutil.rs:63 (imp) -> params(dent)",
+          "crates/ignore/src/pathutil.rs:101 (imp) -> params(prefix, path)",
+          "crates/ignore/src/pathutil.rs:114 (imp) -> params(prefix, path)",
+          "crates/ignore/src/pathutil.rs:146 (imp) -> params(path)",
+          "crates/ignore/src/pathutil.rs:166 (imp) -> params(path)"
+        ],
+        "finding": "违反：条件编译同名函数 \"imp\" 在不同平台分支中参数数量不一致",
+        "remediation": "请同步更新 crates/ignore/src/pathutil.rs 中所有条件编译分支的 \"imp\" 签名与处理逻辑。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "嵌套函数作用域合并",
+      "rationale": "imp 分属 is_hidden_path、is_hidden_entry、strip_prefix 等不同外层函数；不能把所有局部 imp 当成同一跨平台函数。",
+      "evidence": [
+        {
+          "file": "crates/ignore/src/pathutil.rs",
+          "startLine": 19,
+          "endLine": 27,
+          "sourceSha256": "8d58174a66fb855a425d59f7faa7a063dab702d709c9cdd8916a61c81053b2f2",
+          "excerpt": "pub(crate) fn is_hidden_path(dent: &Path) -> bool {\n    #[cfg(not(windows))]\n    fn imp(path: &Path) -> bool {\n        is_hidden_path_only(path)\n    }\n\n    #[cfg(windows)]\n    fn imp(path: &Path) -> bool {\n        use std::os::windows::fs::MetadataExt;"
+        },
+        {
+          "file": "crates/ignore/src/pathutil.rs",
+          "startLine": 56,
+          "endLine": 64,
+          "sourceSha256": "8d58174a66fb855a425d59f7faa7a063dab702d709c9cdd8916a61c81053b2f2",
+          "excerpt": "pub(crate) fn is_hidden_entry(dent: &DirEntry) -> bool {\n    #[cfg(not(windows))]\n    fn imp(dent: &DirEntry) -> bool {\n        is_hidden_path_only(dent.path())\n    }\n\n    #[cfg(windows)]\n    fn imp(dent: &DirEntry) -> bool {\n        use std::os::windows::fs::MetadataExt;"
+        },
+        {
+          "file": "crates/ignore/src/pathutil.rs",
+          "startLine": 93,
+          "endLine": 115,
+          "sourceSha256": "8d58174a66fb855a425d59f7faa7a063dab702d709c9cdd8916a61c81053b2f2",
+          "excerpt": "/// Strip `prefix` from the `path` and return the remainder.\n///\n/// If `path` doesn't have a prefix `prefix`, then return `None`.\npub(crate) fn strip_prefix<'a, P: AsRef<Path> + ?Sized>(\n    prefix: &'a P,\n    path: &'a Path,\n) -> Option<&'a Path> {\n    #[cfg(unix)]\n    fn imp<'a>(prefix: &'a Path, path: &'a Path) -> Option<&'a Path> {\n        use std::os::unix::ffi::OsStrExt;\n\n        let prefix = prefix.as_os_str().as_bytes();\n        let path = path.as_os_str().as_bytes();\n        if prefix.len() > path.len() || prefix != &path[0..prefix.len()] {\n            None\n        } else {\n            Some(&Path::new(OsStr::from_bytes(&path[prefix.len()..])))\n        }\n    }\n\n    #[cfg(not(unix))]\n    fn imp<'a>(prefix: &'a Path, path: &'a Path) -> Option<&'a Path> {\n        path.strip_prefix(prefix).ok()"
+        }
+      ]
+    },
+    {
+      "repository": "serilog",
+      "commit": "43105b35095337d77f022561a8f2d3db2f9a7937",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\serilog.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "src/Serilog/Capturing/DepthLimiter.cs:19 (PropertyValueConverter.DepthLimiter)",
+        "reason": "同族/跨平台实现共享契约 \"ILogEventPropertyValueFactory\"，新增契约方法需在所有激活平台/分支实现中同步补齐",
+        "expectedRelation": "在 DepthLimiter (src/Serilog/Capturing/DepthLimiter.cs) 中实现方法 CreateProperty()",
+        "sourceBasis": "已实现分支: MessageTemplateProcessor.CreateProperty, PropertyValueConverter.CreateProperty",
+        "status": "VIOLATED",
+        "evidence": [
+          "src/Serilog/Capturing/DepthLimiter.cs:19 (PropertyValueConverter.DepthLimiter)",
+          "src/Serilog/Capturing/MessageTemplateProcessor.cs:39 (MessageTemplateProcessor.CreateProperty)",
+          "src/Serilog/Capturing/PropertyValueConverter.cs:84 (PropertyValueConverter.CreateProperty)",
+          "src/Serilog/Capturing/MessageTemplateProcessor.cs:39 (MessageTemplateProcessor.CreateProperty)"
+        ],
+        "finding": "违反：同族/另一平台分支 \"DepthLimiter\" 遗漏实现方法 \"CreateProperty()\"（上游已按共享契约 \"ILogEventPropertyValueFactory\" 调用）",
+        "remediation": "请在 src/Serilog/Capturing/DepthLimiter.cs 的 DepthLimiter 中同步实现 \"CreateProperty()\"，保持多态/跨平台契约一致。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "接口方法集合错误泛化",
+      "rationale": "ILogEventPropertyValueFactory 仅要求 CreatePropertyValue，DepthLimiter 已显式实现；CreateProperty 属于另一接口。",
+      "evidence": [
+        {
+          "file": "src/Serilog/Core/ILogEventPropertyValueFactory.cs",
+          "startLine": 7,
+          "endLine": 19,
+          "sourceSha256": "8c9fa9bbe6bf58c8dba46755dfb5f25ef0f59f52f14e33a72f4cd1ba8bfd56b1",
+          "excerpt": "public interface ILogEventPropertyValueFactory\n{\n    /// <summary>\n    /// Create a <see cref=\"LogEventPropertyValue\"/> given a .NET object and destructuring\n    /// strategy.\n    /// </summary>\n    /// <param name=\"value\">The value of the property.</param>\n    /// <param name=\"destructureObjects\">If <see langword=\"true\"/>, and the value is a non-primitive, non-array type,\n    /// then the value will be converted to a structure; otherwise, unknown types will\n    /// be converted to scalars, which are generally stored as strings.</param>\n    /// <returns>The value.</returns>\n    LogEventPropertyValue CreatePropertyValue(object? value, bool destructureObjects = false);\n}"
+        },
+        {
+          "file": "src/Serilog/Capturing/DepthLimiter.cs",
+          "startLine": 48,
+          "endLine": 58,
+          "sourceSha256": "8097436b520eebc47d7471ea2adbf64ae9f81632f2dad8ef27b4883692f6f3a3",
+          "excerpt": "        }\n\n        LogEventPropertyValue ILogEventPropertyValueFactory.CreatePropertyValue(object? value, bool destructureObjects)\n        {\n            var storedDepth = _currentDepth;\n\n            var result = DefaultIfMaximumDepth(storedDepth) ??\n                         _propertyValueConverter.CreatePropertyValue(value, destructureObjects, storedDepth + 1);\n\n            _currentDepth = storedDepth;\n"
+        },
+        {
+          "file": "src/Serilog/Capturing/MessageTemplateProcessor.cs",
+          "startLine": 17,
+          "endLine": 20,
+          "sourceSha256": "c0cd0df600bb5390ed3ac2e954c9799f4678af263ba60d44108288b633061c5c",
+          "excerpt": "class MessageTemplateProcessor : ILogEventPropertyFactory, ILogEventPropertyValueFactory\n{\n    readonly MessageTemplateCache _parser = new(new MessageTemplateParser());\n    readonly PropertyBinder _propertyBinder;"
+        }
+      ]
+    },
+    {
+      "repository": "sidekiq",
+      "commit": "75982898ff6dc984988da8b9ecf5371eba68e120",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\sidekiq.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "lib/sidekiq/api.rb:910 (ScheduledSet)",
+        "reason": "同族/跨平台实现共享契约 \"JobSet\"，新增契约方法需在所有激活平台/分支实现中同步补齐",
+        "expectedRelation": "在 ScheduledSet (lib/sidekiq/api.rb) 中实现方法 trim()",
+        "sourceBasis": "已实现分支: DeadSet.trim",
+        "status": "VIOLATED",
+        "evidence": [
+          "lib/sidekiq/api.rb:910 (ScheduledSet)",
+          "lib/sidekiq/api.rb:937 (DeadSet.trim)",
+          "lib/sidekiq/api.rb:726 (JobSet)",
+          "lib/sidekiq/api.rb:758 (JobSet.kill_all)"
+        ],
+        "finding": "违反：同族/另一平台分支 \"ScheduledSet\" 遗漏实现方法 \"trim()\"（上游已按共享契约 \"JobSet\" 调用）",
+        "remediation": "请在 lib/sidekiq/api.rb 的 ScheduledSet 中同步实现 \"trim()\"，保持多态/跨平台契约一致。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "错误泛化具体实例调用",
+      "rationale": "JobSet.kill_all 明确创建 DeadSet 后调用 ds.trim；并未要求 ScheduledSet 实现 trim。",
+      "evidence": [
+        {
+          "file": "lib/sidekiq/api.rb",
+          "startLine": 756,
+          "endLine": 768,
+          "sourceSha256": "9b6c0444c6883064df8bb203269f204772c0529e6a4a27a63320eeb505b12a22",
+          "excerpt": "    # Move all jobs from this Set to the Dead Set.\n    # See DeadSet#kill\n    def kill_all(notify_failure: false, ex: nil)\n      ds = DeadSet.new\n      opts = {notify_failure: notify_failure, ex: ex, trim: false}\n\n      begin\n        pop_each do |msg, _|\n          ds.kill(msg, opts)\n        end\n      ensure\n        ds.trim\n      end"
+        },
+        {
+          "file": "lib/sidekiq/api.rb",
+          "startLine": 910,
+          "endLine": 923,
+          "sourceSha256": "9b6c0444c6883064df8bb203269f204772c0529e6a4a27a63320eeb505b12a22",
+          "excerpt": "  class ScheduledSet < JobSet\n    def initialize\n      super(\"schedule\")\n    end\n  end\n\n  ##\n  # The set of retries within Sidekiq.\n  # See the API wiki page for usage notes and examples.\n  #\n  class RetrySet < JobSet\n    def initialize\n      super(\"retry\")\n    end"
+        }
+      ]
+    },
+    {
+      "repository": "SwitchHosts",
+      "commit": "7c8eaa50a6c45dde8ce7614c5659747000b36671",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\SwitchHosts.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "src-tauri/src/lifecycle.rs:593 (apply_restored_geometry_before_show) | src-tauri/src/lifecycle.rs:630 (apply_restored_geometry_before_show)",
+        "reason": "同一符号的多平台条件编译分支（#[cfg] / #ifdef）必须保持签名一致",
+        "expectedRelation": "对齐 apply_restored_geometry_before_show 在各平台分支中的参数签名",
+        "sourceBasis": "条件编译对称契约",
+        "status": "VIOLATED",
+        "evidence": [
+          "src-tauri/src/lifecycle.rs:593 (apply_restored_geometry_before_show) -> params(window, geom, monitors)",
+          "src-tauri/src/lifecycle.rs:630 (apply_restored_geometry_before_show) -> params(window, geom)"
+        ],
+        "finding": "违反：条件编译同名函数 \"apply_restored_geometry_before_show\" 在不同平台分支中参数数量不一致",
+        "remediation": "请同步更新 src-tauri/src/lifecycle.rs 中所有条件编译分支的 \"apply_restored_geometry_before_show\" 签名与处理逻辑。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "忽略保留形参导致参数计数错误",
+      "rationale": "macOS 和其它平台版本都接收三个参数，_monitors 被错误从参数个数中移除。",
+      "evidence": [
+        {
+          "file": "src-tauri/src/lifecycle.rs",
+          "startLine": 592,
+          "endLine": 598,
+          "sourceSha256": "6176211948178df104b004dc51b253d1f0c5c8d320d3ec1203f4219df071eb72",
+          "excerpt": "#[cfg(target_os = \"macos\")]\nfn apply_restored_geometry_before_show<R: Runtime>(\n    window: &WebviewWindow<R>,\n    geom: &WindowGeometry,\n    monitors: &[Monitor],\n) {\n    if MainThreadMarker::new().is_none() {"
+        },
+        {
+          "file": "src-tauri/src/lifecycle.rs",
+          "startLine": 629,
+          "endLine": 636,
+          "sourceSha256": "6176211948178df104b004dc51b253d1f0c5c8d320d3ec1203f4219df071eb72",
+          "excerpt": "#[cfg(not(target_os = \"macos\"))]\nfn apply_restored_geometry_before_show<R: Runtime>(\n    window: &WebviewWindow<R>,\n    geom: &WindowGeometry,\n    _monitors: &[Monitor],\n) {\n    apply_restored_geometry_fallback(window, geom);\n}"
+        }
+      ]
+    },
+    {
+      "repository": "uptime-kuma",
+      "commit": "fb8ef0fa8200bb989f3a115dda3b0e09a3c31167",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\uptime-kuma.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "server/model/api_key.js:5 (APIKey)",
+        "reason": "继承/实现 \"BeanModel\" 的新增或变更子类必须同步加入工厂或分流注册表",
+        "expectedRelation": "在 [server/model/monitor.js:490 (Monitor.beat), server/model/domain_expiry.js:110 (getRdapDomainExpiryDate), server/model/monitor.js:1414 (Monitor.sendDomainInfo), server/model/domain_expiry.js:20 (getRdapServer)] 中建立对 APIKey 的构造或注册引用",
+        "sourceBasis": "同族实现挂载证据: DockerHost, DomainExpiry, Maintenance, Monitor, Proxy, RemoteBrowser, StatusPage",
+        "status": "VIOLATED",
+        "evidence": [
+          "server/model/api_key.js:5 (APIKey)",
+          "server/model/monitor.js:490 (Monitor.beat)",
+          "server/model/domain_expiry.js:110 (getRdapDomainExpiryDate)",
+          "server/model/monitor.js:1414 (Monitor.sendDomainInfo)",
+          "server/model/domain_expiry.js:20 (getRdapServer)"
+        ],
+        "finding": "违反：实现类 \"APIKey\" (契约 BeanModel) 未加入工厂/分发器注册，导致运行期无法派发到该实现",
+        "remediation": "请参照 [DockerHost, DomainExpiry, Maintenance, Monitor, Proxy, RemoteBrowser, StatusPage] 在 server/model/monitor.js:490 (Monitor.beat) / server/model/domain_expiry.js:110 (getRdapDomainExpiryDate) / server/model/monitor.js:1414 (Monitor.sendDomainInfo) / server/model/domain_expiry.js:20 (getRdapServer) 中补齐 \"APIKey\" 的注册分支。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "ORM 动态加载未识别",
+      "rationale": "数据库启动时 autoloadModels 加载 server/model，APIKey 使用 R.dispense('api_key') 实例化。",
+      "evidence": [
+        {
+          "file": "server/database.js",
+          "startLine": 437,
+          "endLine": 447,
+          "sourceSha256": "764aee9601620c2b66b44c9699a979c7323950b8261484846d7e8cba22bba06c",
+          "excerpt": "        }\n\n        // Auto map the model to a bean object\n        R.freeze(true);\n\n        if (autoloadModels) {\n            await R.autoloadModels(\"./server/model\");\n        }\n\n        if (dbConfig.type === \"sqlite\") {\n            if (!noLog) {"
+        },
+        {
+          "file": "server/model/api_key.js",
+          "startLine": 54,
+          "endLine": 69,
+          "sourceSha256": "39d6079c71647e056667643fac90372d87fe9f6ff673603b01914672672c5b43",
+          "excerpt": "    /**\n     * Create a new API Key and store it in the database\n     * @param {object} key Object sent by client\n     * @param {int} userID ID of socket user\n     * @returns {Promise<bean>} API key\n     */\n    static async save(key, userID) {\n        let bean;\n        bean = R.dispense(\"api_key\");\n\n        bean.key = key.key;\n        bean.name = key.name;\n        bean.user_id = userID;\n        bean.active = key.active;\n        bean.expires = key.expires;\n"
+        }
+      ]
+    },
+    {
+      "repository": "zod",
+      "commit": "19c40d2072288b4cafec851e9d056a72a88e5973",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\scans\\zod.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "packages/zod/src/v3/types.ts:4318 (ZodEffects)",
+        "reason": "同族/跨平台实现共享契约 \"Input\"，新增契约方法需在所有激活平台/分支实现中同步补齐",
+        "expectedRelation": "在 ZodEffects (packages/zod/src/v3/types.ts) 中实现方法 description()",
+        "sourceBasis": "已实现分支: ZodType.description",
+        "status": "VIOLATED",
+        "evidence": [
+          "packages/zod/src/v3/types.ts:4318 (ZodEffects)",
+          "packages/zod/src/v3/types.ts:164 (ZodType.description)",
+          "packages/zod/src/v3/types.ts:123 (processCreateParams)"
+        ],
+        "finding": "违反：同族/另一平台分支 \"ZodEffects\" 遗漏实现方法 \"description()\"（上游已按共享契约 \"Input\" 调用）",
+        "remediation": "请在 packages/zod/src/v3/types.ts 的 ZodEffects 中同步实现 \"description()\"，保持多态/跨平台契约一致。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "泛型参数误作继承及继承 getter 丢失",
+      "rationale": "ZodEffects 继承 ZodType，Input 是泛型参数；description 是基类提供的 getter。",
+      "evidence": [
+        {
+          "file": "packages/zod/src/v3/types.ts",
+          "startLine": 158,
+          "endLine": 167,
+          "sourceSha256": "ec3f3075ea559c431fee389b8a4a7d897966579cfd67dbf533641014c1da1def",
+          "excerpt": "export abstract class ZodType<Output = any, Def extends ZodTypeDef = ZodTypeDef, Input = Output> {\n  readonly _type!: Output;\n  readonly _output!: Output;\n  readonly _input!: Input;\n  readonly _def!: Def;\n\n  get description(): string | undefined {\n    return this._def.description;\n  }\n"
+        },
+        {
+          "file": "packages/zod/src/v3/types.ts",
+          "startLine": 4318,
+          "endLine": 4325,
+          "sourceSha256": "ec3f3075ea559c431fee389b8a4a7d897966579cfd67dbf533641014c1da1def",
+          "excerpt": "export class ZodEffects<T extends ZodTypeAny, Output = output<T>, Input = input<T>> extends ZodType<\n  Output,\n  ZodEffectsDef<T>,\n  Input\n> {\n  innerType() {\n    return this._def.schema;\n  }"
+        }
+      ]
+    },
+    {
+      "repository": "chi",
+      "commit": "c64ed7d6635f33a8b2feaff7dcfa55677023ac7d",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\holdout-scans\\scans\\chi.1.json",
+      "obligation": {
+        "id": "AUTO-EXP-1",
+        "station": "ENTRY_WIRING",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "context.go:104-120 (Context.Clone)",
+        "reason": "应用工程中的新增或导出功能必须连通真实运行入口，不能仅因带有 export 就视为已接入",
+        "expectedRelation": "建立从真实入口（UI/IPC/路由/主循环）到 Clone 的调用连接",
+        "sourceBasis": "项目模式识别: application",
+        "status": "VIOLATED",
+        "evidence": [
+          "context.go:104-120 (Context.Clone)"
+        ],
+        "finding": "违反：导出函数 \"Clone\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）",
+        "remediation": "请将 \"Clone\" 接入真实上游入口；若该函数应作为公共 SDK 导出，请通过包主入口模块暴露或声明库导出配置。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "库与应用模式识别错误",
+      "rationale": "chi 是导入使用的 Go 路由库；Context.Clone 是公开 API，要求仓内运行入口是错误前提。",
+      "evidence": [
+        {
+          "file": "README.md",
+          "startLine": 6,
+          "endLine": 17,
+          "sourceSha256": "da6898117cfd8466687aee59abc4b973fc3ea9176525ba083cf4906c04909c68",
+          "excerpt": "`chi` is a lightweight, idiomatic and composable router for building Go HTTP services. It's\nespecially good at helping you write large REST API services that are kept maintainable as your\nproject grows and changes. `chi` is built on the new `context` package introduced in Go 1.7 to\nhandle signaling, cancelation and request-scoped values across a handler chain.\n\nThe focus of the project has been to seek out an elegant and comfortable design for writing\nREST API servers, written during the development of the Pressly API service that powers our\npublic API service, which in turn powers all of our client-side applications.\n\nThe key considerations of chi's design are: project structure, maintainability, standard http\nhandlers (stdlib-only), developer productivity, and deconstructing a large system into many small\nparts. The core router `github.com/go-chi/chi` is quite small (less than 1000 LOC), but we've also"
+        },
+        {
+          "file": "context.go",
+          "startLine": 101,
+          "endLine": 120,
+          "sourceSha256": "59160437a9ab4d41f7898e71f555e4c77b5b48500cf9ca4f417e6def159a7ad3",
+          "excerpt": "// Clone must be called before the request handler returns; after that, the\n// original context is reset and put back into the pool for reuse by another\n// request, racing with the copy.\nfunc (x *Context) Clone() *Context {\n\tclone := *x\n\n\t// Detach from the request's context, which is canceled once the request finishes.\n\tclone.parentCtx = nil\n\n\tclone.URLParams.Keys = slices.Clone(x.URLParams.Keys)\n\tclone.URLParams.Values = slices.Clone(x.URLParams.Values)\n\n\tclone.routeParams.Keys = slices.Clone(x.routeParams.Keys)\n\tclone.routeParams.Values = slices.Clone(x.routeParams.Values)\n\n\tclone.RoutePatterns = slices.Clone(x.RoutePatterns)\n\tclone.methodsAllowed = slices.Clone(x.methodsAllowed)\n\n\treturn &clone\n}"
+        },
+        {
+          "file": "go.mod",
+          "startLine": 1,
+          "endLine": 5,
+          "sourceSha256": "2c2156247ebc169db67963a087bf2c56e86825a0507449a54beb15649236aa4a",
+          "excerpt": "module github.com/go-chi/chi/v5\n\n// Chi supports the four most recent major versions of Go.\n// See https://github.com/go-chi/chi/issues/963.\ngo 1.24"
+        }
+      ]
+    },
+    {
+      "repository": "click",
+      "commit": "8abb77a8432e03ed14a95f972b44f905279415a7",
+      "rawReport": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\holdout-scans\\scans\\click.1.json",
+      "obligation": {
+        "id": "AUTO-1",
+        "station": "REGISTRATION_OR_DISPATCH",
+        "layer": "L1_STRUCTURAL",
+        "required": true,
+        "targetLocation": "src/click/_utils.py:7 (Sentinel)",
+        "reason": "继承/实现 \"enum\" 的新增或变更子类必须同步加入工厂或分流注册表",
+        "expectedRelation": "在 [src/click/core.py:238 (Context), src/click/core.py:957 (Context.set_parameter_source), src/click/core.py:2670 (Parameter.consume_value), src/click/core.py:3805 (Option.consume_value)] 中建立对 Sentinel 的构造或注册引用",
+        "sourceBasis": "同族实现挂载证据: ParameterSource",
+        "status": "VIOLATED",
+        "evidence": [
+          "src/click/_utils.py:7 (Sentinel)",
+          "src/click/core.py:238 (Context)",
+          "src/click/core.py:957 (Context.set_parameter_source)",
+          "src/click/core.py:2670 (Parameter.consume_value)",
+          "src/click/core.py:3805 (Option.consume_value)"
+        ],
+        "finding": "违反：实现类 \"Sentinel\" (契约 enum) 未加入工厂/分发器注册，导致运行期无法派发到该实现",
+        "remediation": "请参照 [ParameterSource] 在 src/click/core.py:238 (Context) / src/click/core.py:957 (Context.set_parameter_source) / src/click/core.py:2670 (Parameter.consume_value) / src/click/core.py:3805 (Option.consume_value) 中补齐 \"Sentinel\" 的注册分支。"
+      },
+      "label": "CONFIRMED_FALSE_POSITIVE",
+      "category": "限定类型名截断",
+      "rationale": "Sentinel 继承 enum.Enum；enum 是模块，不是工厂公共基类。枚举成员已经被模块导出使用。",
+      "evidence": [
+        {
+          "file": "src/click/_utils.py",
+          "startLine": 1,
+          "endLine": 19,
+          "sourceSha256": "18e374eaa4bbb7f42273dde5849810e1e831178c4cb4778d29abf3ab80ada533",
+          "excerpt": "from __future__ import annotations\n\nimport enum\nimport typing as t\n\n\nclass Sentinel(enum.Enum):\n    \"\"\"Enum used to define sentinel values.\n\n    .. seealso::\n\n        `PEP 661 - Sentinel Values <https://peps.python.org/pep-0661/>`_.\n    \"\"\"\n\n    UNSET = object()\n    FLAG_NEEDS_VALUE = object()\n\n    def __repr__(self) -> str:\n        return f\"{self.__class__.__name__}.{self.name}\""
+        },
+        {
+          "file": "src/click/_utils.py",
+          "startLine": 29,
+          "endLine": 38,
+          "sourceSha256": "18e374eaa4bbb7f42273dde5849810e1e831178c4cb4778d29abf3ab80ada533",
+          "excerpt": "\n\nUNSET: t.Literal[Sentinel.UNSET] = Sentinel.UNSET\n\"\"\"Sentinel used to indicate that a value is not set.\"\"\"\n\nFLAG_NEEDS_VALUE: t.Literal[Sentinel.FLAG_NEEDS_VALUE] = Sentinel.FLAG_NEEDS_VALUE\n\"\"\"Sentinel used to indicate an option was passed as a flag without a\nvalue but is not a flag option.\n\n``Option.consume_value`` uses this to prompt or use the ``flag_value``."
+        }
+      ]
+    }
+  ]
+}

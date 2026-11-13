@@ -1,0 +1,58 @@
+{
+  "startedAt": "2026-11-11T14:27:25.672Z",
+  "corpus": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\holdouts",
+  "output": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\holdout-scans",
+  "repetitions": 2,
+  "environment": {
+    "node": "v24.14.0",
+    "platform": "win32",
+    "arch": "x64",
+    "release": "10.0.26300",
+    "cpus": 16
+  },
+  "engine": {
+    "gitHead": "a9858131e7939a9329cbd04e8e2d350760c1eca6",
+    "sourceHash": "4269e4f5a97c37ce57317df790db51fa571fbe35d2f6fe215023c346b31ecb36",
+    "files": {
+      "arch-vision.mjs": "42aca858fadcdc9facb50c39023e39ca7a731a61f509cc360ac1b4c3f061c0af",
+      "bridge-linker.mjs": "74881f2229d820952e6195d75011e0b5d397800d53597cb731dac5268c0f99d0",
+      "file-parser.mjs": "2032fd19ebc935e08bdb9acb8e82493598bc2dc2336b7ee230c182b4da9edd97",
+      "fingerprint.mjs": "1ce92e329c8f0e850bc135218ca64c0a012f73697ce02633799e3f47f895e096",
+      "flow-tools.mjs": "f906e00c9a8dbcac775fb81ac2b0c9ed1faa0917135a290e6561c66059b180e8",
+      "flow-verifier.mjs": "8d571aea2b9af3b652b74b8a656c7099e6aa0c24c0ad2a94bc168b46037e2329",
+      "graph-builder.mjs": "6113bdda7d7a0dae4e438519e6d5800c2f2b49b064eeb50ed5f4b72c1d1ebcb9",
+      "graph-diff.mjs": "f3611d46a088028e9ee6a0261b3bb6982c78d7deee8f036acb7fa09ef18342f9",
+      "hook-runner.mjs": "29825bd3de8242490f7a05ea049d7c67e623a75405b410d18bb9c2db4881d916",
+      "lang-presets.mjs": "69bf8b6097a4f543f8a4e5fc3df40f516f47e330a21eb51c83f5626e6a7c2041",
+      "lexer.mjs": "b485a3251743b648f4fa48d12386d34fbb111022f56b673b473fd269186c651a",
+      "server.mjs": "6cfe69703e0a668c1e00f30075ce0b849a9139bd5c29af1bd636286d4576d7f6",
+      "state-store.mjs": "12a4492062088a8edd07665b75fe2959057637c53e8ea5375c39c75e96d0962c",
+      "test-process.mjs": "5aa0c6abb00079f4ff23d10978c319f4510f95661d8dfd67b982a260cf75a285",
+      "test-runner.mjs": "1e8dc1730f74b499f5ddf744a03f0a531f637d854289c09fb6e72a2b81e83ff2",
+      "wiring-contract.mjs": "6ed073be2f3391726606cec922fd8e74543c073cfccfd9f85e00d2ddb461dc94"
+    }
+  },
+  "repositories": [
+    {
+      "name": "chi",
+      "workspace": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\holdouts\\chi",
+      "commit": "c64ed7d6635f33a8b2feaff7dcfa55677023ac7d",
+      "remote": "https://github.com/go-chi/chi.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "click",
+      "workspace": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\holdouts\\click",
+      "commit": "8abb77a8432e03ed14a95f972b44f905279415a7",
+      "remote": "https://github.com/pallets/click.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "p-limit",
+      "workspace": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\holdouts\\p-limit",
+      "commit": "a8a6fbec4e0e866d6d779b10889bb4f5567e70eb",
+      "remote": "https://github.com/sindresorhus/p-limit.git",
+      "initialStatus": ""
+    }
+  ]
+}

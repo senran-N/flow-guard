@@ -1,0 +1,431 @@
+[
+  {
+    "repository": "Alamofire",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      2083,
+      2043
+    ],
+    "finalStatus": "",
+    "finalCommit": "6c2892ea5adb5a03fa81c510933dd782c5ddd9cb"
+  },
+  {
+    "repository": "axum",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      2543,
+      2551
+    ],
+    "finalStatus": "",
+    "finalCommit": "47399621c4017601ea493cd63c3af581f4fb33e3"
+  },
+  {
+    "repository": "BepInEx",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      910,
+      885
+    ],
+    "finalStatus": "",
+    "finalCommit": "dbc82f05b8ea34833de5b6a723eb60dd8398e0b1"
+  },
+  {
+    "repository": "bits-ui",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      43768,
+      43534
+    ],
+    "finalStatus": "",
+    "finalCommit": "a6f32ab5adf3f927ac8ec16d2059cb8ea38e717b"
+  },
+  {
+    "repository": "bruno",
+    "completed": false,
+    "deterministic": false,
+    "verifyMs": [
+      null,
+      null
+    ],
+    "finalStatus": "",
+    "finalCommit": "60d7517d0545ef82c032c10dcbb6a3c815d246cf"
+  },
+  {
+    "repository": "clash-verge-rev",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      15962,
+      14531
+    ],
+    "finalStatus": "",
+    "finalCommit": "389dddf51204984e91a9769c3dee08db2eeefbb2"
+  },
+  {
+    "repository": "cobra",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      712,
+      655
+    ],
+    "finalStatus": "",
+    "finalCommit": "adbc8813901bba65827259daa8e22ff94ec1f30e"
+  },
+  {
+    "repository": "Dapper",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      1530,
+      1527
+    ],
+    "finalStatus": "",
+    "finalCommit": "eb47546a408bbf6c178bda4f04dc205bc51ffbfe"
+  },
+  {
+    "repository": "dio",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      1809,
+      1852
+    ],
+    "finalStatus": "",
+    "finalCommit": "f1bef462289b40992d625d4eb2a2f42321217573"
+  },
+  {
+    "repository": "fastapi",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      21354,
+      22287
+    ],
+    "finalStatus": "",
+    "finalCommit": "e1144f6954eb8dd8c306f8dd2f5f0a14bbeb2cfd"
+  },
+  {
+    "repository": "fd",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      631,
+      620
+    ],
+    "finalStatus": "",
+    "finalCommit": "24d90b28d25438af2a8f2e7f7e46d03d6828da94"
+  },
+  {
+    "repository": "flask",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      1066,
+      924
+    ],
+    "finalStatus": "",
+    "finalCommit": "49943b5a94413a530761350f04e896f76e8d620e"
+  },
+  {
+    "repository": "fmt",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      2701,
+      2619
+    ],
+    "finalStatus": "",
+    "finalCommit": "e7e6e3f71033fbfc71eba1709789328bcb0ceb28"
+  },
+  {
+    "repository": "full-stack-fastapi-template",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      817,
+      889
+    ],
+    "finalStatus": "",
+    "finalCommit": "aabb90126964a164e02aff39e7c385bb0598236d"
+  },
+  {
+    "repository": "gin",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      1140,
+      1037
+    ],
+    "finalStatus": "",
+    "finalCommit": "0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646"
+  },
+  {
+    "repository": "gson",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      2539,
+      2667
+    ],
+    "finalStatus": "",
+    "finalCommit": "a961b0fe088f8558d00cc1b56e506a3656907a91"
+  },
+  {
+    "repository": "hono",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      9381,
+      8068
+    ],
+    "finalStatus": "",
+    "finalCommit": "61f7c59e50244ab4d2dd83c151928cf7ea448510"
+  },
+  {
+    "repository": "httpx",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      954,
+      878
+    ],
+    "finalStatus": "",
+    "finalCommit": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254"
+  },
+  {
+    "repository": "jq",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      874,
+      889
+    ],
+    "finalStatus": "",
+    "finalCommit": "5c001b18d7237cce1fdba63608732163f978dd23"
+  },
+  {
+    "repository": "koel",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      60205,
+      63030
+    ],
+    "finalStatus": "",
+    "finalCommit": "80a21bb34c5f8e6ac5c848821833affc4d01176c"
+  },
+  {
+    "repository": "llama.cpp",
+    "completed": false,
+    "deterministic": false,
+    "verifyMs": [
+      null,
+      null
+    ],
+    "finalStatus": "",
+    "finalCommit": "aa75ff3239f9cc675b081697deda9e1b112345c6"
+  },
+  {
+    "repository": "memos",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      56139,
+      55860
+    ],
+    "finalStatus": "",
+    "finalCommit": "abdeb8a57cc40ecc0b2527d55f604bbe36491dfb"
+  },
+  {
+    "repository": "okhttp",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      31504,
+      35158
+    ],
+    "finalStatus": "",
+    "finalCommit": "4162e9da32f636442bc789a7576144fe5972d0a5"
+  },
+  {
+    "repository": "pinia",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      1441,
+      869
+    ],
+    "finalStatus": "",
+    "finalCommit": "4817135a25431172d363bd928476db7cdbf875c4"
+  },
+  {
+    "repository": "pocketbase",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      34299,
+      39899
+    ],
+    "finalStatus": "",
+    "finalCommit": "7f2773ec234b62d0b80ca47c508397cb3d0da3ea"
+  },
+  {
+    "repository": "pot-desktop",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      2016,
+      1850
+    ],
+    "finalStatus": "",
+    "finalCommit": "594d32ede96acd106b0256deaa8bb440ffcdff40"
+  },
+  {
+    "repository": "retrofit",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      4525,
+      3821
+    ],
+    "finalStatus": "",
+    "finalCommit": "ac37c61643860b0ab09a165cd5aa4a986484e872"
+  },
+  {
+    "repository": "ripgrep",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      3124,
+      2689
+    ],
+    "finalStatus": "",
+    "finalCommit": "178cc027e283fd965cb72d0a7395b219eada170c"
+  },
+  {
+    "repository": "serilog",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      2126,
+      2007
+    ],
+    "finalStatus": "",
+    "finalCommit": "43105b35095337d77f022561a8f2d3db2f9a7937"
+  },
+  {
+    "repository": "sidekiq",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      1464,
+      1541
+    ],
+    "finalStatus": "",
+    "finalCommit": "75982898ff6dc984988da8b9ecf5371eba68e120"
+  },
+  {
+    "repository": "SwitchHosts",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      2534,
+      2589
+    ],
+    "finalStatus": "",
+    "finalCommit": "7c8eaa50a6c45dde8ce7614c5659747000b36671"
+  },
+  {
+    "repository": "uptime-kuma",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      14970,
+      17025
+    ],
+    "finalStatus": "",
+    "finalCommit": "fb8ef0fa8200bb989f3a115dda3b0e09a3c31167"
+  },
+  {
+    "repository": "zod",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      24510,
+      21677
+    ],
+    "finalStatus": "",
+    "finalCommit": "19c40d2072288b4cafec851e9d056a72a88e5973"
+  },
+  {
+    "repository": "chi",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      692,
+      685
+    ],
+    "finalStatus": "",
+    "finalCommit": "c64ed7d6635f33a8b2feaff7dcfa55677023ac7d"
+  },
+  {
+    "repository": "click",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      1402,
+      1404
+    ],
+    "finalStatus": "",
+    "finalCommit": "8abb77a8432e03ed14a95f972b44f905279415a7"
+  },
+  {
+    "repository": "p-limit",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      222,
+      229
+    ],
+    "finalStatus": "",
+    "finalCommit": "a8a6fbec4e0e866d6d779b10889bb4f5567e70eb"
+  },
+  {
+    "repository": "httprouter",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      231,
+      235
+    ],
+    "finalStatus": "",
+    "finalCommit": "484018016424d215c0b87c42f4c9b57d980fbd00"
+  },
+  {
+    "repository": "packaging",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      1503,
+      1504
+    ],
+    "finalStatus": "",
+    "finalCommit": "9afc187996400b417b7109b1b3452d7fdcfe7696"
+  },
+  {
+    "repository": "yocto-queue",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      139,
+      127
+    ],
+    "finalStatus": "",
+    "finalCommit": "72a8fa96a9d389765cdf2bb9c6daba8302fc375d"
+  }
+]

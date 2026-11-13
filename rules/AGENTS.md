@@ -14,4 +14,4 @@
 - **诚实对待三态结论与死代码分级**：
   - 对 `VIOLATED`（明确违反契约）必须补齐真实缺失连接，**严禁添加无实际效果的形式化假调用、空 `catch {}` 或 `#[allow(dead_code)]` 掩盖告警**。
   - 对 `INCONCLUSIVE`（动态插件、单向外部事件或缺少运行期测试导致证据不足）应如实向用户说明待确认边界，不要把“未发现静态报错”夸大为“端到端行为已验证完成”。
-  - 清理死代码时区分证据强度：仅对 `CONFIRMED_SAFE_TO_DELETE` 的内部零入度废管直接物理删除；对 `NO_STATIC_CALLER_EVIDENCE` 的导出符号或 `reservedContracts` 预留契约，须先确认无外部宿主/反射调用后再处理。
+  - 清理死代码时区分证据强度：`NO_STATIC_CALLER_EVIDENCE` 仅表示未发现静态引用，不是安全删除证明。核对 `analysisScope` / `uncertainty`、动态或外部调用契约并运行测试后，再决定保留、接入或删除；保护 `reservedContracts`。

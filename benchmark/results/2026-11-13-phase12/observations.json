@@ -1,0 +1,104 @@
+[
+  {
+    "repository": "axum",
+    "previousSourceHash": "7b120c3c2d2e09f4883b2ef65854ae45bebeb02ad2378ddb09145ee2aa1eefab",
+    "before": {
+      "total": 1072,
+      "satisfied": 0,
+      "violated": 6,
+      "inconclusive": 1066
+    },
+    "after": {
+      "total": 1159,
+      "satisfied": 0,
+      "violated": 0,
+      "inconclusive": 1159
+    },
+    "verdict": "INCONCLUSIVE"
+  },
+  {
+    "repository": "clash-verge-rev",
+    "previousSourceHash": "7b120c3c2d2e09f4883b2ef65854ae45bebeb02ad2378ddb09145ee2aa1eefab",
+    "before": {
+      "total": 647,
+      "satisfied": 0,
+      "violated": 43,
+      "inconclusive": 604
+    },
+    "after": {
+      "total": 646,
+      "satisfied": 0,
+      "violated": 15,
+      "inconclusive": 631
+    },
+    "verdict": "VIOLATED"
+  },
+  {
+    "repository": "fd",
+    "previousSourceHash": "7b120c3c2d2e09f4883b2ef65854ae45bebeb02ad2378ddb09145ee2aa1eefab",
+    "before": {
+      "total": 125,
+      "satisfied": 0,
+      "violated": 5,
+      "inconclusive": 120
+    },
+    "after": {
+      "total": 128,
+      "satisfied": 0,
+      "violated": 2,
+      "inconclusive": 126
+    },
+    "verdict": "VIOLATED"
+  },
+  {
+    "repository": "pot-desktop",
+    "previousSourceHash": "7b120c3c2d2e09f4883b2ef65854ae45bebeb02ad2378ddb09145ee2aa1eefab",
+    "before": {
+      "total": 45,
+      "satisfied": 0,
+      "violated": 0,
+      "inconclusive": 45
+    },
+    "after": {
+      "total": 46,
+      "satisfied": 0,
+      "violated": 0,
+      "inconclusive": 46
+    },
+    "verdict": "INCONCLUSIVE"
+  },
+  {
+    "repository": "ripgrep",
+    "previousSourceHash": "7b120c3c2d2e09f4883b2ef65854ae45bebeb02ad2378ddb09145ee2aa1eefab",
+    "before": {
+      "total": 1408,
+      "satisfied": 0,
+      "violated": 16,
+      "inconclusive": 1392
+    },
+    "after": {
+      "total": 1599,
+      "satisfied": 0,
+      "violated": 3,
+      "inconclusive": 1596
+    },
+    "verdict": "VIOLATED"
+  },
+  {
+    "repository": "SwitchHosts",
+    "previousSourceHash": "7b120c3c2d2e09f4883b2ef65854ae45bebeb02ad2378ddb09145ee2aa1eefab",
+    "before": {
+      "total": 309,
+      "satisfied": 0,
+      "violated": 7,
+      "inconclusive": 302
+    },
+    "after": {
+      "total": 318,
+      "satisfied": 0,
+      "violated": 7,
+      "inconclusive": 311
+    },
+    "verdict": "VIOLATED"
+  }
+]

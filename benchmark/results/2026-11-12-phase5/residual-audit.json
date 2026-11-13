@@ -1,0 +1,83 @@
+{
+  "sourceHash": "4a19ccd3c70f6339d7b5446cb516fbefed64f82317a04eaf97bfa6d6316e23cc",
+  "selection": "Targeted follow-up, not a representative sample or precision estimate",
+  "cases": [
+    {
+      "repo": "okhttp",
+      "file": "android-test-app/src/main/kotlin/okhttp/android/testapp/MainActivity.kt",
+      "from": 29,
+      "to": 64,
+      "pattern": "onFailure|onResponse",
+      "verdict": "CONFIRMED_STATIC_FALSE_POSITIVE",
+      "reason": "Both overrides belong to an anonymous Callback passed to enqueue from onCreate.",
+      "commit": "4162e9da32f636442bc789a7576144fe5972d0a5",
+      "sha256": "6720194efe10dafadd5cf2ea0630740581c4d155dfcce4b0bfc9b9602f4bd29a",
+      "source": "open class MainActivity : ComponentActivity() {\n  override fun onCreate(savedInstanceState: Bundle?) {\n    super.onCreate(savedInstanceState)\n\n    val client = OkHttpClient()\n\n    // Ensure we are compiling against the right variant\n    println(AndroidPlatform.isSupported)\n\n    val url = \"https://github.com/lysine-dev/okhttp\".toHttpUrl()\n    println(url.topPrivateDomain())\n\n    client.newCall(Request(url)).enqueue(\n      object : Callback {\n        override fun onFailure(\n          call: Call,\n          e: IOException,\n        ) {\n          println(\"failed: $e\")\n        }\n\n        override fun onResponse(\n          call: Call,\n          response: Response,\n        ) {\n          println(\"response: ${response.code}\")\n          response.close()\n        }\n      },\n    )\n  }\n}\n",
+      "findings": [
+        {
+          "id": "AUTO-EXP-1",
+          "station": "ENTRY_WIRING",
+          "layer": "L1_STRUCTURAL",
+          "required": true,
+          "targetLocation": "android-test-app/src/main/kotlin/okhttp/android/testapp/MainActivity.kt:43-48 (onFailure)",
+          "reason": "应用工程中的新增或导出功能必须连通真实运行入口，不能仅因带有 export 就视为已接入",
+          "expectedRelation": "建立从真实入口（UI/IPC/路由/主循环）到 onFailure 的调用连接",
+          "sourceBasis": "项目模式识别: hybrid",
+          "status": "VIOLATED",
+          "evidence": [
+            "android-test-app/src/main/kotlin/okhttp/android/testapp/MainActivity.kt:43-48 (onFailure)"
+          ],
+          "finding": "违反：导出函数 \"onFailure\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）",
+          "remediation": "请将 \"onFailure\" 接入真实上游入口；若该函数应作为公共 SDK 导出，请通过包主入口模块暴露或声明库导出配置。"
+        },
+        {
+          "id": "AUTO-EXP-2",
+          "station": "ENTRY_WIRING",
+          "layer": "L1_STRUCTURAL",
+          "required": true,
+          "targetLocation": "android-test-app/src/main/kotlin/okhttp/android/testapp/MainActivity.kt:50-56 (onResponse)",
+          "reason": "应用工程中的新增或导出功能必须连通真实运行入口，不能仅因带有 export 就视为已接入",
+          "expectedRelation": "建立从真实入口（UI/IPC/路由/主循环）到 onResponse 的调用连接",
+          "sourceBasis": "项目模式识别: hybrid",
+          "status": "VIOLATED",
+          "evidence": [
+            "android-test-app/src/main/kotlin/okhttp/android/testapp/MainActivity.kt:50-56 (onResponse)"
+          ],
+          "finding": "违反：导出函数 \"onResponse\" 在应用工程中未连通任何真实入口（应用新功能不能仅凭 export 视为已接入；删除前请确认无外部反射调用）",
+          "remediation": "请将 \"onResponse\" 接入真实上游入口；若该函数应作为公共 SDK 导出，请通过包主入口模块暴露或声明库导出配置。"
+        }
+      ]
+    },
+    {
+      "repo": "bruno",
+      "file": "packages/bruno-electron/src/store/cookies.js",
+      "from": 161,
+      "to": 183,
+      "pattern": "saveTimerId",
+      "verdict": "CONFIRMED_STATIC_FALSE_POSITIVE",
+      "reason": "The private timer handle is read to cancel pending writes and updated by setTimeout. Being internal to persistence is its intended purpose, not proof of missing business consumption.",
+      "commit": "60d7517d0545ef82c032c10dcbb6a3c815d246cf",
+      "sha256": "2c78bc6f36427adb57e564c42e200233443229a662b0e4ccb90878d9dd8b08ca",
+      "source": "  saveCookieJar(immediate = false) {\n    // Debounced write to avoid excessive disk I/O during rapid request bursts\n    if (immediate) {\n      if (this.#saveTimerId) {\n        clearTimeout(this.#saveTimerId);\n        this.#saveTimerId = null;\n      }\n      return this.writeCookieJar();\n    }\n\n    if (!this.#debounceStart) {\n      this.#debounceStart = Date.now();\n    }\n\n    if (this.#saveTimerId) {\n      clearTimeout(this.#saveTimerId);\n    }\n    this.#saveTimerId = setTimeout(() => {\n      this.writeCookieJar();\n      this.#saveTimerId = null;\n    }, DEBOUNCE_MS);\n  }\n}",
+      "findings": [
+        {
+          "id": "AUTO-2",
+          "station": "DATA_FLOW_CONSUMPTION",
+          "layer": "L2_DATA_FLOW",
+          "required": true,
+          "targetLocation": "packages/bruno-electron/src/store/cookies.js:31 (CookiesStore.initializeEncryption)",
+          "reason": "新增或修改的配置字段不能只接入写入和保存，必须真正传入业务计算逻辑生效",
+          "expectedRelation": "下游业务计算（如 initializeEncryption）读取 \"CookiesStore.#saveTimerId\"",
+          "sourceBasis": "同容器字段 \"store\" 由 packages/bruno-electron/src/store/cookies.js:31 (CookiesStore.initializeEncryption) 消费",
+          "status": "VIOLATED",
+          "evidence": [
+            "packages/bruno-electron/src/store/cookies.js:161 (CookiesStore.saveCookieJar)",
+            "packages/bruno-electron/src/store/cookies.js:161 (CookiesStore.saveCookieJar)"
+          ],
+          "finding": "违反：字段 \"CookiesStore.#saveTimerId\" 仅在持久化方法 [saveCookieJar] 中读取，无任何业务计算消费者",
+          "remediation": "请在下游计算逻辑（参考 packages/bruno-electron/src/store/cookies.js:31 (CookiesStore.initializeEncryption)）中读取并使用 \"CookiesStore.#saveTimerId\"。"
+        }
+      ]
+    }
+  ]
+}

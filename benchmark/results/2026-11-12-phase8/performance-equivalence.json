@@ -1,0 +1,626 @@
+{
+  "changedFiles": [
+    "graph-builder.mjs",
+    "lexer.mjs",
+    "similarity-index.mjs"
+  ],
+  "comparisons": [
+    {
+      "repository": "Alamofire",
+      "run": 2,
+      "resultHash": "66d03f9ea47f785b9bbf4e7fe5aa2dd95cad79ae853acefbe0c879b81afc6ed5",
+      "unchanged": true
+    },
+    {
+      "repository": "Alamofire",
+      "run": 1,
+      "resultHash": "66d03f9ea47f785b9bbf4e7fe5aa2dd95cad79ae853acefbe0c879b81afc6ed5",
+      "unchanged": true
+    },
+    {
+      "repository": "axum",
+      "run": 2,
+      "resultHash": "7c696b4f2e7ed6f7e2d11597747cc55cfa595350810344162d8a12e52a06a197",
+      "unchanged": true
+    },
+    {
+      "repository": "axum",
+      "run": 1,
+      "resultHash": "7c696b4f2e7ed6f7e2d11597747cc55cfa595350810344162d8a12e52a06a197",
+      "unchanged": true
+    },
+    {
+      "repository": "BepInEx",
+      "run": 2,
+      "resultHash": "33277bb6c1b1470cdc06febfab3c7d4e642b40ffb2f4678b39a95fb37e4b2536",
+      "unchanged": true
+    },
+    {
+      "repository": "BepInEx",
+      "run": 1,
+      "resultHash": "33277bb6c1b1470cdc06febfab3c7d4e642b40ffb2f4678b39a95fb37e4b2536",
+      "unchanged": true
+    },
+    {
+      "repository": "bits-ui",
+      "run": 1,
+      "resultHash": "16bc1f1508e978a07066ca52c958541bef34a577f635bb6b80d374418e7cb3b1",
+      "unchanged": true
+    },
+    {
+      "repository": "bits-ui",
+      "run": 2,
+      "resultHash": "16bc1f1508e978a07066ca52c958541bef34a577f635bb6b80d374418e7cb3b1",
+      "unchanged": true
+    },
+    {
+      "repository": "bruno",
+      "run": 2,
+      "resultHash": "ce907d160e6ad59e93b69e858f344a8adc69633a2391ed351df8779ea6fc6c47",
+      "unchanged": true
+    },
+    {
+      "repository": "bruno",
+      "run": 1,
+      "resultHash": "ce907d160e6ad59e93b69e858f344a8adc69633a2391ed351df8779ea6fc6c47",
+      "unchanged": true
+    },
+    {
+      "repository": "clash-verge-rev",
+      "run": 2,
+      "resultHash": "b8ce686cb2cd648c01e295311dc81640348895e63b4508e8c8bf9ef58b9cf3d7",
+      "unchanged": true
+    },
+    {
+      "repository": "clash-verge-rev",
+      "run": 1,
+      "resultHash": "b8ce686cb2cd648c01e295311dc81640348895e63b4508e8c8bf9ef58b9cf3d7",
+      "unchanged": true
+    },
+    {
+      "repository": "cobra",
+      "run": 1,
+      "resultHash": "95ff5bd3550a7da8a54a885283ecd2ac162dcca543c634799230c5bd936d7b58",
+      "unchanged": true
+    },
+    {
+      "repository": "cobra",
+      "run": 2,
+      "resultHash": "95ff5bd3550a7da8a54a885283ecd2ac162dcca543c634799230c5bd936d7b58",
+      "unchanged": true
+    },
+    {
+      "repository": "Dapper",
+      "run": 1,
+      "resultHash": "4fb160f81130ea758a5c96235c2c32b3459a0200c7c368761f056a9d16856aec",
+      "unchanged": true
+    },
+    {
+      "repository": "Dapper",
+      "run": 2,
+      "resultHash": "4fb160f81130ea758a5c96235c2c32b3459a0200c7c368761f056a9d16856aec",
+      "unchanged": true
+    },
+    {
+      "repository": "dio",
+      "run": 1,
+      "resultHash": "7269b55a1cc71ae20f74745549c9b4cb10f446f3a66c70ad1ba6c6c15eee137d",
+      "unchanged": true
+    },
+    {
+      "repository": "dio",
+      "run": 2,
+      "resultHash": "7269b55a1cc71ae20f74745549c9b4cb10f446f3a66c70ad1ba6c6c15eee137d",
+      "unchanged": true
+    },
+    {
+      "repository": "fastapi",
+      "run": 1,
+      "resultHash": "cb4859cef8b027a30b7b4fc1c9b84a931d26752a355a6e19455a078913cd773a",
+      "unchanged": true
+    },
+    {
+      "repository": "fastapi",
+      "run": 2,
+      "resultHash": "cb4859cef8b027a30b7b4fc1c9b84a931d26752a355a6e19455a078913cd773a",
+      "unchanged": true
+    },
+    {
+      "repository": "fd",
+      "run": 1,
+      "resultHash": "c375481aeb2c117481f2c16dfc0c674ab77a8e034a757561d6c685f8844c6ab4",
+      "unchanged": true
+    },
+    {
+      "repository": "fd",
+      "run": 2,
+      "resultHash": "c375481aeb2c117481f2c16dfc0c674ab77a8e034a757561d6c685f8844c6ab4",
+      "unchanged": true
+    },
+    {
+      "repository": "flask",
+      "run": 2,
+      "resultHash": "79f2bba10a510015aa37a30e75403622bb51dd264e288d0943bc6a33e8d1b26f",
+      "unchanged": true
+    },
+    {
+      "repository": "flask",
+      "run": 1,
+      "resultHash": "79f2bba10a510015aa37a30e75403622bb51dd264e288d0943bc6a33e8d1b26f",
+      "unchanged": true
+    },
+    {
+      "repository": "fmt",
+      "run": 1,
+      "resultHash": "a02c51386ebd4bde2385a01f3bd8d50a6222fe2e8a3e2d2b3abe63c8e3d2065e",
+      "unchanged": true
+    },
+    {
+      "repository": "fmt",
+      "run": 2,
+      "resultHash": "a02c51386ebd4bde2385a01f3bd8d50a6222fe2e8a3e2d2b3abe63c8e3d2065e",
+      "unchanged": true
+    },
+    {
+      "repository": "full-stack-fastapi-template",
+      "run": 1,
+      "resultHash": "95fa50922204f46b7327741d26c7ecb6afe07fcdcc33d954becd6950f5d94673",
+      "unchanged": true
+    },
+    {
+      "repository": "full-stack-fastapi-template",
+      "run": 2,
+      "resultHash": "95fa50922204f46b7327741d26c7ecb6afe07fcdcc33d954becd6950f5d94673",
+      "unchanged": true
+    },
+    {
+      "repository": "gin",
+      "run": 2,
+      "resultHash": "912b6780db661b6ed04061cd5984b9503a3d75b5980bd3c409754939abb67a87",
+      "unchanged": true
+    },
+    {
+      "repository": "gin",
+      "run": 1,
+      "resultHash": "912b6780db661b6ed04061cd5984b9503a3d75b5980bd3c409754939abb67a87",
+      "unchanged": true
+    },
+    {
+      "repository": "gson",
+      "run": 1,
+      "resultHash": "f76befd1c61000945f8b9ae552e80f16b05f8abcdcd0b030f041baaab6ff14fd",
+      "unchanged": true
+    },
+    {
+      "repository": "gson",
+      "run": 2,
+      "resultHash": "f76befd1c61000945f8b9ae552e80f16b05f8abcdcd0b030f041baaab6ff14fd",
+      "unchanged": true
+    },
+    {
+      "repository": "hono",
+      "run": 1,
+      "resultHash": "9a428f3d00ca3fa165eed3c96df4111a85f71c454f9118df1029bafc47f30f0b",
+      "unchanged": true
+    },
+    {
+      "repository": "hono",
+      "run": 2,
+      "resultHash": "9a428f3d00ca3fa165eed3c96df4111a85f71c454f9118df1029bafc47f30f0b",
+      "unchanged": true
+    },
+    {
+      "repository": "httpx",
+      "run": 1,
+      "resultHash": "15ed88bd89d4703efb5cb9120dacddf6deb7e0661492a9e19a0aeb3e286ad5dd",
+      "unchanged": true
+    },
+    {
+      "repository": "httpx",
+      "run": 2,
+      "resultHash": "15ed88bd89d4703efb5cb9120dacddf6deb7e0661492a9e19a0aeb3e286ad5dd",
+      "unchanged": true
+    },
+    {
+      "repository": "jq",
+      "run": 1,
+      "resultHash": "2a170c21be70cd8fd4663388354a22c862b7ed234f7428ab57a99d0e767eb56b",
+      "unchanged": true
+    },
+    {
+      "repository": "jq",
+      "run": 2,
+      "resultHash": "2a170c21be70cd8fd4663388354a22c862b7ed234f7428ab57a99d0e767eb56b",
+      "unchanged": true
+    },
+    {
+      "repository": "koel",
+      "run": 1,
+      "resultHash": "9a2968b5f1db86b5d0fdcd1a2f7ebc9d9417b6dd0ae7d68dd6066f8ac352e0fa",
+      "unchanged": true
+    },
+    {
+      "repository": "koel",
+      "run": 2,
+      "resultHash": "9a2968b5f1db86b5d0fdcd1a2f7ebc9d9417b6dd0ae7d68dd6066f8ac352e0fa",
+      "unchanged": true
+    },
+    {
+      "repository": "llama.cpp",
+      "run": 1,
+      "unchanged": null,
+      "timedOut": true,
+      "exitCode": 1
+    },
+    {
+      "repository": "llama.cpp",
+      "run": 2,
+      "unchanged": null,
+      "timedOut": true,
+      "exitCode": 1
+    },
+    {
+      "repository": "memos",
+      "run": 2,
+      "resultHash": "4080ab1d3141dc0648a9cb955c5ddb1b749f2b08e0a3070e4f19470dc5cb9af0",
+      "unchanged": true
+    },
+    {
+      "repository": "memos",
+      "run": 1,
+      "resultHash": "4080ab1d3141dc0648a9cb955c5ddb1b749f2b08e0a3070e4f19470dc5cb9af0",
+      "unchanged": true
+    },
+    {
+      "repository": "okhttp",
+      "run": 1,
+      "resultHash": "dd8fb82d7298d04ec729f2ac62f594a57d085365ed34deb5bdfdc0a506bf2e0e",
+      "unchanged": true
+    },
+    {
+      "repository": "okhttp",
+      "run": 2,
+      "resultHash": "dd8fb82d7298d04ec729f2ac62f594a57d085365ed34deb5bdfdc0a506bf2e0e",
+      "unchanged": true
+    },
+    {
+      "repository": "pinia",
+      "run": 2,
+      "resultHash": "d68c96e418456ff0d327f0582c088634b70e3320e4cfee2c5daae6b6acab5759",
+      "unchanged": true
+    },
+    {
+      "repository": "pinia",
+      "run": 1,
+      "resultHash": "d68c96e418456ff0d327f0582c088634b70e3320e4cfee2c5daae6b6acab5759",
+      "unchanged": true
+    },
+    {
+      "repository": "pocketbase",
+      "run": 2,
+      "resultHash": "09c05f901a6a500791051203bb7e42941744fdc2762dedbb5c883e01bbf829f7",
+      "unchanged": true
+    },
+    {
+      "repository": "pocketbase",
+      "run": 1,
+      "resultHash": "09c05f901a6a500791051203bb7e42941744fdc2762dedbb5c883e01bbf829f7",
+      "unchanged": true
+    },
+    {
+      "repository": "pot-desktop",
+      "run": 1,
+      "resultHash": "bfa97fd411e7c48db814e481897cee99f02f97c4418672d3cc56ebedd6a8826f",
+      "unchanged": true
+    },
+    {
+      "repository": "pot-desktop",
+      "run": 2,
+      "resultHash": "bfa97fd411e7c48db814e481897cee99f02f97c4418672d3cc56ebedd6a8826f",
+      "unchanged": true
+    },
+    {
+      "repository": "retrofit",
+      "run": 2,
+      "resultHash": "09164f5a9660fd2a0ef01fb641d1f51e00f7ac0c3cec724c44cd3ea5e115ebb1",
+      "unchanged": true
+    },
+    {
+      "repository": "retrofit",
+      "run": 1,
+      "resultHash": "09164f5a9660fd2a0ef01fb641d1f51e00f7ac0c3cec724c44cd3ea5e115ebb1",
+      "unchanged": true
+    },
+    {
+      "repository": "ripgrep",
+      "run": 1,
+      "resultHash": "2e25e68da36f698f14923336d3c0656dbca97d3aef01cf646398ee404730cdee",
+      "unchanged": true
+    },
+    {
+      "repository": "ripgrep",
+      "run": 2,
+      "resultHash": "2e25e68da36f698f14923336d3c0656dbca97d3aef01cf646398ee404730cdee",
+      "unchanged": true
+    },
+    {
+      "repository": "serilog",
+      "run": 2,
+      "resultHash": "204383ea111eff69b28cb6f98d6acb7423228d410ab3d21fb30302639e109fe6",
+      "unchanged": true
+    },
+    {
+      "repository": "serilog",
+      "run": 1,
+      "resultHash": "204383ea111eff69b28cb6f98d6acb7423228d410ab3d21fb30302639e109fe6",
+      "unchanged": true
+    },
+    {
+      "repository": "sidekiq",
+      "run": 2,
+      "resultHash": "75d4275bf597740c077946f18dd21c61c3a19df3386c9cd70be898fbc80df470",
+      "unchanged": true
+    },
+    {
+      "repository": "sidekiq",
+      "run": 1,
+      "resultHash": "75d4275bf597740c077946f18dd21c61c3a19df3386c9cd70be898fbc80df470",
+      "unchanged": true
+    },
+    {
+      "repository": "SwitchHosts",
+      "run": 1,
+      "resultHash": "3ab0bb25e840eaa67b4e028d98974091541d78b3a4c5d57df912eff04b7f818a",
+      "unchanged": true
+    },
+    {
+      "repository": "SwitchHosts",
+      "run": 2,
+      "resultHash": "3ab0bb25e840eaa67b4e028d98974091541d78b3a4c5d57df912eff04b7f818a",
+      "unchanged": true
+    },
+    {
+      "repository": "uptime-kuma",
+      "run": 2,
+      "resultHash": "13b9a694399e5b1f2dc77e899f5f7fa15a8049af996557f6cb843c546ee24c86",
+      "unchanged": true
+    },
+    {
+      "repository": "uptime-kuma",
+      "run": 1,
+      "resultHash": "13b9a694399e5b1f2dc77e899f5f7fa15a8049af996557f6cb843c546ee24c86",
+      "unchanged": true
+    },
+    {
+      "repository": "zod",
+      "run": 2,
+      "resultHash": "8058e7956cac53f497d23fac9670b1615d00e803d79a7c879de5dfcb044399a7",
+      "unchanged": true
+    },
+    {
+      "repository": "zod",
+      "run": 1,
+      "resultHash": "8058e7956cac53f497d23fac9670b1615d00e803d79a7c879de5dfcb044399a7",
+      "unchanged": true
+    },
+    {
+      "repository": "chi",
+      "run": 2,
+      "resultHash": "a8e773c3a680e2de1696890fbdaef5e3738283ebb9ba3903156eac2e35614207",
+      "unchanged": true
+    },
+    {
+      "repository": "chi",
+      "run": 1,
+      "resultHash": "a8e773c3a680e2de1696890fbdaef5e3738283ebb9ba3903156eac2e35614207",
+      "unchanged": true
+    },
+    {
+      "repository": "click",
+      "run": 1,
+      "resultHash": "09397feb3a405992c6de97bbf33eaee994d309609981ab18ee5e721d6d1e4806",
+      "unchanged": true
+    },
+    {
+      "repository": "click",
+      "run": 2,
+      "resultHash": "09397feb3a405992c6de97bbf33eaee994d309609981ab18ee5e721d6d1e4806",
+      "unchanged": true
+    },
+    {
+      "repository": "p-limit",
+      "run": 1,
+      "resultHash": "0a9dfb20e9bbf426c491ef24875bb11aefd0bd90c9098b990727be5a5cc87133",
+      "unchanged": true
+    },
+    {
+      "repository": "p-limit",
+      "run": 2,
+      "resultHash": "0a9dfb20e9bbf426c491ef24875bb11aefd0bd90c9098b990727be5a5cc87133",
+      "unchanged": true
+    },
+    {
+      "repository": "httprouter",
+      "run": 1,
+      "resultHash": "91613492c638aeb6c6b79b87b5f3238212de8acfe2304afe7cc59c6a936723eb",
+      "unchanged": true
+    },
+    {
+      "repository": "httprouter",
+      "run": 2,
+      "resultHash": "91613492c638aeb6c6b79b87b5f3238212de8acfe2304afe7cc59c6a936723eb",
+      "unchanged": true
+    },
+    {
+      "repository": "packaging",
+      "run": 2,
+      "resultHash": "4dcfa27967c926c288f2082ca8c518c5728139f62c4151eae4061956811eda1e",
+      "unchanged": true
+    },
+    {
+      "repository": "packaging",
+      "run": 1,
+      "resultHash": "4dcfa27967c926c288f2082ca8c518c5728139f62c4151eae4061956811eda1e",
+      "unchanged": true
+    },
+    {
+      "repository": "yocto-queue",
+      "run": 2,
+      "resultHash": "dcd29466cf06dbef23db367b506ac9dfaf3591ea2c2d758fe07d49d888dc780d",
+      "unchanged": true
+    },
+    {
+      "repository": "yocto-queue",
+      "run": 1,
+      "resultHash": "dcd29466cf06dbef23db367b506ac9dfaf3591ea2c2d758fe07d49d888dc780d",
+      "unchanged": true
+    }
+  ],
+  "parser": [
+    {
+      "repo": "llama.cpp",
+      "file": "ggml/src/ggml-opencl/ggml-opencl.cpp",
+      "sourceHash": "f29bf4bda7e039227c165768e43b0a30a5dc2afecb0593493f6e7cb033a17070",
+      "beforeHash": "1ccab050cd4f518ddaad0eac2efe05baa3ea6aa975ac91d28935bc01ef8761c4",
+      "afterHash": "1ccab050cd4f518ddaad0eac2efe05baa3ea6aa975ac91d28935bc01ef8761c4",
+      "beforeMs": 1324,
+      "afterMs": 1229,
+      "symbols": 336
+    },
+    {
+      "repo": "llama.cpp",
+      "file": "tools/ui/src/lib/vendors/nerdamer-prime/nerdamer.core.js",
+      "sourceHash": "49fa37be1919bd8aaeccc9dcc0dd7363362ef771dc28c6e3e5cdbd7e0c1dbedb",
+      "beforeHash": "51d3f05b40aef4507ee4ec3d586ccc83c780cc787e5456d779b8f7a9d6e98d32",
+      "afterHash": "51d3f05b40aef4507ee4ec3d586ccc83c780cc787e5456d779b8f7a9d6e98d32",
+      "beforeMs": 4293,
+      "afterMs": 3395,
+      "symbols": 487
+    },
+    {
+      "repo": "llama.cpp",
+      "file": "tests/test-backend-ops.cpp",
+      "sourceHash": "9cdbc571163b7b155d3e3518f5862c56252f383510b1776553784eaad3c05a73",
+      "beforeHash": "e59471d5ed09b64d713f3f3939d2053c7dbfeab0a9621749f7d6f575c0db854a",
+      "afterHash": "e59471d5ed09b64d713f3f3939d2053c7dbfeab0a9621749f7d6f575c0db854a",
+      "beforeMs": 2433,
+      "afterMs": 2194,
+      "symbols": 834
+    },
+    {
+      "repo": "llama.cpp",
+      "file": "ggml/src/ggml-vulkan/ggml-vulkan.cpp",
+      "sourceHash": "20e5d99a0cdbc815115021e2fd49056182170931eaa4d88c04bf458ab6d2871e",
+      "beforeHash": "9d6904849d1b000a24da0d2f484c3d8ca04a668c1f2a5ca1c3dea5c7218d3933",
+      "afterHash": "9d6904849d1b000a24da0d2f484c3d8ca04a668c1f2a5ca1c3dea5c7218d3933",
+      "beforeMs": 1421,
+      "afterMs": 1587,
+      "symbols": 321
+    },
+    {
+      "repo": "llama.cpp",
+      "file": "gguf-py/gguf/gguf_writer.py",
+      "sourceHash": "3cd31b5c3d8aece05b5b1ebfc0a097acf7b4d4ec32778bd5839d7f4358b69af3",
+      "beforeHash": "76e3ffbe935f8339327fb6304e415b34526c1b7250fbc26d394a10153dad84ce",
+      "afterHash": "76e3ffbe935f8339327fb6304e415b34526c1b7250fbc26d394a10153dad84ce",
+      "beforeMs": 588,
+      "afterMs": 1058,
+      "symbols": 454
+    },
+    {
+      "repo": "llama.cpp",
+      "file": "ggml/src/ggml-cpu/arch/x86/repack.cpp",
+      "sourceHash": "540d192bb64b7127aa9e73b411b2e2cc49b72e980049b5aa2f2d026fad0aabbc",
+      "beforeHash": "8c0c7cac7c07a54ebc7892b8aadaa2bd8006401d5a98341590ddb4aa2b198567",
+      "afterHash": "8c0c7cac7c07a54ebc7892b8aadaa2bd8006401d5a98341590ddb4aa2b198567",
+      "beforeMs": 4386,
+      "afterMs": 2488,
+      "symbols": 31
+    }
+  ],
+  "performance": {
+    "startedAt": "2026-11-12T05:32:26.319Z",
+    "workspace": "D:\\Myproject\\crack\\llama.cpp",
+    "commit": "aa75ff3239f9cc675b081697deda9e1b112345c6",
+    "initialStatus": "",
+    "engines": {
+      "phase7": {
+        "sourceHash": "2231f027c2f51200665ccad5803903b796588c4c0003eb444a6cb300d5a0f724",
+        "worker": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase7-corpus\\engine-snapshot\\benchmark\\real-world-worker.mjs"
+      },
+      "phase8": {
+        "sourceHash": "00540c37c276e25b897f0917a2b2505f166d2beec4dbafc227123d792772b512",
+        "worker": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase8-corpus\\engine-snapshot\\benchmark\\real-world-worker.mjs"
+      }
+    },
+    "order": [
+      "phase7",
+      "phase8",
+      "phase8",
+      "phase7"
+    ],
+    "timeoutMs": 120000,
+    "node": "v24.14.0",
+    "platform": "win32",
+    "runs": [
+      {
+        "phase": "phase7",
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 86798,
+        "stderr": "",
+        "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\performance-phase8\\1-phase7.json",
+        "verifyMs": 81356,
+        "rssMiB": 1646,
+        "resultHash": "a77ecaf7dd80445cf0c82551fc6f363cd1a802ec90ee4a72f37b9603c1ef95b3"
+      },
+      {
+        "phase": "phase8",
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 106474,
+        "stderr": "",
+        "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\performance-phase8\\2-phase8.json",
+        "verifyMs": 98370,
+        "rssMiB": 1755,
+        "resultHash": "a77ecaf7dd80445cf0c82551fc6f363cd1a802ec90ee4a72f37b9603c1ef95b3"
+      },
+      {
+        "phase": "phase8",
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 106097,
+        "stderr": "",
+        "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\performance-phase8\\3-phase8.json",
+        "verifyMs": 98032,
+        "rssMiB": 1744,
+        "resultHash": "a77ecaf7dd80445cf0c82551fc6f363cd1a802ec90ee4a72f37b9603c1ef95b3"
+      },
+      {
+        "phase": "phase7",
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 101474,
+        "stderr": "",
+        "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\performance-phase8\\4-phase7.json",
+        "verifyMs": 93550,
+        "rssMiB": 1635,
+        "resultHash": "a77ecaf7dd80445cf0c82551fc6f363cd1a802ec90ee4a72f37b9603c1ef95b3"
+      }
+    ],
+    "limitations": [
+      "Same machine and repository; OS background load is not controlled",
+      "A/B/B/A order reduces order bias but the sample is small",
+      "RSS is sampled at worker completion, not peak memory"
+    ],
+    "finalCommit": "aa75ff3239f9cc675b081697deda9e1b112345c6",
+    "finalStatus": "",
+    "completed": true,
+    "identicalReports": true,
+    "finishedAt": "2026-11-12T05:39:07.346Z"
+  }
+}

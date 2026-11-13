@@ -1,0 +1,282 @@
+[
+  {
+    "id": "httpx-encoding-bytes",
+    "variant": "control",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "SATISFIED",
+        "finding": "目标符号 \"to_bytes\" 的入参与下游出水口链路闭合"
+      }
+    ],
+    "targetedViolation": false,
+    "overallVerdict": "INCONCLUSIVE"
+  },
+  {
+    "id": "httpx-encoding-bytes",
+    "variant": "defect",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "VIOLATED",
+        "finding": "目标符号 \"to_bytes\" 的形参 [encoding] 在函数体内未被消费"
+      }
+    ],
+    "targetedViolation": true,
+    "overallVerdict": "VIOLATED"
+  },
+  {
+    "id": "httpx-encoding-str",
+    "variant": "control",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "SATISFIED",
+        "finding": "目标符号 \"to_str\" 的入参与下游出水口链路闭合"
+      }
+    ],
+    "targetedViolation": false,
+    "overallVerdict": "INCONCLUSIVE"
+  },
+  {
+    "id": "httpx-encoding-str",
+    "variant": "defect",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "VIOLATED",
+        "finding": "目标符号 \"to_str\" 的形参 [encoding] 在函数体内未被消费"
+      }
+    ],
+    "targetedViolation": true,
+    "overallVerdict": "VIOLATED"
+  },
+  {
+    "id": "flask-dotenv-default",
+    "variant": "control",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "SATISFIED",
+        "finding": "目标符号 \"get_load_dotenv\" 的入参与下游出水口链路闭合"
+      }
+    ],
+    "targetedViolation": false,
+    "overallVerdict": "INCONCLUSIVE"
+  },
+  {
+    "id": "flask-dotenv-default",
+    "variant": "defect",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "VIOLATED",
+        "finding": "目标符号 \"get_load_dotenv\" 的形参 [default] 在函数体内未被消费"
+      }
+    ],
+    "targetedViolation": true,
+    "overallVerdict": "VIOLATED"
+  },
+  {
+    "id": "click-posixify-name",
+    "variant": "control",
+    "holdout": true,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "SATISFIED",
+        "finding": "目标符号 \"_posixify\" 的入参与下游出水口链路闭合"
+      }
+    ],
+    "targetedViolation": false,
+    "overallVerdict": "INCONCLUSIVE"
+  },
+  {
+    "id": "click-posixify-name",
+    "variant": "defect",
+    "holdout": true,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "VIOLATED",
+        "finding": "目标符号 \"_posixify\" 的形参 [name] 在函数体内未被消费"
+      }
+    ],
+    "targetedViolation": true,
+    "overallVerdict": "VIOLATED"
+  },
+  {
+    "id": "hono-split-path",
+    "variant": "control",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "SATISFIED",
+        "finding": "目标符号 \"splitPath\" 的入参与下游出水口链路闭合"
+      }
+    ],
+    "targetedViolation": false,
+    "overallVerdict": "INCONCLUSIVE"
+  },
+  {
+    "id": "hono-split-path",
+    "variant": "defect",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "VIOLATED",
+        "finding": "目标符号 \"splitPath\" 的形参 [path] 在函数体内未被消费"
+      }
+    ],
+    "targetedViolation": true,
+    "overallVerdict": "VIOLATED"
+  },
+  {
+    "id": "hono-custom-decoder",
+    "variant": "control",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "SATISFIED",
+        "finding": "目标符号 \"tryDecode\" 的入参与下游出水口链路闭合"
+      }
+    ],
+    "targetedViolation": false,
+    "overallVerdict": "INCONCLUSIVE"
+  },
+  {
+    "id": "hono-custom-decoder",
+    "variant": "defect",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "VIOLATED",
+        "finding": "目标符号 \"tryDecode\" 的形参 [decoder] 在函数体内未被消费"
+      }
+    ],
+    "targetedViolation": true,
+    "overallVerdict": "VIOLATED"
+  },
+  {
+    "id": "p-limit-concurrency-validation",
+    "variant": "control",
+    "holdout": true,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "SATISFIED",
+        "finding": "L2 数据传递与消费检查未发现断流"
+      }
+    ],
+    "targetedViolation": false,
+    "overallVerdict": "INCONCLUSIVE"
+  },
+  {
+    "id": "p-limit-concurrency-validation",
+    "variant": "defect",
+    "holdout": true,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "VIOLATED",
+        "finding": "目标符号 \"validateConcurrency\" 的形参 [concurrency] 在函数体内未被消费"
+      }
+    ],
+    "targetedViolation": true,
+    "overallVerdict": "VIOLATED"
+  },
+  {
+    "id": "gin-accept-header",
+    "variant": "control",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "SATISFIED",
+        "finding": "目标符号 \"parseAccept\" 的入参与下游出水口链路闭合"
+      }
+    ],
+    "targetedViolation": false,
+    "overallVerdict": "INCONCLUSIVE"
+  },
+  {
+    "id": "gin-accept-header",
+    "variant": "defect",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "VIOLATED",
+        "finding": "目标符号 \"parseAccept\" 的形参 [acceptHeader] 在函数体内未被消费"
+      }
+    ],
+    "targetedViolation": true,
+    "overallVerdict": "VIOLATED"
+  },
+  {
+    "id": "gin-base-path",
+    "variant": "control",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "SATISFIED",
+        "finding": "目标符号 \"joinPaths\" 的入参与下游出水口链路闭合"
+      }
+    ],
+    "targetedViolation": false,
+    "overallVerdict": "INCONCLUSIVE"
+  },
+  {
+    "id": "gin-base-path",
+    "variant": "defect",
+    "holdout": false,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "VIOLATED",
+        "finding": "目标符号 \"joinPaths\" 的形参 [absolutePath] 在函数体内未被消费"
+      }
+    ],
+    "targetedViolation": true,
+    "overallVerdict": "VIOLATED"
+  },
+  {
+    "id": "chi-wildcards",
+    "variant": "control",
+    "holdout": true,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "SATISFIED",
+        "finding": "目标符号 \"replaceWildcards\" 的入参与下游出水口链路闭合"
+      }
+    ],
+    "targetedViolation": false,
+    "overallVerdict": "INCONCLUSIVE"
+  },
+  {
+    "id": "chi-wildcards",
+    "variant": "defect",
+    "holdout": true,
+    "l2": [
+      {
+        "id": "OBL-2",
+        "status": "VIOLATED",
+        "finding": "目标符号 \"replaceWildcards\" 的形参 [p] 在函数体内未被消费"
+      }
+    ],
+    "targetedViolation": true,
+    "overallVerdict": "VIOLATED"
+  }
+]

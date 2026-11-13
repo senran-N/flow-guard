@@ -611,10 +611,22 @@ withTempWorkspace(CLEAN_TORTURE_FILES, (dir) => {
   );
   assertionsCount++;
 
-  // Assert Vue SFC `<template @click="onVueSave">` wires `<script setup>` handler as UI Source -> Sink
+  // Vue events register a handler for a possible later interaction.  They are
+  // candidate-reachable wiring, not evidence that the click already ran.
   const vueTrace = traceSymbolFlow(dir, "onVueSave");
-  assert.ok(vueTrace.traces[0]?.roles.includes("source") && vueTrace.traces[0]?.roles.includes("sink"), "Vue SFC @click handler should be wired Source -> Sink");
-  assertionsCount++;
+  assert.ok(
+    vueTrace.traces[0]?.evidencedRelations.inbound.some(
+      (edge) => edge.kind === "REGISTRATION" && edge.resolution.mode === "VUE_TEMPLATE_EVENT" && edge.resolution.confidence === "MEDIUM"
+    ),
+    "Vue SFC @click handler should retain a medium-confidence registration edge"
+  );
+  assert.equal(vueTrace.traces[0]?.waterFlowStatus.connectedToRuntimeEntry, false, "Vue event registration must not imply a confirmed runtime trigger");
+  assert.equal(verify.status, "INCONCLUSIVE", "a Vue event-only handler must leave the flow verification inconclusive");
+  assert.ok(
+    verify.wiringReport.obligations.some((item) => item.status === "INCONCLUSIVE" && /onVueSave.*Vue 模板事件注册/.test(item.finding)),
+    "Vue event registration should be reported as an explicit inconclusive obligation"
+  );
+  assertionsCount += 4;
 
   // Assert dedicated Dart, Swift protocol/extension, PHP 8 promoted ctor + $this->field, and Ruby @@cvar + attr_reader + rescue parsers extract clean symbols
   assert.ok(traceSymbolFlow(dir, "buildUrl").matchCount >= 1, "Dart DioClient.buildUrl not parsed");

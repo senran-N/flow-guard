@@ -1,0 +1,472 @@
+{
+  "sourceHash": "c3e3d8dd5876c4f2e9230a39169ed903f5d68f8634bd1457eaa50931f62d0357",
+  "evidence": "D:/Myproject/flowguard-validation/2026-11-12-hardening",
+  "tests": [
+    {
+      "platform": "windows",
+      "nodeTests": 180,
+      "scenarioAssertions": 147,
+      "file": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase17-release-tests-windows.log",
+      "sha256": "51a52ba03a4875356461e6e6debcdca60492bcfdadf2c8245dbcf5aa620f40a3"
+    },
+    {
+      "platform": "node18",
+      "nodeTests": 180,
+      "scenarioAssertions": 147,
+      "file": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase17-release-tests-node18.log",
+      "sha256": "eaaf1472eb91e55af6d9d0a4f77c9a3ea8cc85bc9c7b9331a42fb877f17e0824"
+    },
+    {
+      "platform": "wsl",
+      "nodeTests": 180,
+      "scenarioAssertions": 147,
+      "file": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase17-release-tests-wsl.log",
+      "sha256": "894c00b82929704dfa823e792434bb9e014b41efe1bcf6270edd898119df67cb"
+    }
+  ],
+  "repositories": [
+    {
+      "name": "axum",
+      "commit": "47399621c4017601ea493cd63c3af581f4fb33e3",
+      "counts": {
+        "total": 1156,
+        "satisfied": 0,
+        "violated": 0,
+        "inconclusive": 1156
+      },
+      "timesMs": [
+        5265,
+        5097
+      ],
+      "resultHash": "a48f127c86f83d6525593f970c61215d9c6b3b685b6a251ba9292b8d7e517f44"
+    },
+    {
+      "name": "clash-verge-rev",
+      "commit": "389dddf51204984e91a9769c3dee08db2eeefbb2",
+      "counts": {
+        "total": 614,
+        "satisfied": 0,
+        "violated": 0,
+        "inconclusive": 614
+      },
+      "timesMs": [
+        5428,
+        5346
+      ],
+      "resultHash": "7beb3f6b380d1adbf16663da948b3ecd45d510bdb202b286bfd8d0d4ffa56ef1"
+    },
+    {
+      "name": "fd",
+      "commit": "24d90b28d25438af2a8f2e7f7e46d03d6828da94",
+      "counts": {
+        "total": 129,
+        "satisfied": 0,
+        "violated": 0,
+        "inconclusive": 129
+      },
+      "timesMs": [
+        736,
+        706
+      ],
+      "resultHash": "a64e7a5333e2225a14f8a7c399f0d16b35fe502bf88b426e46ab59cda8d96b36"
+    },
+    {
+      "name": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "counts": {
+        "total": 46,
+        "satisfied": 0,
+        "violated": 0,
+        "inconclusive": 46
+      },
+      "timesMs": [
+        1503,
+        1343
+      ],
+      "resultHash": "ef0e2f61c7da9c5553863658431292cca999b7b2ead3e89863a6c93d1c95a555"
+    },
+    {
+      "name": "ripgrep",
+      "commit": "178cc027e283fd965cb72d0a7395b219eada170c",
+      "counts": {
+        "total": 1589,
+        "satisfied": 0,
+        "violated": 0,
+        "inconclusive": 1589
+      },
+      "timesMs": [
+        3511,
+        3524
+      ],
+      "resultHash": "77188d77e55cad9376a4b643d8a43735499405d6b30c0a2ddd4e8092f150b75d"
+    },
+    {
+      "name": "SwitchHosts",
+      "commit": "7c8eaa50a6c45dde8ce7614c5659747000b36671",
+      "counts": {
+        "total": 313,
+        "satisfied": 0,
+        "violated": 0,
+        "inconclusive": 313
+      },
+      "timesMs": [
+        2522,
+        2375
+      ],
+      "resultHash": "09796addc15641b0b62c247a958bedb661b72827439458dd2cd45b26a6b4e4c5"
+    }
+  ],
+  "pot": {
+    "sourceHash": "c3e3d8dd5876c4f2e9230a39169ed903f5d68f8634bd1457eaa50931f62d0357",
+    "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+    "results": [
+      {
+        "symbol": "start_server",
+        "variant": "control",
+        "modes": {
+          "full": {
+            "targetStatuses": [],
+            "verdict": "INCONCLUSIVE"
+          },
+          "incremental": {
+            "targetStatuses": [],
+            "verdict": "INCONCLUSIVE"
+          },
+          "planned": {
+            "targetStatuses": [
+              "SATISFIED"
+            ],
+            "verdict": "INCONCLUSIVE"
+          }
+        }
+      },
+      {
+        "symbol": "start_server",
+        "variant": "defect",
+        "modes": {
+          "full": {
+            "targetStatuses": [
+              "INCONCLUSIVE"
+            ],
+            "verdict": "INCONCLUSIVE"
+          },
+          "incremental": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          },
+          "planned": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          }
+        }
+      },
+      {
+        "symbol": "tray_event_handler",
+        "variant": "control",
+        "modes": {
+          "full": {
+            "targetStatuses": [
+              "INCONCLUSIVE"
+            ],
+            "verdict": "INCONCLUSIVE"
+          },
+          "incremental": {
+            "targetStatuses": [],
+            "verdict": "INCONCLUSIVE"
+          },
+          "planned": {
+            "targetStatuses": [
+              "INCONCLUSIVE"
+            ],
+            "verdict": "INCONCLUSIVE"
+          }
+        }
+      },
+      {
+        "symbol": "tray_event_handler",
+        "variant": "defect",
+        "modes": {
+          "full": {
+            "targetStatuses": [
+              "INCONCLUSIVE"
+            ],
+            "verdict": "INCONCLUSIVE"
+          },
+          "incremental": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          },
+          "planned": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          }
+        }
+      }
+    ],
+    "limitations": [
+      "Real upstream source mutations with static expectations, not executed Tauri behavior",
+      "Cases used during development; not an independent accuracy estimate"
+    ]
+  },
+  "clash": {
+    "sourceHash": "c3e3d8dd5876c4f2e9230a39169ed903f5d68f8634bd1457eaa50931f62d0357",
+    "commit": "389dddf51204984e91a9769c3dee08db2eeefbb2",
+    "results": [
+      {
+        "target": "CoreManager.get_clash_logs",
+        "variant": "control",
+        "statuses": [
+          "SATISFIED"
+        ],
+        "incremental": null
+      },
+      {
+        "target": "CoreManager.get_clash_logs",
+        "variant": "defect",
+        "statuses": [
+          "VIOLATED"
+        ],
+        "incremental": [
+          "VIOLATED"
+        ]
+      },
+      {
+        "target": "Sysopt.refresh_guard",
+        "variant": "control",
+        "statuses": [
+          "SATISFIED"
+        ],
+        "incremental": null
+      },
+      {
+        "target": "Sysopt.refresh_guard",
+        "variant": "defect",
+        "statuses": [
+          "VIOLATED"
+        ],
+        "incremental": [
+          "VIOLATED"
+        ]
+      },
+      {
+        "target": "SilentUpdater.install_update",
+        "variant": "control",
+        "statuses": [
+          "SATISFIED"
+        ],
+        "incremental": null
+      },
+      {
+        "target": "SilentUpdater.install_update",
+        "variant": "defect",
+        "statuses": [
+          "VIOLATED"
+        ],
+        "incremental": [
+          "VIOLATED"
+        ]
+      }
+    ],
+    "limitation": "Complete upstream source copies with static connection mutations; desktop app not built or executed."
+  },
+  "native": {
+    "original": {
+      "commit": "7c8eaa50a6c45dde8ce7614c5659747000b36671",
+      "status": ""
+    },
+    "binarySha256": "3e7c21a61e5a60500993ff0e5ae52f5025b4ce05a9465d91ed9913d962b958f4",
+    "beforeHosts": "d7fc48bc48a12fb2b83f3bef85232bcb56f2dbae4b6659a41877ae55fbdca878",
+    "runs": [
+      {
+        "name": "control",
+        "deleted": false,
+        "url": "http://127.0.0.1:8220/",
+        "probe": {
+          "ok": true,
+          "value": {
+            "pong": "pong",
+            "count": 2,
+            "labels": [
+              "FG Start",
+              "FG End"
+            ],
+            "hasNativeInternals": true
+          }
+        },
+        "widgetDeletionDetected": true,
+        "readyCallback": true,
+        "outcome": "PASSED"
+      },
+      {
+        "name": "deleted-registrations",
+        "deleted": true,
+        "url": "http://127.0.0.1:8220/",
+        "probe": {
+          "ok": false,
+          "message": "Command ping not found"
+        },
+        "readyCallback": false,
+        "outcome": "PASSED"
+      }
+    ],
+    "negativeBinarySha256": "1611f23e38b4d79000c5ac85fb234bef1a8da5fe6f00c45ce467c590bf3b5173",
+    "outcome": "PASSED",
+    "afterHosts": "d7fc48bc48a12fb2b83f3bef85232bcb56f2dbae4b6659a41877ae55fbdca878"
+  },
+  "rustSemantics": {
+    "outcome": "COMPLETED",
+    "version": {
+      "name": "rust-analyzer",
+      "version": "1.97.1 (8bab26f4 2026-07-14)"
+    },
+    "settings": {
+      "cargo": {
+        "allTargets": false,
+        "features": [],
+        "noDefaultFeatures": false,
+        "buildScripts": {
+          "enable": true
+        }
+      },
+      "procMacro": {
+        "enable": true
+      },
+      "checkOnSave": false,
+      "check": {
+        "enable": false
+      }
+    },
+    "queries": 636,
+    "mappedEdges": 1039,
+    "unmapped": 32,
+    "macroInvocations": 1628,
+    "previewedMacroInvocations": 512,
+    "completeCallGraph": false
+  },
+  "oracles": [
+    {
+      "features": "default",
+      "outcome": "PASSED",
+      "mappedExecuteSites": 2,
+      "runtimeExecuteCount": 3,
+      "traitCandidates": 1,
+      "stdout": "execute\nexecute\nexecute\ndefault\nperform\n",
+      "limitation": "The macro-internal call is visible in the expansion preview, not a source-mapped call edge; dyn dispatch remains a candidate."
+    },
+    {
+      "features": "extra",
+      "outcome": "PASSED",
+      "mappedExecuteSites": 2,
+      "runtimeExecuteCount": 3,
+      "traitCandidates": 1,
+      "stdout": "execute\nexecute\nexecute\nextra\nperform\n",
+      "limitation": "The macro-internal call is visible in the expansion preview, not a source-mapped call edge; dyn dispatch remains a candidate."
+    }
+  ],
+  "sdk": [
+    {
+      "node": "v24.14.0",
+      "platform": "win32",
+      "results": [
+        {
+          "sdk": "1.32.2",
+          "outcome": "PASSED",
+          "tests": [
+            "initialize",
+            "list",
+            "overview",
+            "trace",
+            "blueprint",
+            "inconclusive",
+            "behavior-pass",
+            "behavior-fail",
+            "unknown-tool",
+            "invalid-workspace",
+            "rust-semantic-schema",
+            "rust-semantic-inapplicable",
+            "rust-semantic-historical-guard",
+            "ping"
+          ],
+          "stderr": ""
+        },
+        {
+          "sdk": "2.4.0",
+          "outcome": "PASSED",
+          "tests": [
+            "initialize",
+            "list",
+            "overview",
+            "trace",
+            "blueprint",
+            "inconclusive",
+            "behavior-pass",
+            "behavior-fail",
+            "unknown-tool",
+            "invalid-workspace",
+            "rust-semantic-schema",
+            "rust-semantic-inapplicable",
+            "rust-semantic-historical-guard",
+            "ping"
+          ],
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "node": "v22.23.3",
+      "platform": "linux",
+      "results": [
+        {
+          "sdk": "1.32.2",
+          "outcome": "PASSED",
+          "tests": [
+            "initialize",
+            "list",
+            "overview",
+            "trace",
+            "blueprint",
+            "inconclusive",
+            "behavior-pass",
+            "behavior-fail",
+            "unknown-tool",
+            "invalid-workspace",
+            "rust-semantic-schema",
+            "rust-semantic-inapplicable",
+            "rust-semantic-historical-guard",
+            "ping"
+          ],
+          "stderr": ""
+        },
+        {
+          "sdk": "2.4.0",
+          "outcome": "PASSED",
+          "tests": [
+            "initialize",
+            "list",
+            "overview",
+            "trace",
+            "blueprint",
+            "inconclusive",
+            "behavior-pass",
+            "behavior-fail",
+            "unknown-tool",
+            "invalid-workspace",
+            "rust-semantic-schema",
+            "rust-semantic-inapplicable",
+            "rust-semantic-historical-guard",
+            "ping"
+          ],
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

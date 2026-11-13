@@ -1,0 +1,42 @@
+{
+  "node": "v24.14.0",
+  "platform": "win32",
+  "results": [
+    {
+      "sdk": "1.32.2",
+      "outcome": "PASSED",
+      "tests": [
+        "initialize",
+        "list",
+        "overview",
+        "trace",
+        "blueprint",
+        "inconclusive",
+        "behavior-pass",
+        "behavior-fail",
+        "unknown-tool",
+        "invalid-workspace",
+        "ping"
+      ],
+      "stderr": ""
+    },
+    {
+      "sdk": "2.4.0",
+      "outcome": "PASSED",
+      "tests": [
+        "initialize",
+        "list",
+        "overview",
+        "trace",
+        "blueprint",
+        "inconclusive",
+        "behavior-pass",
+        "behavior-fail",
+        "unknown-tool",
+        "invalid-workspace",
+        "ping"
+      ],
+      "stderr": ""
+    }
+  ]
+}

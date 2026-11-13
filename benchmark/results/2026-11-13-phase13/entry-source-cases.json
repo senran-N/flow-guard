@@ -1,0 +1,98 @@
+{
+  "sourceHash": "d045c3b926d18ee3fd896c785251068274ea8c1f413c56d37f01c08f16683265",
+  "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+  "results": [
+    {
+      "symbol": "start_server",
+      "variant": "control",
+      "modes": {
+        "full": {
+          "targetStatuses": [],
+          "verdict": "INCONCLUSIVE"
+        },
+        "incremental": {
+          "targetStatuses": [],
+          "verdict": "INCONCLUSIVE"
+        },
+        "planned": {
+          "targetStatuses": [
+            "SATISFIED"
+          ],
+          "verdict": "INCONCLUSIVE"
+        }
+      }
+    },
+    {
+      "symbol": "start_server",
+      "variant": "defect",
+      "modes": {
+        "full": {
+          "targetStatuses": [
+            "VIOLATED"
+          ],
+          "verdict": "VIOLATED"
+        },
+        "incremental": {
+          "targetStatuses": [
+            "VIOLATED"
+          ],
+          "verdict": "VIOLATED"
+        },
+        "planned": {
+          "targetStatuses": [
+            "VIOLATED"
+          ],
+          "verdict": "VIOLATED"
+        }
+      }
+    },
+    {
+      "symbol": "tray_event_handler",
+      "variant": "control",
+      "modes": {
+        "full": {
+          "targetStatuses": [
+            "INCONCLUSIVE"
+          ],
+          "verdict": "INCONCLUSIVE"
+        },
+        "incremental": {
+          "targetStatuses": [],
+          "verdict": "INCONCLUSIVE"
+        },
+        "planned": {
+          "targetStatuses": [
+            "INCONCLUSIVE"
+          ],
+          "verdict": "INCONCLUSIVE"
+        }
+      }
+    },
+    {
+      "symbol": "tray_event_handler",
+      "variant": "defect",
+      "modes": {
+        "full": {
+          "targetStatuses": [
+            "VIOLATED"
+          ],
+          "verdict": "VIOLATED"
+        },
+        "incremental": {
+          "targetStatuses": [],
+          "verdict": "INCONCLUSIVE"
+        },
+        "planned": {
+          "targetStatuses": [
+            "VIOLATED"
+          ],
+          "verdict": "VIOLATED"
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Real upstream source mutations with static expectations, not executed Tauri behavior",
+    "Cases used during development; not an independent accuracy estimate"
+  ]
+}

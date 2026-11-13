@@ -1,0 +1,268 @@
+{
+  "startedAt": "2026-11-11T14:19:25.860Z",
+  "corpus": "D:\\Myproject\\crack",
+  "output": "D:\\Myproject\\flowguard-validation\\2026-11-11-v020",
+  "repetitions": 2,
+  "environment": {
+    "node": "v24.14.0",
+    "platform": "win32",
+    "arch": "x64",
+    "release": "10.0.26300",
+    "cpus": 16
+  },
+  "engine": {
+    "gitHead": "a9858131e7939a9329cbd04e8e2d350760c1eca6",
+    "sourceHash": "4269e4f5a97c37ce57317df790db51fa571fbe35d2f6fe215023c346b31ecb36",
+    "files": {
+      "arch-vision.mjs": "42aca858fadcdc9facb50c39023e39ca7a731a61f509cc360ac1b4c3f061c0af",
+      "bridge-linker.mjs": "74881f2229d820952e6195d75011e0b5d397800d53597cb731dac5268c0f99d0",
+      "file-parser.mjs": "2032fd19ebc935e08bdb9acb8e82493598bc2dc2336b7ee230c182b4da9edd97",
+      "fingerprint.mjs": "1ce92e329c8f0e850bc135218ca64c0a012f73697ce02633799e3f47f895e096",
+      "flow-tools.mjs": "f906e00c9a8dbcac775fb81ac2b0c9ed1faa0917135a290e6561c66059b180e8",
+      "flow-verifier.mjs": "8d571aea2b9af3b652b74b8a656c7099e6aa0c24c0ad2a94bc168b46037e2329",
+      "graph-builder.mjs": "6113bdda7d7a0dae4e438519e6d5800c2f2b49b064eeb50ed5f4b72c1d1ebcb9",
+      "graph-diff.mjs": "f3611d46a088028e9ee6a0261b3bb6982c78d7deee8f036acb7fa09ef18342f9",
+      "hook-runner.mjs": "29825bd3de8242490f7a05ea049d7c67e623a75405b410d18bb9c2db4881d916",
+      "lang-presets.mjs": "69bf8b6097a4f543f8a4e5fc3df40f516f47e330a21eb51c83f5626e6a7c2041",
+      "lexer.mjs": "b485a3251743b648f4fa48d12386d34fbb111022f56b673b473fd269186c651a",
+      "server.mjs": "6cfe69703e0a668c1e00f30075ce0b849a9139bd5c29af1bd636286d4576d7f6",
+      "state-store.mjs": "12a4492062088a8edd07665b75fe2959057637c53e8ea5375c39c75e96d0962c",
+      "test-process.mjs": "5aa0c6abb00079f4ff23d10978c319f4510f95661d8dfd67b982a260cf75a285",
+      "test-runner.mjs": "1e8dc1730f74b499f5ddf744a03f0a531f637d854289c09fb6e72a2b81e83ff2",
+      "wiring-contract.mjs": "6ed073be2f3391726606cec922fd8e74543c073cfccfd9f85e00d2ddb461dc94"
+    }
+  },
+  "repositories": [
+    {
+      "name": "Alamofire",
+      "workspace": "D:\\Myproject\\crack\\Alamofire",
+      "commit": "6c2892ea5adb5a03fa81c510933dd782c5ddd9cb",
+      "remote": "https://github.com/Alamofire/Alamofire.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "axum",
+      "workspace": "D:\\Myproject\\crack\\axum",
+      "commit": "47399621c4017601ea493cd63c3af581f4fb33e3",
+      "remote": "https://github.com/tokio-rs/axum.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "BepInEx",
+      "workspace": "D:\\Myproject\\crack\\BepInEx",
+      "commit": "dbc82f05b8ea34833de5b6a723eb60dd8398e0b1",
+      "remote": "https://github.com/BepInEx/BepInEx.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "bits-ui",
+      "workspace": "D:\\Myproject\\crack\\bits-ui",
+      "commit": "a6f32ab5adf3f927ac8ec16d2059cb8ea38e717b",
+      "remote": "https://github.com/huntabyte/bits-ui.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "bruno",
+      "workspace": "D:\\Myproject\\crack\\bruno",
+      "commit": "60d7517d0545ef82c032c10dcbb6a3c815d246cf",
+      "remote": "https://github.com/usebruno/bruno.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "clash-verge-rev",
+      "workspace": "D:\\Myproject\\crack\\clash-verge-rev",
+      "commit": "389dddf51204984e91a9769c3dee08db2eeefbb2",
+      "remote": "https://github.com/clash-verge-rev/clash-verge-rev.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "cobra",
+      "workspace": "D:\\Myproject\\crack\\cobra",
+      "commit": "adbc8813901bba65827259daa8e22ff94ec1f30e",
+      "remote": "https://github.com/spf13/cobra.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "Dapper",
+      "workspace": "D:\\Myproject\\crack\\Dapper",
+      "commit": "eb47546a408bbf6c178bda4f04dc205bc51ffbfe",
+      "remote": "https://github.com/DapperLib/Dapper.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "dio",
+      "workspace": "D:\\Myproject\\crack\\dio",
+      "commit": "f1bef462289b40992d625d4eb2a2f42321217573",
+      "remote": "https://github.com/cfug/dio.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "fastapi",
+      "workspace": "D:\\Myproject\\crack\\fastapi",
+      "commit": "e1144f6954eb8dd8c306f8dd2f5f0a14bbeb2cfd",
+      "remote": "https://github.com/fastapi/fastapi.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "fd",
+      "workspace": "D:\\Myproject\\crack\\fd",
+      "commit": "24d90b28d25438af2a8f2e7f7e46d03d6828da94",
+      "remote": "https://github.com/sharkdp/fd.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "flask",
+      "workspace": "D:\\Myproject\\crack\\flask",
+      "commit": "49943b5a94413a530761350f04e896f76e8d620e",
+      "remote": "https://github.com/pallets/flask.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "fmt",
+      "workspace": "D:\\Myproject\\crack\\fmt",
+      "commit": "e7e6e3f71033fbfc71eba1709789328bcb0ceb28",
+      "remote": "https://github.com/fmtlib/fmt.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "full-stack-fastapi-template",
+      "workspace": "D:\\Myproject\\crack\\full-stack-fastapi-template",
+      "commit": "aabb90126964a164e02aff39e7c385bb0598236d",
+      "remote": "https://github.com/fastapi/full-stack-fastapi-template.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "gin",
+      "workspace": "D:\\Myproject\\crack\\gin",
+      "commit": "0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646",
+      "remote": "https://github.com/gin-gonic/gin.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "gson",
+      "workspace": "D:\\Myproject\\crack\\gson",
+      "commit": "a961b0fe088f8558d00cc1b56e506a3656907a91",
+      "remote": "https://github.com/google/gson.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "hono",
+      "workspace": "D:\\Myproject\\crack\\hono",
+      "commit": "61f7c59e50244ab4d2dd83c151928cf7ea448510",
+      "remote": "https://github.com/honojs/hono.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "httpx",
+      "workspace": "D:\\Myproject\\crack\\httpx",
+      "commit": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254",
+      "remote": "https://github.com/encode/httpx.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "jq",
+      "workspace": "D:\\Myproject\\crack\\jq",
+      "commit": "5c001b18d7237cce1fdba63608732163f978dd23",
+      "remote": "https://github.com/jqlang/jq.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "koel",
+      "workspace": "D:\\Myproject\\crack\\koel",
+      "commit": "80a21bb34c5f8e6ac5c848821833affc4d01176c",
+      "remote": "https://github.com/koel/koel.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "llama.cpp",
+      "workspace": "D:\\Myproject\\crack\\llama.cpp",
+      "commit": "aa75ff3239f9cc675b081697deda9e1b112345c6",
+      "remote": "https://github.com/ggml-org/llama.cpp.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "memos",
+      "workspace": "D:\\Myproject\\crack\\memos",
+      "commit": "abdeb8a57cc40ecc0b2527d55f604bbe36491dfb",
+      "remote": "https://github.com/usememos/memos.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "okhttp",
+      "workspace": "D:\\Myproject\\crack\\okhttp",
+      "commit": "4162e9da32f636442bc789a7576144fe5972d0a5",
+      "remote": "https://github.com/square/okhttp.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "pinia",
+      "workspace": "D:\\Myproject\\crack\\pinia",
+      "commit": "4817135a25431172d363bd928476db7cdbf875c4",
+      "remote": "https://github.com/vuejs/pinia.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "pocketbase",
+      "workspace": "D:\\Myproject\\crack\\pocketbase",
+      "commit": "7f2773ec234b62d0b80ca47c508397cb3d0da3ea",
+      "remote": "https://github.com/pocketbase/pocketbase.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "pot-desktop",
+      "workspace": "D:\\Myproject\\crack\\pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "remote": "https://github.com/pot-app/pot-desktop.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "retrofit",
+      "workspace": "D:\\Myproject\\crack\\retrofit",
+      "commit": "ac37c61643860b0ab09a165cd5aa4a986484e872",
+      "remote": "https://github.com/square/retrofit.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "ripgrep",
+      "workspace": "D:\\Myproject\\crack\\ripgrep",
+      "commit": "178cc027e283fd965cb72d0a7395b219eada170c",
+      "remote": "https://github.com/BurntSushi/ripgrep.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "serilog",
+      "workspace": "D:\\Myproject\\crack\\serilog",
+      "commit": "43105b35095337d77f022561a8f2d3db2f9a7937",
+      "remote": "https://github.com/serilog/serilog.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "sidekiq",
+      "workspace": "D:\\Myproject\\crack\\sidekiq",
+      "commit": "75982898ff6dc984988da8b9ecf5371eba68e120",
+      "remote": "https://github.com/sidekiq/sidekiq.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "SwitchHosts",
+      "workspace": "D:\\Myproject\\crack\\SwitchHosts",
+      "commit": "7c8eaa50a6c45dde8ce7614c5659747000b36671",
+      "remote": "https://github.com/oldj/SwitchHosts.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "uptime-kuma",
+      "workspace": "D:\\Myproject\\crack\\uptime-kuma",
+      "commit": "fb8ef0fa8200bb989f3a115dda3b0e09a3c31167",
+      "remote": "https://github.com/louislam/uptime-kuma.git",
+      "initialStatus": ""
+    },
+    {
+      "name": "zod",
+      "workspace": "D:\\Myproject\\crack\\zod",
+      "commit": "19c40d2072288b4cafec851e9d056a72a88e5973",
+      "remote": "https://github.com/colinhacks/zod.git",
+      "initialStatus": ""
+    }
+  ]
+}

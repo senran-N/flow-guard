@@ -1,0 +1,10 @@
+{
+  "sourceHash": "7b120c3c2d2e09f4883b2ef65854ae45bebeb02ad2378ddb09145ee2aa1eefab",
+  "archiveSourceMatches": true,
+  "archiveSha256": "0c9374598ff83b36722830e484bcfbf40c63674952dc4d8594af7f157f613e4a",
+  "originalRepositoriesRechecked": 39,
+  "frameworkChecks": 14,
+  "frameworkCheckSourceHash": "b24554b5d7546c8973b1750e81f8f78f616198eda59fae1188e050f0d31d23bc",
+  "selfCheck": "PASS",
+  "rustRepositoriesRetested": 6
+}

@@ -1,16 +1,35 @@
 import fs from "node:fs";
+import { mutuallyExclusiveConditions } from "./conditional-context.mjs";
 import path from "node:path";
-import { execSync } from "node:child_process";
-import { getFlowGuardDataDir, getWorkspaceKeyHash, isTelemetryOrAuditField } from "./graph-diff.mjs";
-
-function getPlanFilePath(workspaceRoot) {
-  return path.join(getFlowGuardDataDir(), `flowguard-plan-${getWorkspaceKeyHash(workspaceRoot)}.json`);
-}
+import crypto from "node:crypto";
+import { runBehavioralTest } from "./test-runner.mjs";
+import { getScopedStatePath, readScopedState, writeScopedState, resolveStateScope } from "./state-store.mjs";
+import { isTelemetryOrAuditField } from "./graph-diff.mjs";
 
 function formatSymLoc(sym) {
   if (!sym) return "";
   const label = sym.parentContainerName ? `${sym.parentContainerName}.${sym.name}` : sym.name;
   return `${sym.file}:${sym.startLine} (${label})`;
+}
+
+export function bridgeDiagnosticKey(bridge) {
+  return JSON.stringify([bridge.kind, bridge.contract, bridge.fromFile, bridge.fromLine || 1, bridge.fromSymbol]);
+}
+
+export function summarizeObligations(obligations) {
+  const counts = {
+    total: obligations.length,
+    satisfied: obligations.filter((o) => o.status === "SATISFIED").length,
+    violated: obligations.filter((o) => o.status === "VIOLATED").length,
+    inconclusive: obligations.filter((o) => o.status === "INCONCLUSIVE").length
+  };
+  const verificationVerdict = counts.violated ? "VIOLATED" : counts.inconclusive ? "INCONCLUSIVE" : "SATISFIED";
+  const headlineSummary = counts.total ? [
+    `本次 ${counts.total} 项接入要求：${counts.satisfied} 项满足，${counts.violated} 项违反，${counts.inconclusive} 项待确认。`,
+    ...obligations.filter((o) => o.status === "VIOLATED").slice(0, 4).map((o) => o.finding),
+    ...obligations.filter((o) => o.status === "INCONCLUSIVE").slice(0, 3).map((o) => o.finding)
+  ].join(" ") : "静态检查未发现契约违反；当前无待验收义务，结果不代表行为测试已通过。";
+  return { counts, verificationVerdict, headlineSummary };
 }
 
 function normalizeFieldToken(name) {
@@ -22,12 +41,21 @@ function normalizeFieldToken(name) {
 
 function isPersistenceOrSerializerSymbol(sym) {
   if (!sym) return false;
-  if (sym.paired && (sym.paired.group.startsWith("Save/Load") || sym.paired.group.startsWith("Encode/Decode"))) {
-    return true;
-  }
-  return /^(?:save|load|serialize|deserialize|toJSON|fromJSON|dump|restore|persist|hydrate|encode|decode|marshal|unmarshal|writeConfig|readConfig)/i.test(
+  return /^(?:save|load|serialize|deserialize|toJSON|fromJSON|dump|restore|persist|hydrate|writeConfig|readConfig)/i.test(
     sym.name || ""
   );
+}
+
+function isPersistenceOnlyRead(sym, field) {
+  if (!isPersistenceOrSerializerSymbol(sym)) return false;
+  // Resource cancellation consumes the handle itself, even inside a save method.
+  // This is use-site evidence; timer-like field names alone grant no exemption.
+  const wanted = normalizeFieldToken(String(field || "").split(/\.|->/).pop());
+  const cancelsResource = (sym.callSites || []).some((site) =>
+    /^(?:clearTimeout|clearInterval|clearImmediate|cancelAnimationFrame)$/.test(site.callee) &&
+    (!site.receiver || /^(?:window|globalThis)$/.test(site.receiver)) &&
+    (site.positionalArgs || []).some((arg) => arg && normalizeFieldToken(arg.split(/\.|->/).pop()) === wanted));
+  return !cancelsResource;
 }
 
 function getExternalProdCallersOfContainer(graph, containerSym) {
@@ -53,8 +81,8 @@ function getExternalProdCallersOfContainer(graph, containerSym) {
   return Array.from(callers.values());
 }
 
-export function clearActiveWiringPlan(workspaceRoot) {
-  const filePath = getPlanFilePath(workspaceRoot);
+export function clearActiveWiringPlan(workspaceRoot, options = {}) {
+  const filePath = getScopedStatePath("plan", workspaceRoot, options);
   if (fs.existsSync(filePath)) {
     try {
       fs.unlinkSync(filePath);
@@ -66,25 +94,13 @@ export function clearActiveWiringPlan(workspaceRoot) {
   return false;
 }
 
-function saveActiveWiringPlan(workspaceRoot, plan) {
-  try {
-    fs.writeFileSync(getPlanFilePath(workspaceRoot), JSON.stringify(plan, null, 2), "utf8");
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function loadActiveWiringPlan(workspaceRoot) {
-  const filePath = getPlanFilePath(workspaceRoot);
-  if (!fs.existsSync(filePath)) return null;
-  try {
-    const raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    if (raw && Array.isArray(raw.obligations)) return raw;
-  } catch {
+function loadActiveWiringPlan(workspaceRoot, options = {}) {
+  const plan = readScopedState("plan", workspaceRoot, options);
+  if (plan && !Array.isArray(plan.obligations)) {
+    options.stateDiagnostics?.push({ kind: "plan", code: "INVALID_PLAN", reason: "Missing obligations" });
     return null;
   }
-  return null;
+  return plan;
 }
 
 export function buildAndSaveWiringPlan(graph, workspaceRoot, options = {}) {
@@ -105,6 +121,8 @@ export function buildAndSaveWiringPlan(graph, workspaceRoot, options = {}) {
   const ambiguitiesToConfirm = [];
   let seq = 1;
   const nextId = () => `OBL-${seq++}`;
+  const targetMatches = targetSymbol ? findMatchingProdSymbols(graph, targetSymbol) : [];
+  const targetIsExistingFunction = targetMatches.length > 0 && targetMatches.every((s) => s.kind === "function" || s.kind === "method");
 
   // Collect reference evidence: inbound callers, registrations, bridges, domain state consumers, and paired lifecycle hooks
   const refRegistrars = [];
@@ -215,7 +233,7 @@ export function buildAndSaveWiringPlan(graph, workspaceRoot, options = {}) {
   });
 
   // 2. REGISTRATION_OR_DISPATCH (L1_STRUCTURAL) when reference has factory/registry/polymorphic peers
-  if (dedupRegistrars.length > 0 || baseContracts.length > 0) {
+  if (!targetIsExistingFunction && (dedupRegistrars.length > 0 || baseContracts.length > 0)) {
     obligations.push({
       id: nextId(),
       station: "REGISTRATION_OR_DISPATCH",
@@ -371,8 +389,8 @@ export function buildAndSaveWiringPlan(graph, workspaceRoot, options = {}) {
     reason: "静态分析可证明结构与数据传递闭合，但线程同步、运行期分支取值与最终输出变化需由测试或探针提供 L3 行为生效证据",
     expectedRelation: `改变 ${targetField || targetSymbol || "新增输入"} 后，测试用例或运行探针验证预期输出按要求变化`,
     sourceBasis: "FlowGuard 三层证据准则 (L3 Behavioral)",
-    verificationMethod: "检查 test 区对目标符号/字段的调用覆盖，或通过 runTestsCommand 实际执行测试命令验证",
-    ambiguity: "未配置运行测试命令时，静态无测试覆盖将如实标记为 INCONCLUSIVE（待确认），不会伪装为已验证行为生效",
+    verificationMethod: "通过 runTestsCommand 实际执行测试命令；静态测试引用仅作为待运行线索",
+    ambiguity: "未配置运行测试命令时，无论是否发现测试代码，L3 均为 INCONCLUSIVE（待确认）",
     checkSpec: {
       type: "BEHAVIORAL_TEST_EVIDENCE",
       targetSymbol,
@@ -390,7 +408,8 @@ export function buildAndSaveWiringPlan(graph, workspaceRoot, options = {}) {
   ];
 
   const plan = {
-    planId: `plan-${getWorkspaceKeyHash(workspaceRoot)}-${Date.now()}`,
+    scope: resolveStateScope(workspaceRoot, options),
+    planId: `plan-${crypto.randomUUID()}`,
     createdAt: new Date().toISOString(),
     workspaceRoot: path.resolve(workspaceRoot),
     referenceModule: referenceFile,
@@ -407,7 +426,7 @@ export function buildAndSaveWiringPlan(graph, workspaceRoot, options = {}) {
   };
 
   if (savePlan) {
-    saveActiveWiringPlan(workspaceRoot, plan);
+    writeScopedState("plan", workspaceRoot, plan, options);
   }
 
   return plan;
@@ -461,14 +480,18 @@ function evaluateSinglePlanObligation(obl, graph, flowDiff, options = {}) {
         };
       }
       const wiredTargets = targets.filter((t) => {
-        if (profile.projectMode === "library") {
+        if (t.projectMode === "library" || (t.projectMode !== "application" && t.isPackageEntryExport)) {
           return graph.reachableFromSource.has(t.id) || t.isPackageEntryExport || t.isPublicApi;
         }
-        if (t.kind === "class" || t.kind === "struct") {
-          return getExternalProdCallersOfContainer(graph, t).length > 0 || graph.reachableFromRuntimeSource.has(t.id);
-        }
-        return graph.reachableFromRuntimeSource.has(t.id) || (graph.callInEdges.get(t.id)?.size || 0) > 0;
+        return graph.reachableFromRuntimeSource.has(t.id);
       });
+      if (targets.length > 1 || (wiredTargets.length === 0 && targets.some((t) =>
+        (t.projectMode === "library" ? graph.possiblyReachableFromSource : graph.possiblyReachableFromRuntimeSource)?.has(t.id) ||
+        t.frameworkCallbackCandidates?.length || t.rustReceiverCandidates?.length))) {
+        return { ...obl, status: "INCONCLUSIVE", evidence: targets.map(formatSymLoc),
+          finding: `目标符号 "${spec.targetSymbol}" 仅有候选调用路径或同名目标歧义`,
+          remediation: "请核实实际接收者与入口，或用运行探针确认。" };
+      }
       if (wiredTargets.length > 0) {
         const callers = wiredTargets
           .flatMap((t) => Array.from(graph.callInEdges.get(t.id) || []).map((id) => formatSymLoc(graph.symbolById.get(id))))
@@ -645,8 +668,8 @@ function evaluateSinglePlanObligation(obl, graph, flowDiff, options = {}) {
       const allReaders = states
         .flatMap((st) => st.readers.map((id) => graph.symbolById.get(id)))
         .filter((s) => s && s.zone === "prod");
-      const domainReaders = allReaders.filter((s) => !isPersistenceOrSerializerSymbol(s));
-      const persistenceOnlyReaders = allReaders.filter((s) => isPersistenceOrSerializerSymbol(s));
+      const domainReaders = allReaders.filter((s) => !isPersistenceOnlyRead(s, spec.targetField));
+      const persistenceOnlyReaders = allReaders.filter((s) => isPersistenceOnlyRead(s, spec.targetField));
 
       if (spec.consumerTarget) {
         const consumerSyms = findMatchingProdSymbols(graph, spec.consumerTarget);
@@ -661,20 +684,52 @@ function evaluateSinglePlanObligation(obl, graph, flowDiff, options = {}) {
         }
 
         const normFld = normalizeFieldToken(spec.targetField);
+        let unresolvedConsumption = consumerSyms.length > 1;
+        const consumptionEvidence = [];
+        const matchesField = (arg) => normalizeFieldToken(String(arg || "").split(/\.|->/).pop()) === normFld;
         const consumedByTarget = consumerSyms.some((cs) => {
           if (domainReaders.some((r) => r.id === cs.id)) return true;
           if ((cs.reads || []).some((r) => normalizeFieldToken(r) === normFld)) return true;
-          const activeParams = (cs.params || []).filter((p) => !(cs.unusedParams || []).includes(p));
-          if (activeParams.some((p) => normalizeFieldToken(p) === normFld)) return true;
-          // Check 1-hop caller passing `targetField` in `passedArgs` into an active parameter of `cs`
+          if ((cs.parameterFieldReads || []).some((r) => normalizeFieldToken(r.field) === normFld)) return true;
+          // Match each production call's argument position to a parameter actually read by this body.
+          // `unusedParams` is unsuitable: framework/reserved-signature exemptions can remove entries.
           for (const inEdge of graph.inEdgeDetails?.get(cs.id) || []) {
-            const passed = inEdge.evidence?.passedArgs || [];
-            if (activeParams.length > 0 && passed.some((arg) => normalizeFieldToken(arg).includes(normFld))) {
-              return true;
+            if (!["SEQ_CALL", "BRANCH_DISPATCH"].includes(inEdge.kind)) continue;
+            const caller = graph.symbolById.get(inEdge.fromId);
+            if (!caller || caller.zone !== "prod") continue;
+            for (const site of inEdge.evidence?.argumentSites || []) {
+              if (!(site.passedArgs || []).some(matchesField) && !(site.positionalArgs || []).some(matchesField)) continue;
+              if (inEdge.resolution?.confidence !== "HIGH" || site.argumentMapping !== "POSITIONAL"
+                || !cs.parameterSlots || !cs.readParams) {
+                unresolvedConsumption = true;
+                continue;
+              }
+              const slots = site.positionalArgs || [];
+              if (!slots.some(matchesField)) unresolvedConsumption = true;
+              for (let index = 0; index < slots.length; index++) {
+                if (!matchesField(slots[index])) continue;
+                const parameter = cs.parameterSlots[index];
+                if (!parameter) {
+                  unresolvedConsumption = true;
+                } else if (cs.readParams.includes(parameter)) {
+                  consumptionEvidence.push(`${caller.file}:${site.line}: ${slots[index]} -> ${cs.name}.${parameter} (argument ${index + 1})`);
+                  return true;
+                }
+              }
             }
           }
           return false;
         });
+
+        if (consumerSyms.length > 1 || (!consumedByTarget && unresolvedConsumption)) {
+          return {
+            ...obl,
+            status: "INCONCLUSIVE",
+            evidence: consumerSyms.map(formatSymLoc),
+            finding: `待确认：字段 "${spec.targetField}" 到 "${spec.consumerTarget}" 的参数绑定或目标解析存在歧义`,
+            remediation: "请指定唯一消费者，或通过测试验证复杂实参、动态派发及间接传值。"
+          };
+        }
 
         if (!consumedByTarget) {
           const primaryConsumer = consumerSyms[0];
@@ -700,8 +755,8 @@ function evaluateSinglePlanObligation(obl, graph, flowDiff, options = {}) {
         return {
           ...obl,
           status: "SATISFIED",
-          evidence: consumerSyms.map(formatSymLoc),
-          finding: `目标消费计算 "${spec.consumerTarget}" 已实际读取并消费字段 "${spec.targetField}"`,
+          evidence: [...consumerSyms.map(formatSymLoc), ...consumptionEvidence],
+          finding: `目标消费计算 "${spec.consumerTarget}" 存在字段 "${spec.targetField}" 的读取或实参到已读形参的静态证据`,
           remediation: null
         };
       }
@@ -845,29 +900,20 @@ function evaluateSinglePlanObligation(obl, graph, flowDiff, options = {}) {
 
   if (spec.type === "BEHAVIORAL_TEST_EVIDENCE") {
     if (options.runTestsCommand) {
-      try {
-        execSync(options.runTestsCommand, {
-          cwd: graph.workspaceRoot || process.cwd(),
-          encoding: "utf8",
-          stdio: ["ignore", "pipe", "pipe"],
-          timeout: 60000
-        });
-        return {
-          ...obl,
-          status: "SATISFIED",
-          evidence: [`command: ${options.runTestsCommand} (exit 0)`],
-          finding: `L3 运行期测试命令 "${options.runTestsCommand}" 执行通过`,
-          remediation: null
-        };
-      } catch (err) {
-        return {
-          ...obl,
-          status: "VIOLATED",
-          evidence: [`command: ${options.runTestsCommand} (failed)`],
-          finding: `L3 运行期测试命令执行失败: ${(err.stderr || err.stdout || err.message || "").toString().slice(0, 240).trim()}`,
-          remediation: "请修复导致测试失败的行为回归后重新验收。"
-        };
-      }
+      const execution = options.behavioralExecution;
+      const passed = execution.outcome === "PASSED";
+      const failed = execution.outcome === "TEST_FAILED";
+      return {
+        ...obl,
+        status: passed ? "SATISFIED" : failed ? "VIOLATED" : "INCONCLUSIVE",
+        evidence: [`command: ${execution.command}`, `outcome: ${execution.outcome}`, ...(execution.artifactPath ? [execution.artifactPath] : [])],
+        execution,
+        finding: passed ? "L3 指定测试命令执行通过"
+          : failed ? `L3 测试进程失败 (exit ${execution.exitCode}): ${execution.stderr.slice(-240)}`
+            : `L3 未完成验证: ${execution.outcome} (${execution.errorCode || execution.message || execution.stderr.slice(-240)})`,
+        remediation: passed ? null : failed ? "请检查测试输出，修复断言失败或测试程序错误。"
+          : "请检查测试环境、命令、时间或输出限制，然后重新运行；此结果不证明业务行为违反。"
+      };
     }
 
     const testCallers = [];
@@ -889,10 +935,10 @@ function evaluateSinglePlanObligation(obl, graph, flowDiff, options = {}) {
     if (testCallers.length > 0) {
       return {
         ...obl,
-        status: "SATISFIED",
+        status: "INCONCLUSIVE",
         evidence: testCallers.slice(0, 5),
-        finding: `已发现覆盖目标符号/字段的测试代码 (${testCallers.length} 处)；运行测试通过后可闭环 L3 行为证据`,
-        remediation: null
+        finding: `已发现引用目标符号/字段的测试代码 (${testCallers.length} 处)，但尚未运行；L3 行为证据待确认`,
+        remediation: "请通过 runTestsCommand 执行针对目标行为的测试或探针。"
       };
     }
 
@@ -920,16 +966,35 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
   const nextAutoId = () => `AUTO-${autoSeq++}`;
   const profile = graph.workspaceProfile || { projectMode: "hybrid" };
   const inScope = (file) => (isFullScan ? true : scopedFiles.has(file));
+  const membersByContainer = new Map();
+  for (const member of graph.symbolById.values()) {
+    if (!member.parentContainerId) continue;
+    if (!membersByContainer.has(member.parentContainerId)) membersByContainer.set(member.parentContainerId, []);
+    membersByContainer.get(member.parentContainerId).push(member);
+  }
+  function concreteMethods(container, seen = new Set()) {
+    if (seen.has(container.id)) return new Map();
+    seen.add(container.id);
+    const methods = new Map();
+    for (const parent of graph.resolvedBaseContainers.get(container.id) || []) {
+      for (const [name, method] of concreteMethods(parent, seen)) methods.set(name, method);
+    }
+    for (const member of membersByContainer.get(container.id) || []) {
+      if (member.kind === "method" && !member.isConstructor && !member.isAbstract && member.hasImplementation) methods.set(member.name, member);
+    }
+    for (const name of container.callablePropertyNames || []) methods.set(name, container);
+    return methods;
+  }
 
   // A1. Missing Factory / Dispatcher Registration for Subclasses of a Shared Contract
-  for (const [baseName, subs] of (graph.subclassesByBase || new Map()).entries()) {
-    if (subs.length < 2) continue;
+  for (const { baseName, bases: baseContainers, subs } of graph.subclassesByContract.values()) {
     const prodSubs = subs.filter((s) => s.zone === "prod");
-    if (prodSubs.length < 2) continue;
+    if (prodSubs.length === 0) continue;
 
     const registeredPeers = [];
     const unregisteredScopedSubs = [];
     for (const sub of prodSubs) {
+      if (sub.isInterface || sub.isTrait || sub.isAbstract) continue;
       const extCallers = getExternalProdCallersOfContainer(graph, sub);
       if (extCallers.length > 0) {
         registeredPeers.push({ sub, extCallers });
@@ -938,25 +1003,33 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
       }
     }
 
-    if (registeredPeers.length > 0) {
-      const registrarLocs = Array.from(
-        new Set(registeredPeers.flatMap((p) => p.extCallers.map((ec) => formatSymLoc(ec.caller))))
-      ).slice(0, 4);
+    const registries = new Map();
+    for (const peer of registeredPeers) {
+      for (const { caller, edge } of peer.extCallers) {
+        if (!['function', 'method'].includes(caller.kind) || edge.resolution?.confidence !== "HIGH") continue;
+        if (!['REGISTRATION', 'BRANCH_DISPATCH'].includes(edge.kind) && !/factory|registry|create|dispatch|build/i.test(caller.name)) continue;
+        if (!registries.has(caller.id)) registries.set(caller.id, { caller, peers: new Set() });
+        registries.get(caller.id).peers.add(peer.sub.id);
+      }
+    }
+    const sharedRegistries = [...registries.values()].filter((r) => r.peers.size >= 2);
+    if (sharedRegistries.length > 0) {
+      const registrarLocs = sharedRegistries.slice(0, 4).map((r) => formatSymLoc(r.caller));
 
       for (const unreg of unregisteredScopedSubs) {
-        if (unreg.isFeatureGated || profile.hasDynamicPluginLoading) {
+        if (unreg.isFeatureGated || profile.hasDynamicPluginLoading || unreg.projectMode === "library") {
           autoResults.push({
             id: nextAutoId(),
             station: "REGISTRATION_OR_DISPATCH",
             layer: "L1_STRUCTURAL",
             required: false,
             targetLocation: formatSymLoc(unreg),
-            reason: `同族契约 "${baseName}" 的其他实现已挂载到工厂/分发器，当前实现含条件编译或动态插件特征`,
+            reason: `同族契约 "${baseName}" 存在共享工厂；当前实现可能由库使用者、平台配置或插件宿主启用`,
             expectedRelation: `确认 ${unreg.name} 在目标平台或外部插件清单中已正确启用`,
             sourceBasis: `同族已注册实现: ${registeredPeers.map((p) => p.sub.name).join(", ")}`,
             status: "INCONCLUSIVE",
             evidence: [formatSymLoc(unreg), ...registrarLocs],
-            finding: `待确认：同族实现 "${unreg.name}" 未见静态工厂引用（含按平台启用或动态插件加载特征）`,
+            finding: `待确认：同族实现 "${unreg.name}" 未见该工厂引用，需核实外部调用或可选实现契约`,
             remediation: `若 "${unreg.name}" 非按平台裁剪或外部反射加载，请在 ${registrarLocs.join(" / ")} 中补齐注册。`
           });
         } else {
@@ -979,67 +1052,22 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
     }
 
     // A2. Polymorphic / Multi-Platform Sibling Missing Method Implementation
-    const baseContainers = (graph.containersByName?.get(baseName) || []).filter((c) => c.zone === "prod");
-    const baseConcreteMethods = new Set();
-    for (const bc of baseContainers) {
-      if (bc.isInterface || bc.isTrait) continue;
-      for (const m of graph.symbolById.values()) {
-        if (m.parentContainerId === bc.id && m.kind === "method" && !m.isConstructor) {
-          baseConcreteMethods.add(m.name);
-        }
+    const methodsBySub = new Map(prodSubs.map((sub) => [sub.id, concreteMethods(sub)]));
+    // A method called on one concrete subclass does not become a requirement
+    // for every sibling. Only a declaration in the actual base contract does.
+    const candidateMethods = new Map();
+    for (const base of baseContainers) {
+      for (const member of membersByContainer.get(base.id) || []) {
+        if (member.kind === "method" && !member.isConstructor && (member.isAbstract || ((base.isInterface || base.isTrait) && !member.hasImplementation))) candidateMethods.set(member.name, member);
       }
     }
 
-    const methodsBySub = new Map();
-    for (const sub of prodSubs) {
-      const mMap = new Map();
-      for (const s of graph.symbolById.values()) {
-        if (
-          s.zone === "prod" &&
-          s.kind === "method" &&
-          !s.isConstructor &&
-          s.isPublicApi &&
-          !s.name.startsWith("_") &&
-          (s.parentContainerId === sub.id || (s.file === sub.file && s.parentContainerName === sub.name))
-        ) {
-          mMap.set(s.name, s);
-        }
-      }
-      methodsBySub.set(sub.id, mMap);
-    }
-
-    const candidateMethods = new Set();
-    for (const sub of prodSubs) {
-      if (!inScope(sub.file)) continue;
-      for (const mName of (methodsBySub.get(sub.id) || new Map()).keys()) {
-        if (!baseConcreteMethods.has(mName)) candidateMethods.add(mName);
-      }
-    }
-
-    for (const mName of candidateMethods) {
+    for (const [mName, contractMember] of candidateMethods) {
       const implementers = prodSubs.filter((sub) => methodsBySub.get(sub.id)?.has(mName));
-      const missingSubs = prodSubs.filter((sub) => !sub.isFeatureGated && !methodsBySub.get(sub.id)?.has(mName));
-      if (implementers.length === 0 || missingSubs.length === 0) continue;
+      const missingSubs = prodSubs.filter((sub) => !sub.isFeatureGated && !sub.isAbstract && !sub.isInterface && !sub.isTrait && !methodsBySub.get(sub.id)?.has(mName));
+      if (missingSubs.length === 0 || (!inScope(contractMember.file) && !prodSubs.some((sub) => inScope(sub.file)))) continue;
 
-      // Require evidence that `mName` is either declared on the base contract OR invoked polymorphically by an external prod caller
-      const declaredOnBase = baseContainers.some((bc) =>
-        Array.from(graph.symbolById.values()).some((s) => s.file === bc.file && s.name === mName) ||
-        (bc.snippet || "").includes(mName)
-      );
-      const polymorphicCallers = [];
-      for (const imp of implementers) {
-        const mSym = methodsBySub.get(imp.id).get(mName);
-        for (const callerId of graph.callInEdges.get(mSym.id) || []) {
-          const caller = graph.symbolById.get(callerId);
-          if (!caller || caller.zone !== "prod" || caller.parentContainerId === imp.id) continue;
-          const exclusivelyTargetsConcrete = (caller.qualifiedCalls || []).some(
-            (qc) => qc.member === mName && qc.receiver === imp.name
-          );
-          if (!exclusivelyTargetsConcrete) polymorphicCallers.push(caller);
-        }
-      }
-
-      if (declaredOnBase || polymorphicCallers.length > 0) {
+      {
         for (const miss of missingSubs) {
           autoResults.push({
             id: nextAutoId(),
@@ -1049,14 +1077,14 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
             targetLocation: formatSymLoc(miss),
             reason: `同族/跨平台实现共享契约 "${baseName}"，新增契约方法需在所有激活平台/分支实现中同步补齐`,
             expectedRelation: `在 ${miss.name} (${miss.file}) 中实现方法 ${mName}()`,
-            sourceBasis: `已实现分支: ${implementers.map((i) => `${i.name}.${mName}`).join(", ")}`,
+            sourceBasis: `契约声明: ${formatSymLoc(contractMember)}；已实现分支: ${implementers.map((i) => `${i.name}.${mName}`).join(", ")}`,
             status: "VIOLATED",
             evidence: [
               formatSymLoc(miss),
               ...implementers.map((i) => formatSymLoc(methodsBySub.get(i.id).get(mName))),
-              ...polymorphicCallers.slice(0, 2).map(formatSymLoc)
+              formatSymLoc(contractMember)
             ],
-            finding: `违反：同族/另一平台分支 "${miss.name}" 遗漏实现方法 "${mName}()"（上游已按共享契约 "${baseName}" 调用）`,
+            finding: `违反：同族/另一平台分支 "${miss.name}" 遗漏实现方法 "${mName}()"（共享契约 "${baseName}" 已声明该方法）`,
             remediation: `请在 ${miss.file} 的 ${miss.name} 中同步实现 "${mName}()"，保持多态/跨平台契约一致。`
           });
         }
@@ -1068,15 +1096,25 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
   const gatedTwinsByKey = new Map();
   for (const s of graph.symbolById.values()) {
     if (s.zone !== "prod" || !s.isFeatureGated || (s.kind !== "function" && s.kind !== "method")) continue;
-    const tKey = `${s.file}::${s.parentContainerName || ""}.${s.name}`;
+    const tKey = `${s.file}::${s.parentFunctionId || ""}::${s.implementationScope || s.parentContainerName || ""}.${s.name}`;
     if (!gatedTwinsByKey.has(tKey)) gatedTwinsByKey.set(tKey, []);
     gatedTwinsByKey.get(tKey).push(s);
   }
   for (const twins of gatedTwinsByKey.values()) {
     if (twins.length < 2) continue;
     if (!twins.some((t) => inScope(t.file))) continue;
-    const arities = new Set(twins.map((t) => (t.params || []).length));
-    if (arities.size > 1) {
+    const branches = new Map();
+    for (const twin of twins) {
+      const key = JSON.stringify(twin.conditionalContext || []);
+      if (!branches.has(key)) branches.set(key, []);
+      branches.get(key).push(twin);
+    }
+    const variants = [...branches.values()];
+    const signatureSet = (branch) => [...new Set(branch.map((t) => (t.parameterSlots || t.params || []).length))].sort((a, b) => a - b).join(",");
+    const mismatch = variants.some((a, i) => variants.slice(i + 1).some((b) =>
+      mutuallyExclusiveConditions(a[0].conditionalContext || [], b[0].conditionalContext || []) && signatureSet(a) !== signatureSet(b)
+    ));
+    if (mismatch) {
       autoResults.push({
         id: nextAutoId(),
         station: "REGISTRATION_OR_DISPATCH",
@@ -1087,7 +1125,7 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
         expectedRelation: `对齐 ${twins[0].name} 在各平台分支中的参数签名`,
         sourceBasis: "条件编译对称契约",
         status: "VIOLATED",
-        evidence: twins.map((t) => `${formatSymLoc(t)} -> params(${t.params.join(", ")})`),
+        evidence: twins.map((t) => `${formatSymLoc(t)} -> params(${(t.parameterSlots || t.params || []).map((p) => p ?? "_").join(", ")})`),
         finding: `违反：条件编译同名函数 "${twins[0].name}" 在不同平台分支中参数数量不一致`,
         remediation: `请同步更新 ${twins[0].file} 中所有条件编译分支的 "${twins[0].name}" 签名与处理逻辑。`
       });
@@ -1115,7 +1153,7 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
         finding: u.diagnosis,
         remediation:
           u.verdict === "VIOLATED"
-            ? `请将 "${u.name}" 接入真实的 UI/IPC/路由/主流程入口；若确认属废弃实验草稿请直接删除。`
+            ? `请将 "${u.name}" 接入真实的 UI/IPC/路由/主流程入口；删除前需核实动态/外部调用契约并运行测试。`
             : `请确认 "${u.name}" 是否由外部宿主动态调用；若是内部功能请补齐调用入口。`
       });
     }
@@ -1127,7 +1165,7 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
           s.zone === "prod" &&
           (s.kind === "function" || s.kind === "method") &&
           s.isPublicApi &&
-          (s.isPackageEntryExport || profile.projectMode === "library") &&
+          (s.isPackageEntryExport || (profile.projectMode === "library" && !s.hasCargoBoundary)) &&
           inScope(s.file)
       );
       if (addedPubExports.length > 0 && autoResults.every((r) => r.station !== "ENTRY_WIRING")) {
@@ -1152,6 +1190,7 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
     for (const b of flowDiff.newlyBrokenBridges || []) {
       autoResults.push({
         id: nextAutoId(),
+        diagnosticKey: bridgeDiagnosticKey(b),
         station: "PROTOCOL_COUNTERPART",
         layer: "L1_STRUCTURAL",
         required: true,
@@ -1195,11 +1234,11 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
         layer: "L1_STRUCTURAL",
         required: true,
         targetLocation: orph.symbol,
-        reason: "重构或修改调用方后，严禁将仍在使用的下游模块意外断流悬空（或遗留未清理的旧消费者）",
+        reason: orph.classification === 'REMOVED_CALLBACK_REGISTRATION' ? '原有生产入口回调注册已删除且未发现替代连接' : "重构或修改调用方后，严禁将仍在使用的下游模块意外断流悬空（或遗留未清理的旧消费者）",
         expectedRelation: "恢复到该符号的有效调用边，或若已被新实现完整替代则彻底移除废弃旧实现",
         sourceBasis: "增量可达性图差异 (G_base ➔ G_curr)",
         status: "VIOLATED",
-        evidence: [orph.symbol],
+        evidence: [orph.symbol, ...(orph.evidence || [])],
         finding: `违反：${orph.diagnosis}`,
         remediation: "请核实是否漏接了新入口到该节点的调用，或清理已被彻底替换的旧死代码。"
       });
@@ -1249,7 +1288,7 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
     if (!own.scope) continue;
     const domReaders = own.readers
       .map((id) => graph.symbolById.get(id))
-      .filter((s) => s && s.zone === "prod" && !isPersistenceOrSerializerSymbol(s));
+      .filter((s) => s && s.zone === "prod" && !isPersistenceOnlyRead(s, own.field));
     if (domReaders.length > 0) {
       if (!domainConsumedScopes.has(own.scope)) domainConsumedScopes.set(own.scope, []);
       domainConsumedScopes.get(own.scope).push({ field: own.field, readers: domReaders });
@@ -1263,8 +1302,8 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
     if (!writerSyms.some((w) => inScope(w.file))) continue;
 
     const readerSyms = own.readers.map((id) => graph.symbolById.get(id)).filter((s) => s && s.zone === "prod");
-    const domReaders = readerSyms.filter((s) => !isPersistenceOrSerializerSymbol(s));
-    const persistReaders = readerSyms.filter((s) => isPersistenceOrSerializerSymbol(s));
+    const domReaders = readerSyms.filter((s) => !isPersistenceOnlyRead(s, own.field));
+    const persistReaders = readerSyms.filter((s) => isPersistenceOnlyRead(s, own.field));
     const siblingDomainExamples = domainConsumedScopes.get(own.scope) || [];
 
     if (domReaders.length === 0 && persistReaders.length > 0 && siblingDomainExamples.length > 0) {
@@ -1277,15 +1316,15 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
         id: nextAutoId(),
         station: "DATA_FLOW_CONSUMPTION",
         layer: "L2_DATA_FLOW",
-        required: true,
+        required: false,
         targetLocation: sampleConsumer ? formatSymLoc(sampleConsumer) : writerSyms.map(formatSymLoc).join(" | "),
-        reason: "新增或修改的配置字段不能只接入写入和保存，必须真正传入业务计算逻辑生效",
+        reason: "仅凭持久化方法命名和相邻字段用途，无法证明该字段必须参与业务计算；需要明确消费契约",
         expectedRelation: `下游业务计算（如 ${sampleConsumer ? sampleConsumer.name : "消费者"}）读取 "${own.qualifiedField}"`,
         sourceBasis: `同容器字段 "${siblingDomainExamples[0].field}" 由 ${formatSymLoc(sampleConsumer)} 消费`,
-        status: "VIOLATED",
+        status: "INCONCLUSIVE",
         evidence: [...writerSyms.map(formatSymLoc), ...persistReaders.map(formatSymLoc)],
-        finding: `违反：字段 "${own.qualifiedField}" 仅在持久化方法 [${persistReaders.map((p) => p.name).join(", ")}] 中读取，无任何业务计算消费者${constHint}`,
-        remediation: `请在下游计算逻辑（参考 ${formatSymLoc(sampleConsumer)}）中读取并使用 "${own.qualifiedField}"。`
+        finding: `待确认：字段 "${own.qualifiedField}" 仅在按名称识别的持久化方法 [${persistReaders.map((p) => p.name).join(", ")}] 中读取，尚无明确业务消费契约${constHint}`,
+        remediation: `请确认该字段是否仅服务于存储；若应影响业务计算，请通过蓝图指定 targetField 和 consumerTarget。`
       });
     }
   }
@@ -1338,7 +1377,13 @@ function inferAutomaticObligations(graph, flowDiff, scopedFiles, isFullScan, cov
 }
 
 export function evaluateWiringContracts(currGraph, flowDiff, workspaceRoot, options = {}) {
-  const activePlan = options.wiringPlan || (options.ignoreSavedPlan ? null : loadActiveWiringPlan(workspaceRoot));
+  const activePlan = options.wiringPlan || (options.ignoreSavedPlan ? null : loadActiveWiringPlan(workspaceRoot, options));
+  if (activePlan?.scope && JSON.stringify(activePlan.scope) !== JSON.stringify(resolveStateScope(workspaceRoot, options))) {
+    throw new Error("Wiring plan workspace/session/task does not match this verification");
+  }
+  if (options.runTestsCommand) {
+    options = { ...options, behavioralExecution: runBehavioralTest(workspaceRoot, options) };
+  }
   const isFullScan = Boolean(options.fullScan) && !flowDiff;
   const scopedFiles = new Set([
     ...(flowDiff?.changedSourceFiles || []),
@@ -1379,34 +1424,22 @@ export function evaluateWiringContracts(currGraph, flowDiff, workspaceRoot, opti
     });
   }
 
-  const counts = {
-    total: evaluatedObligations.length,
-    satisfied: evaluatedObligations.filter((o) => o.status === "SATISFIED").length,
-    violated: evaluatedObligations.filter((o) => o.status === "VIOLATED").length,
-    inconclusive: evaluatedObligations.filter((o) => o.status === "INCONCLUSIVE").length
-  };
-
-  const verificationVerdict =
-    counts.violated > 0 ? "VIOLATED" : counts.inconclusive > 0 ? "INCONCLUSIVE" : "SATISFIED";
-
-  const summaryLines = [];
-  if (counts.total > 0) {
-    summaryLines.push(
-      `本次 ${counts.total} 项接入要求：${counts.satisfied} 项满足，${counts.violated} 项违反，${counts.inconclusive} 项待确认。`
-    );
-    for (const v of evaluatedObligations.filter((o) => o.status === "VIOLATED").slice(0, 4)) {
-      summaryLines.push(`${v.finding}`);
-    }
-    for (const inc of evaluatedObligations.filter((o) => o.status === "INCONCLUSIVE").slice(0, 3)) {
-      summaryLines.push(`${inc.finding}`);
-    }
-  } else {
-    summaryLines.push("全仓静态水路审计未检出契约违反（当前无活动蓝图清单或增量差异）。");
+  if (options.runTestsCommand && !evaluatedObligations.some((o) => o.checkSpec?.type === "BEHAVIORAL_TEST_EVIDENCE")) {
+    evaluatedObligations.push(evaluateSinglePlanObligation({
+      id: "AUTO-BEHAVIORAL",
+      station: "BEHAVIORAL_VERIFICATION",
+      layer: "L3_BEHAVIORAL",
+      required: false,
+      targetLocation: "用户指定的测试命令",
+      checkSpec: { type: "BEHAVIORAL_TEST_EVIDENCE" }
+    }, currGraph, flowDiff, options));
   }
+
+  const { counts, verificationVerdict, headlineSummary } = summarizeObligations(evaluatedObligations);
 
   return {
     verificationVerdict,
-    headlineSummary: summaryLines.join(" "),
+    headlineSummary,
     wiringReport: {
       planId: activePlan?.planId || null,
       source: activePlan ? "SHARED_BLUEPRINT_AND_DIFF" : flowDiff ? "INCREMENTAL_GRAPH_DIFF" : "STATIC_WORKSPACE_SCAN",

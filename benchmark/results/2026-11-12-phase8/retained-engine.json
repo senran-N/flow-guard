@@ -1,0 +1,8 @@
+{
+  "engineSourceHash": "2231f027c2f51200665ccad5803903b796588c4c0003eb444a6cb300d5a0f724",
+  "matches": "phase7",
+  "candidate": "phase8",
+  "candidateStatus": "REJECTED_AND_REVERTED",
+  "testsReused": "Identical engine and test-file bytes to completed phase7 verification; no rerun claimed",
+  "checkedAt": "2026-11-12T05:40:41.975Z"
+}

@@ -3,6 +3,7 @@ export const IGNORE_DIRS = new Set([
   ".git",
   "dist",
   "build",
+  "build-tauri",
   "target",
   "bin",
   "obj",
@@ -215,7 +216,7 @@ function cleanParamName(rawParam, lang, hasTypedSubsequentParam = false) {
   return null;
 }
 
-export function extractParamNames(lang, sigText) {
+export function extractParamNames(lang, sigText, preservePositions = false) {
   let inner = sigText.trim();
   if (inner.startsWith("(") && inner.endsWith(")")) {
     inner = inner.slice(1, -1).trim();
@@ -231,6 +232,7 @@ export function extractParamNames(lang, sigText) {
   const rawList = [];
   for (const chunk of topChunks) {
     const trimmed = chunk.trim();
+    if (!trimmed || (lang === "cpp" && trimmed === "void" && topChunks.length === 1)) continue;
     if (
       lang === "dart" &&
       ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]")))
@@ -254,7 +256,11 @@ export function extractParamNames(lang, sigText) {
       }
     }
     const clean = cleanParamName(rawList[i], lang, hasTypedNext);
-    if (clean && !clean.startsWith("_")) names.push(clean);
+    if (preservePositions) {
+      // Implicit receivers occupy no argument slot at a method call site.
+      if ((lang === "python" || lang === "rust") && /^(?:&\s*(?:mut\s+)?)?(?:self|cls)(?:\s*:|\s*$)/.test(rawList[i].trim())) continue;
+      names.push(/^(?:\.\.\.|\*\*?)/.test(rawList[i].trim()) ? null : clean);
+    } else if (clean && !clean.startsWith("_")) names.push(clean);
   }
   return names;
 }
@@ -342,6 +348,9 @@ export function extractRefOutParamNames(lang, sigText) {
 
 export function matchSymbolDeclaration(lang, line, inClassScope = false, inVueOptionsScope = false) {
   if (lang === "dart") {
+    // A function-typed field or typedef is not a method named `Function`.
+    const functionField = line.match(/\bFunction\s*(?:<[^>]*>\s*)?\([^)]*\)\s*\??\s+[A-Za-z_][A-Za-z0-9_]*\s*(?:[,;=]|$)/);
+    if (functionField && !/[({=;]/.test(line.slice(0, functionField.index))) return null;
     const extM = line.match(/^\s*extension\s+([A-Za-z_][A-Za-z0-9_]*)\s+on\b/);
     if (extM) {
       return { name: extM[1], kind: "impl", isTraitImpl: false, isPublicApi: !extM[1].startsWith("_") };
@@ -408,6 +417,11 @@ export function matchSymbolDeclaration(lang, line, inClassScope = false, inVueOp
     }
 
     if (lang === "kotlin") {
+      const objectM = line.match(/^\s*(?:(?:public|internal|private|protected|data)\s+)*(companion\s+)?object(?:\s+([A-Za-z_][A-Za-z0-9_]*))?\s*(?=[:{])/);
+      if (objectM && (objectM[1] || objectM[2])) return {
+        name: objectM[2] || "Companion", kind: "class", isKotlinObject: true,
+        isPublicApi: !/\b(?:private|internal)\b/.test(line)
+      };
       const ktM = line.match(/^\s*(?:(?:public|internal|private|protected|override|open|suspend|inline)\s+)*fun\s+(?:<[^>]+>\s+)?(?:[A-Za-z_][A-Za-z0-9_<>,.?]*\.)?([A-Za-z_][A-Za-z0-9_]*)\s*\(/);
       if (ktM) return { name: ktM[1], kind: "method", isPublicApi: !/\b(private|internal)\b/.test(line) };
     }
@@ -478,9 +492,9 @@ export function matchSymbolDeclaration(lang, line, inClassScope = false, inVueOp
   }
 
   if (lang === "ts" || lang === "vue") {
-    const clsM = line.match(/^\s*(?:export\s+)?(?:default\s+)?(?:abstract\s+)?class\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/);
+    const clsM = line.match(/^\s*(?:export\s+)?(?:default\s+)?(?:abstract\s+)?(class|interface)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/);
     if (clsM) {
-      return { name: clsM[1], kind: "class", isPublicApi: /^\s*export\b/.test(line) };
+      return { name: clsM[2], kind: "class", isInterface: clsM[1] === "interface", isPublicApi: /^\s*export\b/.test(line) };
     }
 
     const fnM =
@@ -754,7 +768,6 @@ export function isRuntimeEntrySource(lang, fileRel, symName, attrsAndSig, bodyTe
   if (lang === "rust") {
     return (
       symName === "main" ||
-      symName === "run" ||
       /#\[(?:tauri::)?command(?:\s*\([^)]*\))?\s*\]|#\[specta::specta\b/.test(attrsAndSig) ||
       /#\[(get|post|put|delete|patch|tokio::main|actix_web::main)\]/.test(attrsAndSig)
     );

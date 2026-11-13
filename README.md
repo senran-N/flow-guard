@@ -5,13 +5,15 @@
 <br />
 
 [![Release](https://img.shields.io/badge/release-v0.2.0-38bdf8?style=flat-square&logo=github)](https://github.com/senran-N/flow-guard/releases/tag/v0.2.0)
-[![Torture & Task Suites](https://img.shields.io/badge/Assertions-142%2F142%20Passing%20(69%20Torture%20%2B%2073%20Task)-34d399?style=flat-square&logo=node.js)](./test/task-benchmark-suite.mjs)
+[![Test Suites](https://img.shields.io/badge/Tests-147%20Assertions%20%2B%20156%20Cases-34d399?style=flat-square&logo=node.js)](./test/real-world-regression.test.mjs)
 [![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-818cf8?style=flat-square)](https://modelcontextprotocol.io)
 [![Languages](https://img.shields.io/badge/Polyglot-27%20Extensions%20%7C%2011%2B%20Langs-34d399?style=flat-square)](#-%E5%A4%9A%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%B7%A8%E8%BE%B9%E7%95%8C%E6%A1%A5%E6%8E%A5%E7%9F%A9%E9%98%B5)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0%20(Pure%20Node%20ESM)-22d3ee?style=flat-square)](./package.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square)](./LICENSE)
 
-**面向 AI 编码智能体（Coding Agents）的端到端接线规划（`Blueprint ⇄ Verify`）、有类型因果关系图与增量链路差异（`G_base ➔ G_curr`）核验引擎**
+**帮助 AI 编码智能体发现“代码写完了，但功能没有接完整”的问题。**
+
+通过共享接入清单（`Blueprint ⇄ Verify`）、带源码证据的关系图与增量图差异，检查入口、注册、状态恢复和下游消费。
 
 [**简体中文**](./README.md) · [**English**](./README.en.md) · [**快速开始**](#-快速安装与接入) · [**MCP 工具矩阵**](#-四大核心-mcp-工具) · [**能力边界**](#-%E8%83%BD%E5%8A%9B%E8%BE%B9%E7%95%8C%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%AE%9A%E4%BD%8D) · [**实战基准**](#-实战基准测试)
 
@@ -28,7 +30,7 @@ FlowGuard 的核心目标，是让 AI 在修改局部代码时仍能把握整个
 | **1. 写了却没接上** | 新增实现并加了 `export`，但应用内没有任何真实运行时入口（UI/IPC/路由/定时循环）调用，或计算结果没有真实消费者。 | **场景化入口判定 + 接线契约**：区分 `library`（导出即外部契约）与 `application`（新增导出仍需 `reachableFromRuntimeSource` 真实入口证据），未接入导出单独归入 `unwiredExports`。 |
 | **2. 改了一处却漏了关联处** | 新增模式忘记工厂注册、前端协议改了字段后端仍读旧字段、配置能 `Save` 重启却漏了 `Load` 恢复、重构删了读取方导致未改动文件里的写入变成死路。 | **有类型证据边 + `G_base ➔ G_curr` 图差异**：严格区分条件分支（`BRANCH_DISPATCH`）与顺序步骤（`SEQ_CALL`），并沿依赖边扩展检查受波及的未修改文件（`impactedUntouchedFiles`）。 |
 | **3. 控制可达但目标数据未生效** | 配置项已写入并落盘，但下游核心过滤函数仍硬编码读取旧常量 `DEFAULT_THRESHOLD`；或生产入口误连了 `sandbox/` 实验实现。 | **三层证据分离（`L1_STRUCTURAL` / `L2_DATA_FLOW` / `L3_BEHAVIORAL`）**：不仅查控制流可达，更追踪目标字段是否真正流向目标消费者（`consumerTarget`），并隔离沙盒反向引用。 |
-| **4. 破坏架构契约或用创可贴掩盖** | 把框架钩子、多态签名对齐或平台条件实现当“死代码”误删；或为了消警添加虚假调用、空 `catch {}`、`#[allow(dead_code)]`。 | **三态结论（`SATISFIED / VIOLATED / INCONCLUSIVE`）+ 死代码证据分级**：区分 `CONFIRMED_SAFE_TO_DELETE`（私有零水流废管）与 `NO_STATIC_CALLER_EVIDENCE`（待确认导出），动态/外部消费者诚实标记为 `INCONCLUSIVE`。 |
+| **4. 破坏架构契约或用创可贴掩盖** | 把框架钩子、多态签名对齐或平台条件实现当“死代码”误删；或为了消警添加虚假调用、空 `catch {}`、`#[allow(dead_code)]`。 | **三态结论（`SATISFIED / VIOLATED / INCONCLUSIVE`）+ 死代码证据分级**：内部符号和导出符号均以 `NO_STATIC_CALLER_EVIDENCE` 标记缺少静态引用，附带分析范围与不确定性，动态/外部消费者诚实标记为 `INCONCLUSIVE`。 |
 
 ---
 
@@ -106,10 +108,10 @@ FlowGuard 通过标准 Model Context Protocol (`stdio` JSON-RPC 2.0，零外部�
 - **首屏三态结论（`headlineSummary` & `wiringReport`）**：优先汇报 `本次 N 项接入要求：X 项满足 (SATISFIED)，Y 项违反 (VIOLATED)，Z 项待确认 (INCONCLUSIVE)`，杜绝“没报错就等于已接通”。
 - **三层证据核验**：
   - **`L1_STRUCTURAL`**：入口可达、工厂注册、跨语言桥接对端、成对生命周期闭合。
-  - **`L2_DATA_FLOW`**：目标字段是否从配置/协议真正传入 `consumerTarget`（拦截“配置已存盘但过滤计算仍读旧常量”与“前后端协议字段漂移”）。
-  - **`L3_BEHAVIORAL`**：支持可选传入 `runTestsCommand` 执行测试/探针命令获取行为级证据；未执行运行时测试时诚实标记为 `INCONCLUSIVE`。
+  - **`L2_DATA_FLOW`**：检查目标字段的读取证据，并按实参位置对应到 `consumerTarget` 中被读取的形参；保留常量占位、重复实参和多次调用，展开参数或目标解析有歧义时返回 `INCONCLUSIVE`。静态读取证据不能证明该值改变了最终输出。
+  - **`L3_BEHAVIORAL`**：通过 `runTestsCommand` 执行测试/探针命令，退出码为 0 时记录命令通过，测试进程非零退出报告 `VIOLATED`；命令无法启动、超时或输出超限分别报告执行故障，行为结论保持 `INCONCLUSIVE`。未执行命令时，即使发现引用目标的测试代码，也返回 `INCONCLUSIVE`。调用方需选择真正覆盖目标行为的测试；命令成功本身不证明测试覆盖完整。
 - **增量链路差异（`flowDiff` & `impactedUntouchedFiles`）**：精准区分本次引入的断链（`newlyBrokenBridges`、`newlyWriteOnlyStates`、`newlyWriterlessStateReads`）与历史遗留问题（`preExistingBrokenBridges`），并覆盖未修改文件中的受波及死路。
-- **死代码证据分级**：将 `unwiredOrDeadPipes`（`CONFIRMED_SAFE_TO_DELETE`，模块内私有零调用废管）与 `unwiredExports`（`NO_STATIC_CALLER_EVIDENCE`，缺少静态入口证据的导出符号）严格分开，修复建议指向缺失的业务连接而非诱导添加形式调用。
+- **死代码证据分级**：分别报告内部符号 `unwiredOrDeadPipes` 与导出符号 `unwiredExports`。未发现引用仅标为 `NO_STATIC_CALLER_EVIDENCE`；内部符号附有 `analysisScope`、`uncertainty` 和 `REVIEW_BEFORE_DELETE_OR_WIRE`，不再给出“确认可安全删除”的结论。
 
 ---
 
@@ -151,19 +153,28 @@ FlowGuard 通过标准 Model Context Protocol (`stdio` JSON-RPC 2.0，零外部�
 ## 📊 实战基准测试
 
 ### 1. 真实开发任务“漏接检测 vs 合法反例”基准套件（`test/task-benchmark-suite.mjs`）
-模拟 8 类典型 AI 半截接入故障与 6 类合法工程反例（73 项断言）：
+模拟 8 类典型 AI 半截接入故障与 6 类合法工程反例（75 项断言）：
 - **8 类真实漏接任务（检出率 `8 / 8 = 100%`）**：应用内新增导出未接入口（`TASK-01`）、阈值已写入配置但过滤计算仍读旧常量（`TASK-02`）、新增策略模式漏挂工厂注册表（`TASK-03`）、前端协议载荷更新后端仍读旧字段（`TASK-04`）、配置可保存但重启漏恢复（`TASK-05`）、Win32 分支已接通但 Linux 平台分支遗漏（`TASK-06`）、重构后旧状态写入被删导致未修改文件读取端悬空（`TASK-07`）、删除唯一读取端导致未修改文件写入端变死水（`TASK-08`）。
 - **6 类合法反例（误报率 `0 / 6 = 0%`）**：`library` 包公开导出 API（`LEGAL-01`）、`#[cfg]` 按平台编译实现（`LEGAL-02`）、单向事件/动态插件扩展标为 `INCONCLUSIVE` 不误报 `VIOLATED`（`LEGAL-03`）、只写遥测/审计输出豁免（`LEGAL-04`）、C++/CUDA + WebView2 + 共享内存闭环（`LEGAL-05`）、历史遗留断链与本次干净改动隔离（`LEGAL-06`）。
 
-### 2. 33 个开源生产仓库与对抗性语法酷刑基准（130,981 符号 + 69 项断言）
+### 2. 可复现的测试范围
 
-| 仓库类型 | 代表项目 | 语言栈 | 符号规模 | 水源可达率 | 跨界桥接缝合 | 实战表现 |
-| :--- | :--- | :--- | :---: | :---: | :---: | :--- |
-| **万级 C++/CUDA 引擎** | **ggml-org/llama.cpp** | C++ / CUDA / Python / Svelte | 29,279 | **99.8%** | `48` 条 (`HTTP_REST` + `ENV_VAR`, 0 断链) | 2.9 万符号仅报 2 条 `IGNORED_PURE_CALL`，命中 `solve_tri.cu` 漏写 `GGML_ASSERT` 真缺陷 |
-| **跨进程桌面端全栈** | **clash-verge-rev** / **pot-desktop** / **SwitchHosts** / **bruno** | Rust+TS (Tauri) / Electron+React | 16,660 | **97.4% – 99.6%** | `325` 条 (`TAURI_IPC` / `ELECTRON_IPC`) | 321 条桥接连通，抓出 `bruno` 4 条真实断头 Electron IPC |
-| **Web 全栈生产系统** | **usememos/memos** / **koel** / **uptime-kuma** / **fastapi-template** / **pocketbase** | Go / PHP / Python / Node + React / Vue / Svelte | 18,378 | **99.1% – 99.9%** | `193` 条 (`RPC` / `REST` / `Socket.io`, 0 断链) | 方法感知 REST 路由、Laravel/FastAPI 子路由与 Socket.io 自动缝合 |
-| **特种语法与多语言核心库 (23 仓)** | `bits-ui`, `BepInEx`, `ripgrep`, `axum`, `zod`, `fastapi`, `gin`, `okhttp`, `Alamofire`, `dio`, `sidekiq`, `fmt`, `jq` 等 | Svelte 5 / C# / Rust / Go / Kotlin / Swift / Dart / Ruby / C | 66,664 | **99.7% – 100%** | 导出 API、多态契约与 Harmony 钩子识别 | 22 仓 `PASS`，抓出 `Dapper` 3 处死局部计算 |
-| **对抗性酷刑 + 真实任务套件** | **`torture-suite` + `task-benchmark-suite`** | 11+ 语言极端语法 + 8 类漏接任务 + 6 类合法反例 | **142 项断言** | **100% 召回 & 0 误报** | 8 通道 + 图差异 + 三态契约 | **~ 2.5 s** |
+| 套件 | 覆盖内容 | 计数 |
+| :--- | :--- | :--- |
+| `test/torture-suite.mjs` | 多语言语法、故障注入、Hook/MCP 契约 | 72 项断言 |
+| `test/task-benchmark-suite.mjs` | 8 类漏接任务与 6 类合法反例 | 73 项断言 |
+| `test/verification-regression.test.mjs` | 实参位置与歧义、L3 实际执行、CLI 参数和退出码 | 21 个测试用例 |
+| `test/engine-integrity.test.mjs` | 运行可达性、基线、任务隔离、状态有效性、测试进程管理 | 23 个测试用例 |
+| `test/real-world-regression.test.mjs` | 原型名称、泛型/作用域、平台分支、包边界、接口契约、报告一致性及精确相似度索引 | 36 个测试用例 |
+| 其他语言、配置与传输回归 | TS 配置继承及失效、Rust 跨 crate/接收者/cfg、Vue 事件、FastAPI 依赖、框架入口与 MCP | 76 个测试用例 |
+
+上述检出率与误报率仅描述仓内固定样例，不能外推为真实项目的准确率；断言数量也不等于独立缺陷数量。运行耗时以本机 `npm test` 输出为准。
+
+2026-11-11 对 36 个真实仓库进行了 72 次扫描，并在 8 个仓库副本中执行 12 对故障与合法改动。冻结基线有 33 个仓库完成且两轮结果一致，3 个仓库两轮均未完成；默认增量模式给出 11/12 个相关提示，但只有 2/12 个目标阻断。另发现蓝图执行异常和有源码证据的误报，当前不应将其直接作为生产自动阻断门禁。详见[完整报告与版本清单](./benchmark/results/2026-11-11/REPORT.md)和[复现方法](./benchmark/README.md)。该报告对应明确的源码哈希，后续修复须另行复测，不能用固定样例成绩代替真实项目表现。
+
+Rust 模块导入、工具脚本引用及真实断连反例的结果见[最新复测报告](./benchmark/results/2026-11-13-phase13/REPORT.md)；保留[上一阶段报告](./benchmark/results/2026-11-12-phase7/REPORT.md)供对照。已验证的改动与尚未完成事项见[改进记录](./benchmark/HARDENING.md)。
+
+此前[性能候选实验](./benchmark/results/2026-11-12-phase8/REPORT.md)已撤回。本轮采用状态读取索引和流式克隆计数；真实大仓重复扫描、配置继承、Rust 类型路径及框架误报修复的结果见最新报告，剩余诊断仍需逐条审阅。
 
 ---
 
@@ -203,6 +214,28 @@ node src/server.mjs --cli blueprint /path/to/your-repo ReferenceModule --target 
 # 4. 基于基线图差异与共享接入清单执行三态核验（支持 --base 指定 Git 基线或 --full 全量扫描）
 node src/server.mjs --cli verify /path/to/your-repo --base HEAD~1
 node src/server.mjs --cli verify /path/to/your-repo --full
+
+# 5. 实际执行目标项目的测试（无需先生成蓝图）
+node src/server.mjs --cli verify /path/to/your-repo --run-tests "npm test"
+```
+
+CLI 退出码：`0` 表示 `SATISFIED`，或显式接受的 advisory `INCONCLUSIVE`；`1` 表示验收违反或测试失败；`2` 表示参数或执行错误；`3` 表示默认的 `INCONCLUSIVE`。若要保留旧版 advisory 的退出码 `0` 行为，请传入 `--allow-inconclusive` 或 JSON 布尔值 `allowInconclusive: true`；报告仍会如实返回 `status: "INCONCLUSIVE"`，且该选项绝不会掩盖 `VIOLATED` 或执行错误。未知选项与缺少选项值会直接报错。也支持将 MCP 参数对象作为单个 JSON 参数传入；`--project-mode` 可显式选择 `auto/application/library/hybrid`。
+
+---
+
+## 会话隔离、基线与执行证据
+
+- **可达性**：`CONTAINS` / `IMPLEMENTS` 保留为架构关系，不传播运行可达性。`connectedToRuntimeEntry` 使用高置信度调用路径；`possiblyConnectedToRuntimeEntry` 另外保留低置信度或歧义候选。这些仍是静态推断，不是运行覆盖率。
+- **基线**：不存在或无法重建的显式 `baseRef` 直接报错。报告的 `baseline` 给出实际来源、引用及提交 SHA。会话快照以源码内容哈希识别已有文件修改、新增和删除，也适用于非 Git 项目；有效会话快照优先于隐式 HEAD，以排除任务开始前已有的修改。
+- **隔离**：MCP 工具接受 `sessionId` / `taskId`，CLI 对应 `--session` / `--task`；也可设置 `FLOWGUARD_SESSION_ID` / `FLOWGUARD_TASK_ID`。同一任务的 overview、blueprint、verify 必须使用相同标识。未提供时使用 `default`，并行任务应显式指定不同标识。Hook 使用 `sessionId` 或 `conversationId` 及 `taskId`。
+- **状态有效性**：蓝图、基线与 Stop 去重记录按工作区和两个标识隔离，使用临时文件与原子替换发布。切换 Git 分支、超过 7 天、内容损坏或作用域不匹配的状态被忽略，并在 `stateDiagnostics` 报告；旧版无作用域的状态需重新生成。删除建议相关的客户端也应更新为新证据枚举。
+- **工作区定位**：不再读取全局“最近工作区”文件。客户端应提供 `workspaceRoot`；缺省使用初始化工作区或当前工作目录，显式路径无效则报错。
+- **测试执行**：`--test-timeout 60000` / `testTimeoutMs` 配置超时，范围 1–3600000 毫秒。执行区分 `PASSED`、`TEST_FAILED`、`EXECUTION_ERROR`、`TIMED_OUT`、`OUTPUT_LIMIT`；超时与输出超限终止测试进程树。非零退出码说明测试程序失败，不能单凭退出码认定是哪条业务断言失败。
+- **运行记录**：每次执行保存独立 JSON 证据（命令、工作目录、时间、退出码、信号及 stdout/stderr）。`execution.artifactPath` 指向 `PLUGIN_DATA` 或系统临时目录；输出合计上限 1 MiB，报告只附尾部片段。运行记录需按团队保留策略清理。执行故障使 CLI 返回 `2`，且不伪装成业务违反。
+
+```bash
+node src/server.mjs --cli blueprint /path/to/repo Worker --target Worker.run --session session-a --task feature-1
+node src/server.mjs --cli verify /path/to/repo --session session-a --task feature-1 --run-tests "npm test" --test-timeout 60000
 ```
 
 ---
@@ -210,7 +243,7 @@ node src/server.mjs --cli verify /path/to/your-repo --full
 ## 🧪 运行测试与自举校验
 
 ```bash
-# 运行 69 项对抗性语法酷刑测试 + 73 项真实任务漏接/合法反例基准测试（共 142 项断言）
+# 运行147 项断言及 156 个验收/引擎/真实项目回归用例
 npm test
 
 # 使用 FlowGuard 对自身代码库执行自举核验
@@ -239,10 +272,15 @@ flow-guard/
 │   ├── arch-vision.mjs            # 子系统分层、主干动脉提取、爆炸半径与入参流向矩阵
 │   ├── flow-tools.mjs             # flow_overview / flow_trace / flow_blueprint 实现
 │   ├── flow-verifier.mjs          # flow_verify 增量图差异、三态契约报告与死代码证据分级引擎
-│   └── hook-runner.mjs            # SessionStart 基线快照 & Stop 智能阻断/提示生命周期钩子
+│   ├── hook-runner.mjs            # SessionStart 基线快照 & Stop 生命周期钩子
+│   ├── state-store.mjs            # 工作区/会话/任务隔离、有效性检查与原子写入
+│   ├── test-runner.mjs            # 测试运行结果与证据记录
+│   └── test-process.mjs           # 测试进程树管理、超时与输出限制
 ├── test/
 │   ├── torture-suite.mjs          # 69 项对抗性语法酷刑、故障注入变异与 Hook/MCP 契约测试
-│   └── task-benchmark-suite.mjs   # 73 项真实开发任务漏接故障与合法反例端到端基准测试
+│   ├── task-benchmark-suite.mjs    # 73 项漏接故障与合法反例断言
+│   ├── verification-regression.test.mjs # 18 个证据分级与 CLI 回归用例
+│   └── engine-integrity.test.mjs   # 20 个运行可达性、隔离与执行故障用例
 ├── hooks.json                     # 插件生命周期钩子配置
 ├── mcp_config.json                # MCP Server 启动配置
 ├── plugin.json                    # 插件清单定义 (v0.2.0)
@@ -257,3 +295,5 @@ flow-guard/
 ## 📄 开源协议
 
 本项目基于 [MIT License](./LICENSE) 开源。Copyright © 2026 [senran-N](https://github.com/senran-N).
+
+当前用法与退出码说明见 [使用与验收](./OPERATIONS.md)。

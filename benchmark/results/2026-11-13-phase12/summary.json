@@ -1,0 +1,23 @@
+{
+  "sourceHash": "3cbb11a8c479e01def64ef3ca8504751fa8c8fee1c0fc2d5e1b58e1d351b3927",
+  "tests": {
+    "assertions": 147,
+    "nodeCases": 145,
+    "environments": [
+      "Windows Node 18.20.8",
+      "Windows Node 24.14.0",
+      "WSL Ubuntu 24.04 Node 22.23.3"
+    ]
+  },
+  "repositories": 6,
+  "scans": 12,
+  "completed": 12,
+  "deterministicRepositories": 6,
+  "timeouts": 0,
+  "compiledControls": 3,
+  "sourceChecks": 6,
+  "sourceMutationPairs": 2,
+  "packageSourceMatches": true,
+  "archiveSha256": "535525ee51e02090954debb498902872547da1a7f68cb02cd3b3137eae1f1e63",
+  "selfCheck": "PASS_WITH_ZERO_OBLIGATIONS"
+}

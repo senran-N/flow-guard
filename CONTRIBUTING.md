@@ -13,10 +13,12 @@ Thank you for your interest in contributing to **FlowGuard**!
 Run all verification commands locally and ensure they pass with `0` errors:
 
 ```bash
-# 1. Run the 11+ language torture suite (69 assertions) + real-task benchmark suite (73 assertions) = 142 assertions
+# 1. Run 142 existing assertions and 102 verification/engine/real-world regression cases
 npm test
 
 # 2. Run FlowGuard incremental & full self-verification on its own repository (must report PASS / SATISFIED)
 npm run verify:self
 node src/server.mjs --cli verify . --full
 ```
+
+Verification CLI exits 1 for violations or failed behavioral tests, and 2 for argument/execution errors. `INCONCLUSIVE` remains non-blocking (exit 0); inspect the JSON verdict when full behavioral evidence is required.

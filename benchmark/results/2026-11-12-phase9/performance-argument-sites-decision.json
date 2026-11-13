@@ -1,0 +1,30 @@
+{
+  "status": "REJECTED_INCONSISTENT_PERFORMANCE",
+  "candidate": "graph-builder.mjs argumentSitesBySites WeakMap cache",
+  "action": "reverted",
+  "reason": "The candidate preserved complete reports, improved the llama.cpp A/B/B/A mean, and regressed the one-pair Bruno comparison. The cross-workspace performance result is inconsistent, so the candidate is not retained.",
+  "causalAttribution": "None. This decision does not attribute the regression to a particular machine state, repository characteristic, or code path.",
+  "equivalence": {
+    "llamaReportHash": "9598cc02b040e2b19b8286c0c667ef3b0985373a1446821782378c8030ddda02",
+    "brunoReportHash": "aeeec8392764a4129a7d128304a9549ceb63730fddae96a530e022ad5bf72682"
+  },
+  "measurements": {
+    "llamaCpp": {
+      "phase9ElapsedMs": [107935, 97741],
+      "candidateElapsedMs": [98803, 99357],
+      "phase9VerifyMs": [101763, 91129],
+      "candidateVerifyMs": [90114, 92795]
+    },
+    "bruno": {
+      "phase9ElapsedMs": [57041],
+      "candidateElapsedMs": [63458],
+      "phase9VerifyMs": [48210],
+      "candidateVerifyMs": [52871]
+    }
+  },
+  "evidence": {
+    "interruptedAttempt": "D:/Myproject/flowguard-validation/2026-11-12-hardening/performance-argument-sites",
+    "llamaComparison": "D:/Myproject/flowguard-validation/2026-11-12-hardening/performance-argument-sites-rerun",
+    "brunoComparison": "D:/Myproject/flowguard-validation/2026-11-12-hardening/performance-argument-sites-bruno"
+  }
+}

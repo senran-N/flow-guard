@@ -1,0 +1,7 @@
+{
+  "decision": "REJECTED_INCONSISTENT_PERFORMANCE",
+  "retained": false,
+  "reason": "Small llama.cpp improvement; Bruno slowdown. No causal attribution from this small uncontrolled sample.",
+  "candidate": "argumentSitesBySites cache",
+  "existingCandidateLabelsCachePreserved": true
+}

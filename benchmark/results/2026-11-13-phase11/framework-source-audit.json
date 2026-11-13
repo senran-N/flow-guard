@@ -1,0 +1,474 @@
+{
+  "sourceHash": "b24554b5d7546c8973b1750e81f8f78f616198eda59fae1188e050f0d31d23bc",
+  "phase": "phase11-final2",
+  "checks": [
+    {
+      "check": "Dio callback field is not an abstract Function method",
+      "passed": true
+    },
+    {
+      "check": "Package boundary",
+      "repo": "dio",
+      "file": "dio/lib/src/interceptor.dart",
+      "expected": "library",
+      "actual": "library",
+      "manifests": [
+        "dio/pubspec.yaml",
+        "pubspec.yaml"
+      ],
+      "passed": true
+    },
+    {
+      "check": "Package boundary",
+      "repo": "sidekiq",
+      "file": "lib/sidekiq/client.rb",
+      "expected": "library",
+      "actual": "library",
+      "manifests": [
+        "sidekiq.gemspec"
+      ],
+      "passed": true
+    },
+    {
+      "check": "Package boundary",
+      "repo": "okhttp",
+      "file": "okhttp/src/commonJvmAndroid/kotlin/okhttp3/Call.kt",
+      "expected": "library",
+      "actual": "library",
+      "manifests": [
+        "okhttp/build.gradle.kts",
+        "build.gradle.kts"
+      ],
+      "passed": true
+    },
+    {
+      "check": "Package boundary",
+      "repo": "okhttp",
+      "file": "android-test-app/src/main/kotlin/okhttp/android/testapp/MainActivity.kt",
+      "expected": "application",
+      "actual": "application",
+      "manifests": [
+        "android-test-app/build.gradle.kts",
+        "build.gradle.kts"
+      ],
+      "passed": true
+    },
+    {
+      "check": "WindowControl connected by actual JSX import and render sites",
+      "passed": true,
+      "renders": [
+        {
+          "fromId": "src/window/Config/index.jsx::Config#L14",
+          "toId": "src/components/WindowControl/index.jsx::WindowControl#L10",
+          "kind": "REGISTRATION",
+          "evidence": {
+            "file": "src/window/Config/index.jsx",
+            "line": 68,
+            "reason": "JSX 渲染: Config ➔ WindowControl",
+            "returnFlow": "CONSUMED_EXPR"
+          },
+          "resolution": {
+            "mode": "EXACT_IMPORT",
+            "confidence": "HIGH"
+          }
+        },
+        {
+          "fromId": "src/window/Recognize/index.jsx::Recognize#L53",
+          "toId": "src/components/WindowControl/index.jsx::WindowControl#L10",
+          "kind": "REGISTRATION",
+          "evidence": {
+            "file": "src/window/Recognize/index.jsx",
+            "line": 139,
+            "reason": "JSX 渲染: Recognize ➔ WindowControl",
+            "returnFlow": "CONSUMED_EXPR"
+          },
+          "resolution": {
+            "mode": "EXACT_IMPORT",
+            "confidence": "HIGH"
+          }
+        }
+      ]
+    },
+    {
+      "check": "Configured Alembic revision hook",
+      "name": "upgrade",
+      "file": "backend/app/alembic/versions/1a31ce608336_add_cascade_delete_relationships.py",
+      "configuration": "backend/alembic.ini",
+      "passed": true
+    },
+    {
+      "check": "Configured Alembic revision hook",
+      "name": "downgrade",
+      "file": "backend/app/alembic/versions/1a31ce608336_add_cascade_delete_relationships.py",
+      "configuration": "backend/alembic.ini",
+      "passed": true
+    },
+    {
+      "check": "Dynamic QR component is a candidate, not proven invocation",
+      "passed": true,
+      "edges": [
+        {
+          "fromId": "src/window/Config/pages/Service/Recognize/ConfigModal/index.jsx::ConfigModal#L16",
+          "toId": "src/services/recognize/qrcode/Config.jsx::Config#L5",
+          "kind": "REGISTRATION",
+          "evidence": {
+            "file": "src/window/Config/pages/Service/Recognize/ConfigModal/index.jsx",
+            "line": 67,
+            "reason": "JSX 候选: ConfigModal ➔ Config",
+            "returnFlow": "CONSUMED_EXPR"
+          },
+          "resolution": {
+            "mode": "DYNAMIC_COMPONENT_SELECTION",
+            "confidence": "MEDIUM"
+          }
+        }
+      ]
+    },
+    {
+      "check": "Rust entry follows actual module imports and call/registration sites",
+      "name": "start_server",
+      "edges": [
+        {
+          "fromId": "src-tauri/src/main.rs::main#L44",
+          "toId": "src-tauri/src/server.rs::start_server#L8",
+          "kind": "SEQ_CALL",
+          "evidence": {
+            "file": "src-tauri/src/main.rs",
+            "line": 91,
+            "reason": "顺序调用步骤: main ➔ start_server",
+            "argumentSites": [
+              {
+                "line": 91,
+                "passedArgs": [],
+                "positionalArgs": [],
+                "argumentMapping": "POSITIONAL"
+              }
+            ],
+            "returnFlow": "DISCARDED_BARE"
+          },
+          "resolution": {
+            "mode": "RUST_MODULE_PATH",
+            "confidence": "HIGH"
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "check": "Rust entry follows actual module imports and call/registration sites",
+      "name": "register_shortcut",
+      "edges": [
+        {
+          "fromId": "src-tauri/src/main.rs::main#L44",
+          "toId": "src-tauri/src/hotkey.rs::register_shortcut#L43",
+          "kind": "BRANCH_DISPATCH",
+          "evidence": {
+            "file": "src-tauri/src/main.rs",
+            "line": 93,
+            "reason": "条件分支派发 (分支头 L93): main ➔ register_shortcut",
+            "argumentSites": [
+              {
+                "line": 93,
+                "passedArgs": [],
+                "positionalArgs": [
+                  null
+                ],
+                "argumentMapping": "POSITIONAL"
+              }
+            ],
+            "returnFlow": "CONSUMED_EXPR"
+          },
+          "resolution": {
+            "mode": "RUST_MODULE_PATH",
+            "confidence": "HIGH"
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "check": "Rust entry follows actual module imports and call/registration sites",
+      "name": "check_update",
+      "edges": [
+        {
+          "fromId": "src-tauri/src/main.rs::main#L44",
+          "toId": "src-tauri/src/updater.rs::check_update#L5",
+          "kind": "SEQ_CALL",
+          "evidence": {
+            "file": "src-tauri/src/main.rs",
+            "line": 111,
+            "reason": "顺序调用步骤: main ➔ check_update",
+            "passedArgs": [
+              "app",
+              "handle"
+            ],
+            "argumentSites": [
+              {
+                "line": 111,
+                "passedArgs": [
+                  "app",
+                  "handle"
+                ],
+                "positionalArgs": [
+                  null
+                ],
+                "argumentMapping": "POSITIONAL"
+              }
+            ],
+            "returnFlow": "DISCARDED_BARE"
+          },
+          "resolution": {
+            "mode": "RUST_MODULE_PATH",
+            "confidence": "HIGH"
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "check": "Rust entry follows actual module imports and call/registration sites",
+      "name": "tray_event_handler",
+      "edges": [
+        {
+          "fromId": "src-tauri/src/main.rs::main#L44",
+          "toId": "src-tauri/src/tray.rs::tray_event_handler#L99",
+          "kind": "REGISTRATION",
+          "evidence": {
+            "file": "src-tauri/src/main.rs",
+            "line": 152,
+            "reason": "注册/挂载引用: main ➔ tray_event_handler",
+            "argumentSites": [],
+            "returnFlow": "REGISTERED_REF"
+          },
+          "resolution": {
+            "mode": "RUST_MODULE_PATH",
+            "confidence": "HIGH"
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "check": "Benchmark consumer is evidence without pretending to be a production entry",
+      "passed": true,
+      "finding": {
+        "id": "DIAGNOSTIC-1",
+        "diagnosticKey": "possible-entry:packages/tsc/generate.ts:49-182 (generate)",
+        "station": "ENTRY_WIRING",
+        "layer": "L1_STRUCTURAL",
+        "required": false,
+        "status": "INCONCLUSIVE",
+        "targetLocation": "packages/tsc/generate.ts:49-182 (generate)",
+        "finding": "待确认：generate 被测试或工具脚本引用，尚未证明生产入口；需确认它是否属于生产功能",
+        "evidence": [
+          "packages/treeshake/default-locale.test.ts:60: 顺序调用步骤: bundleAndRun ➔ generate",
+          "packages/treeshake/locale-treeshake.test.ts:50: 顺序调用步骤: bundle ➔ generate",
+          "packages/tsc/bench/lots-of-objects.ts:14: 顺序调用步骤: lots-of-objects ➔ generate",
+          "packages/tsc/bench/object-with-extend.ts:9: 顺序调用步骤: object-with-extend ➔ generate",
+          "packages/tsc/bench/string.ts:9: 顺序调用步骤: string ➔ generate",
+          "packages/tsc/bench/strongly-connected.ts:9: 顺序调用步骤: strongly-connected ➔ generate"
+        ],
+        "sourceBasis": "全量静态分析"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "repo": "dio",
+      "commit": "f1bef462289b40992d625d4eb2a2f42321217573",
+      "file": "dio/lib/src/interceptor.dart",
+      "sha256": "cd9b85074ecd3ada57bb65d902ff620d604bb00f76cfe8e667ac7e10dc1d883e",
+      "firstLine": 23,
+      "excerpt": "abstract class _BaseHandler {\n  final _completer = Completer<InterceptorState>();\n  void Function()? _processNextInQueue;\n\n  @protected\n  Future<InterceptorState> get future => _completer.future;"
+    },
+    {
+      "repo": "dio",
+      "commit": "f1bef462289b40992d625d4eb2a2f42321217573",
+      "file": "dio/lib/src/interceptor.dart",
+      "sha256": "cd9b85074ecd3ada57bb65d902ff620d604bb00f76cfe8e667ac7e10dc1d883e",
+      "firstLine": 1,
+      "excerpt": "part of 'dio_mixin.dart';\n\n/// The result type after handled by the interceptor.\nenum InterceptorResultType {\n  next,\n  resolve,\n  resolveCallFollowing,\n  reject,\n  rejectCallFollowing,\n}\n\n/// Used to pass state between interceptors.\nclass InterceptorState<T> {\n  const InterceptorState(this.data, [this.type = InterceptorResultType.next]);\n\n  final T data;"
+    },
+    {
+      "repo": "dio",
+      "commit": "f1bef462289b40992d625d4eb2a2f42321217573",
+      "file": "dio/pubspec.yaml",
+      "sha256": "98989faa3e5d769ddacd0190703d69bd0a6cedcc7e1bf3e34cfc7a1aa8b2c384",
+      "firstLine": 1,
+      "excerpt": "name: dio\nversion: 5.11.1\n\ndescription: |\n  A powerful HTTP networking package,\n  supports Interceptors,\n  Aborting and canceling a request,\n  Custom adapters, Transformers, etc.\ntopics:\n  - dio\n  - http\n  - network\n  - interceptor\n  - middleware\nhomepage: https://github.com/cfug/dio\nrepository: https://github.com/cfug/dio/blob/main/dio\nissue_tracker: https://github.com/cfug/dio/issues\n"
+    },
+    {
+      "repo": "sidekiq",
+      "commit": "75982898ff6dc984988da8b9ecf5371eba68e120",
+      "file": "lib/sidekiq/client.rb",
+      "sha256": "5e30b49ee5dd327d78fe08057c1f231a2bd9e8c85fe8b8e28c90ecdeec30eb5d",
+      "firstLine": 1,
+      "excerpt": "# frozen_string_literal: true\n\nrequire \"securerandom\"\nrequire \"sidekiq/middleware/chain\"\nrequire \"sidekiq/job_util\"\n\nmodule Sidekiq\n  class Client\n    include Sidekiq::JobUtil\n\n    ##\n    # Define client-side middleware:\n    #\n    #   client = Sidekiq::Client.new\n    #   client.middleware do |chain|\n    #     chain.use MyClientMiddleware"
+    },
+    {
+      "repo": "sidekiq",
+      "commit": "75982898ff6dc984988da8b9ecf5371eba68e120",
+      "file": "sidekiq.gemspec",
+      "sha256": "055c51db66f160f8b94f15bc1438a428e08d07af92f7fd992aad537a236a9c15",
+      "firstLine": 1,
+      "excerpt": "require_relative \"lib/sidekiq/version\"\n\nGem::Specification.new do |gem|\n  gem.authors = [\"Mike Perham\"]\n  gem.email = [\"info@contribsys.com\"]\n  gem.summary = \"Simple, efficient background processing for Ruby\"\n  gem.description = \"Simple, efficient background processing for Ruby.\"\n  gem.homepage = \"https://sidekiq.org\"\n  gem.license = \"LGPL-3.0\"\n\n  gem.executables = [\"sidekiq\", \"sidekiqmon\", \"kiq\"]\n  gem.files = %w[sidekiq.gemspec README.md Changes.md LICENSE.txt] + `git ls-files | grep -E '^(bin|lib|web)'`.split(\"\\n\")\n  gem.name = \"sidekiq\"\n  gem.version = Sidekiq::VERSION\n  gem.required_ruby_version = \">= 3.2.0\"\n\n  gem.metadata = {\n    \"homepage_uri\" => \"https://sidekiq.org\","
+    },
+    {
+      "repo": "okhttp",
+      "commit": "4162e9da32f636442bc789a7576144fe5972d0a5",
+      "file": "okhttp/src/commonJvmAndroid/kotlin/okhttp3/Call.kt",
+      "sha256": "658c514b8c066eb7b9e00c03b8f3703453fbd8d4ec26bb67fd9f227a903455b3",
+      "firstLine": 1,
+      "excerpt": "/*\n * Copyright (c) 2022 Square, Inc.\n *\n * Licensed under the Apache License, Version 2.0 (the \"License\");\n * you may not use this file except in compliance with the License.\n * You may obtain a copy of the License at\n *\n *      http://www.apache.org/licenses/LICENSE-2.0\n *\n * Unless required by applicable law or agreed to in writing, software\n * distributed under the License is distributed on an \"AS IS\" BASIS,\n * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n * See the License for the specific language governing permissions and\n * limitations under the License.\n */\npackage okhttp3"
+    },
+    {
+      "repo": "okhttp",
+      "commit": "4162e9da32f636442bc789a7576144fe5972d0a5",
+      "file": "okhttp/build.gradle.kts",
+      "sha256": "5d3b4e6f7067efbf5898f6aa095e62071adc8b23e8aee1cfa0535aef1a5443e7",
+      "firstLine": 1,
+      "excerpt": "@file:Suppress(\"UnstableApiUsage\")\n\nimport okhttp3.buildsupport.alpnBootVersion\nimport okhttp3.buildsupport.platform\nimport okhttp3.buildsupport.testJavaVersion\nimport org.jetbrains.kotlin.gradle.tasks.KotlinCompile\nimport ru.vyarus.gradle.plugin.animalsniffer.AnimalSniffer\nimport ru.vyarus.gradle.plugin.animalsniffer.AnimalSnifferExtension\n\nplugins {\n  kotlin(\"multiplatform\")\n  id(\"com.android.kotlin.multiplatform.library\")\n  kotlin(\"plugin.serialization\")\n  id(\"okhttp.publish-conventions\")\n  id(\"okhttp.jvm-conventions\")\n  id(\"okhttp.quality-conventions\")\n  id(\"okhttp.testing-conventions\")\n  id(\"app.cash.burst\")"
+    },
+    {
+      "repo": "okhttp",
+      "commit": "4162e9da32f636442bc789a7576144fe5972d0a5",
+      "file": "android-test-app/src/main/kotlin/okhttp/android/testapp/MainActivity.kt",
+      "sha256": "6720194efe10dafadd5cf2ea0630740581c4d155dfcce4b0bfc9b9602f4bd29a",
+      "firstLine": 1,
+      "excerpt": "/*\n * Copyright (C) 2023 Block, Inc.\n *\n * Licensed under the Apache License, Version 2.0 (the \"License\");\n * you may not use this file except in compliance with the License.\n * You may obtain a copy of the License at\n *\n *      http://www.apache.org/licenses/LICENSE-2.0\n *\n * Unless required by applicable law or agreed to in writing, software\n * distributed under the License is distributed on an \"AS IS\" BASIS,\n * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n * See the License for the specific language governing permissions and\n * limitations under the License.\n */\npackage okhttp.android.testapp"
+    },
+    {
+      "repo": "okhttp",
+      "commit": "4162e9da32f636442bc789a7576144fe5972d0a5",
+      "file": "android-test-app/build.gradle.kts",
+      "sha256": "83bde75875cab40b123ece64be750616bee9a70557872fed9c07695c410b2d9f",
+      "firstLine": 1,
+      "excerpt": "@file:Suppress(\"UnstableApiUsage\")\n\nimport okhttp3.buildsupport.testJavaVersion\n\n\nplugins {\n  id(\"okhttp.base-conventions\")\n  id(\"com.android.application\")\n}\n\nandroid {\n  compileSdk {\n    version = release(37)\n  }\n\n  namespace = \"okhttp.android.testapp\"\n\n  // Release APKs can't be tested currently with AGP"
+    },
+    {
+      "repo": "okhttp",
+      "commit": "4162e9da32f636442bc789a7576144fe5972d0a5",
+      "file": "okhttp/build.gradle.kts",
+      "sha256": "5d3b4e6f7067efbf5898f6aa095e62071adc8b23e8aee1cfa0535aef1a5443e7",
+      "firstLine": 42,
+      "excerpt": "  tasks.register<JavaExec>(\"generateIdnaMappingTable\") {\n    val idnaOutput = layout.buildDirectory.dir(\"generated/sources/idnaMappingTable\")\n\n    outputs.dir(idnaOutput)\n    mainClass.set(\"okhttp3.internal.idn.GenerateIdnaMappingTableCode\")\n    args(idnaOutput.get())\n    classpath = generateIdnaMappingTableConfiguration\n  }\n\nkotlin {\n  jvmToolchain(21)\n"
+    },
+    {
+      "repo": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "file": "src/components/WindowControl/index.jsx",
+      "sha256": "715f5be3493ffca310b17bb0e8078d40e283fb223ea8147f00917a44d6afa275",
+      "firstLine": 1,
+      "excerpt": "import { VscChromeClose, VscChromeMinimize, VscChromeMaximize, VscChromeRestore } from 'react-icons/vsc';\nimport React, { useEffect, useState } from 'react';\nimport { appWindow } from '@tauri-apps/api/window';\nimport { listen } from '@tauri-apps/api/event';\nimport { Button } from '@nextui-org/react';\n\nimport { osType } from '../../utils/env';\nimport './style.css';\n\nexport default function WindowControl() {\n    const [isMax, setIsMax] = useState(false);\n"
+    },
+    {
+      "repo": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "file": "src/window/Config/index.jsx",
+      "sha256": "19ffab540ba5fe3d6416e433f8c0d7b7d57c4ba43864f18ad0ce6e2324769046",
+      "firstLine": 64,
+      "excerpt": "                    <div className='flex'>\n                        <h2 className='m-auto ml-[10px]'>{t(`config.${location.pathname.slice(1)}.title`)}</h2>\n                    </div>\n\n                    <div className='flex'>{osType !== 'Darwin' && <WindowControl />}</div>\n                </div>\n                <Divider />"
+    },
+    {
+      "repo": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "file": "src/window/Recognize/index.jsx",
+      "sha256": "e6f16e6f5cab6330d67384e34a41829ded5a05556ca4c77ce853de6c2477b384",
+      "firstLine": 135,
+      "excerpt": "                        }}\n                    >\n                        <BsPinFill className={`text-[20px] ${pined ? 'text-primary' : 'text-default-400'}`} />\n                    </Button>\n                    {osType !== 'Darwin' && <WindowControl />}\n                </div>\n                <div\n                    className={`${"
+    },
+    {
+      "repo": "full-stack-fastapi-template",
+      "commit": "aabb90126964a164e02aff39e7c385bb0598236d",
+      "file": "backend/alembic.ini",
+      "sha256": "7c3d94cbfd98f2c9ba31f0b5ff290a0f9d12f20c7f2f7fa3f8d5fbfe5386288f",
+      "firstLine": 1,
+      "excerpt": "# A generic, single database configuration.\n\n[alembic]\n# path to migration scripts\nscript_location = app/alembic\n\n# template used to generate migration files\n# file_template = %%(rev)s_%%(slug)s\n\n# timezone to use when rendering the date\n# within the migration file as well as the filename.\n# string value is passed to dateutil.tz.gettz()\n# leave blank for localtime\n# timezone =\n"
+    },
+    {
+      "repo": "full-stack-fastapi-template",
+      "commit": "aabb90126964a164e02aff39e7c385bb0598236d",
+      "file": "backend/app/alembic/versions/1a31ce608336_add_cascade_delete_relationships.py",
+      "sha256": "21edcee58e77454faf02cffec4b8221a7f7d953225678b912a782dcd4ea1becf",
+      "firstLine": 8,
+      "excerpt": "from alembic import op\nimport sqlalchemy as sa\nimport sqlmodel.sql.sqltypes\n\n\n# revision identifiers, used by Alembic.\nrevision = '1a31ce608336'\ndown_revision = 'd98dd8ec85a3'\nbranch_labels = None\ndepends_on = None\n\n\ndef upgrade():\n    # ### commands auto generated by Alembic - please adjust! ###\n    op.alter_column('item', 'owner_id',\n               existing_type=sa.UUID(),\n               nullable=False)\n    op.drop_constraint('item_owner_id_fkey', 'item', type_='foreignkey')\n    op.create_foreign_key(None, 'item', 'user', ['owner_id'], ['id'], ondelete='CASCADE')\n    # ### end Alembic commands ###\n\n\ndef downgrade():\n    # ### commands auto generated by Alembic - please adjust! ###\n    op.drop_constraint('item_owner_id_fkey', 'item', type_='foreignkey')\n    op.create_foreign_key('item_owner_id_fkey', 'item', 'user', ['owner_id'], ['id'])\n    op.alter_column('item', 'owner_id',\n               existing_type=sa.UUID(),\n               nullable=True)"
+    },
+    {
+      "repo": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "file": "src/services/recognize/qrcode/Config.jsx",
+      "sha256": "b462fcaf468ff6bfebced11ffb2db5ad59332a6330a5271e7ad9529413ad7eb2",
+      "firstLine": 5,
+      "excerpt": "export function Config(props) {\n    const { updateServiceList, onClose } = props;\n    const { t } = useTranslation();\n\n    return (\n        <>\n            <div>{t('services.no_need')}</div>\n            <div>\n                <Button\n                    fullWidth\n                    onPress={() => {\n                        updateServiceList('qrcode');\n                        onClose();\n                    }}\n                >\n                    {t('common.save')}\n                </Button>\n            </div>\n        </>\n    );\n}"
+    },
+    {
+      "repo": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "file": "src/services/recognize/qrcode/index.jsx",
+      "sha256": "d96b9824d0c448d64a27deebdedcece88324b79168c889e9c7eac748258d807a",
+      "firstLine": 27,
+      "excerpt": "    } else {\n        throw 'QR code not recognized or multiple QR codes exist';\n    }\n}\n\nexport * from './Config';\nexport * from './info';"
+    },
+    {
+      "repo": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "file": "src/window/Config/pages/Service/Recognize/ConfigModal/index.jsx",
+      "sha256": "0ac9fd54225a8859402b1170494259f5869d03da98c106cc7804797e7b89f6ae",
+      "firstLine": 20,
+      "excerpt": "    const pluginServiceFlag = whetherPluginService(serviceInstanceKey);\n    const serviceName = getServiceName(serviceInstanceKey);\n\n    const { t } = useTranslation();\n    const ConfigComponent = pluginServiceFlag ? PluginConfig : builtinServices[serviceName].Config;\n\n    return pluginServiceFlag && !(serviceName in pluginList) ? (\n        <></>"
+    },
+    {
+      "repo": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "file": "src/window/Config/pages/Service/Recognize/ConfigModal/index.jsx",
+      "sha256": "0ac9fd54225a8859402b1170494259f5869d03da98c106cc7804797e7b89f6ae",
+      "firstLine": 63,
+      "excerpt": "                                </>\n                            )}\n                        </ModalHeader>\n                        <ModalBody>\n                            <ConfigComponent\n                                name={serviceName}\n                                instanceKey={serviceInstanceKey}\n                                pluginType='recognize'\n                                pluginList={pluginList}\n                                updateServiceList={updateServiceInstanceList}\n                                onClose={onClose}\n                            />\n                        </ModalBody>"
+    },
+    {
+      "repo": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "file": "src-tauri/src/main.rs",
+      "sha256": "30f6ae3b2470a3ddb68038a4d70e4fd684463a5baf7a75f35786a79e6ba1e5ef",
+      "firstLine": 4,
+      "excerpt": "mod backup;\nmod clipboard;\nmod cmd;\nmod config;\nmod error;\nmod hotkey;\nmod lang_detect;\nmod screenshot;\nmod server;\nmod system_ocr;\nmod tray;\nmod updater;\nmod window;\n\nuse backup::*;\nuse clipboard::*;\nuse cmd::*;\nuse config::*;\nuse hotkey::*;\nuse lang_detect::*;\nuse log::info;\nuse once_cell::sync::OnceCell;\nuse screenshot::screenshot;\nuse server::*;\nuse std::sync::Mutex;\nuse system_ocr::*;\nuse tauri::api::notification::Notification;\nuse tauri::Manager;\nuse tauri_plugin_log::LogTarget;\nuse tray::*;\nuse updater::check_update;\nuse window::config_window;\nuse window::updater_window;"
+    },
+    {
+      "repo": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "file": "src-tauri/src/main.rs",
+      "sha256": "30f6ae3b2470a3ddb68038a4d70e4fd684463a5baf7a75f35786a79e6ba1e5ef",
+      "firstLine": 89,
+      "excerpt": "            update_tray(app.app_handle(), \"\".to_string(), \"\".to_string());\n            // Start http server\n            start_server();\n            // Register Global Shortcut\n            match register_shortcut(\"all\") {\n                Ok(()) => {}\n                Err(e) => Notification::new(app.config().tauri.bundle.identifier.clone())\n                    .title(\"Failed to register global shortcut\")\n                    .body(&e)\n                    .icon(\"pot\")\n                    .show()\n                    .unwrap(),\n            }\n            match get(\"proxy_enable\") {\n                Some(v) => {\n                    if v.as_bool().unwrap() && get(\"proxy_host\").map_or(false, |host| !host.as_str().unwrap().is_empty()) {\n                        let _ = set_proxy();\n                    }\n                }\n                None => {}\n            }\n            // Check Update\n            check_update(app.handle());\n            if let Some(engine) = get(\"translate_detect_engine\") {\n                if engine.as_str().unwrap() == \"local\" {"
+    },
+    {
+      "repo": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "file": "src-tauri/src/main.rs",
+      "sha256": "30f6ae3b2470a3ddb68038a4d70e4fd684463a5baf7a75f35786a79e6ba1e5ef",
+      "firstLine": 150,
+      "excerpt": "            aliyun\n        ])\n        .on_system_tray_event(tray_event_handler)\n        .build(tauri::generate_context!())\n        .expect(\"error while running tauri application\")\n        // 窗口关闭不退出\n        .run(|_app_handle, event| {\n            if let tauri::RunEvent::ExitRequested { api, .. } = event {"
+    },
+    {
+      "repo": "zod",
+      "commit": "19c40d2072288b4cafec851e9d056a72a88e5973",
+      "file": "packages/tsc/bench/lots-of-objects.ts",
+      "sha256": "5cdf7b9fc493b4701d81f9fef871fb8669104e8bf6f1a88fec156cd2dc2d6a3e",
+      "firstLine": 1,
+      "excerpt": "import { execa } from \"execa\";\n\nconst $ = execa({ stdout: \"inherit\", stderr: \"inherit\" });\nimport * as gen from \"../generate.js\";\n\nconst SHARED = {\n  numSchemas: 500,\n  numKeys: 5,\n  numExtends: 1,\n};\nconsole.log(\"╔════════════════╗\");\nconsole.log(\"║     Zod v3     ║\");\nconsole.log(\"╚════════════════╝\");\nawait gen.generate({\n  ...gen.ZOD3,\n  schemaType: \"z.object\",\n  ...SHARED,\n});\n\nawait $`nub run build:bench`;\n\nconsole.log(\"╔════════════════╗\");\nconsole.log(\"║     Zod v4     ║\");\nconsole.log(\"╚════════════════╝\");\nawait gen.generate({\n  ...gen.ZOD,\n  schemaType: \"z.object\",\n  ...SHARED,\n});\n"
+    },
+    {
+      "repo": "zod",
+      "commit": "19c40d2072288b4cafec851e9d056a72a88e5973",
+      "file": "packages/tsc/generate.ts",
+      "sha256": "d4758741d429d17c47e55d14cd31fd3965e8a7c4953e1f63f0b345f1851fb587",
+      "firstLine": 45,
+      "excerpt": "  numExtends?: number;\n  custom?: string;\n}\n// Step 4: Write the generated schemas to a file\nexport function generate(params: GenerateObjectsParams) {\n  const {\n    imports,\n    schemaType,\n    numSchemas,\n    numRefs = 0,\n    numOmits = 0,"
+    }
+  ],
+  "limitations": [
+    "Selected source-backed checks, not an unbiased precision estimate",
+    "Runtime selection of builtinServices[serviceName].Config in pot-desktop is not proven",
+    "No browser/runtime execution of React or Alembic migrations is claimed"
+  ]
+}

@@ -1,0 +1,985 @@
+{
+  "sourceHash": "bd0f86cc5584a809da5b465731c01f6ddac8ad5758e4414c0a578c1a7613ccdf",
+  "tests": [
+    {
+      "file": "phase16-tests-final3.log",
+      "sha256": "7d4f4db2870ed92e8796a37341a2a6d75c0b57ea2c57a4415ed9391b3c3808da",
+      "nodeTests": 173,
+      "scenarioAssertions": 147
+    },
+    {
+      "file": "phase16-tests-final3-node18.log",
+      "sha256": "edbc602b58b19f4b08c58b6c4df5fcfe36c57b2277d4516dd0a93503b426a877",
+      "nodeTests": 173,
+      "scenarioAssertions": 147
+    },
+    {
+      "file": "phase16-tests-final3-linux.log",
+      "sha256": "d7f2f5a70a0eccaaf9c0a37f8206aa6790257a947e75b11302e93944cc3bbe4f",
+      "nodeTests": 173,
+      "scenarioAssertions": 147
+    }
+  ],
+  "repositories": [
+    {
+      "name": "axum",
+      "commit": "47399621c4017601ea493cd63c3af581f4fb33e3",
+      "counts": {
+        "total": 1156,
+        "satisfied": 0,
+        "violated": 0,
+        "inconclusive": 1156
+      },
+      "runs": {
+        "engine": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\engine-snapshot",
+        "workspace": "D:\\Myproject\\crack\\axum",
+        "sourceHash": "bd0f86cc5584a809da5b465731c01f6ddac8ad5758e4414c0a578c1a7613ccdf",
+        "sourceFiles": {
+          "arch-vision.mjs": "42aca858fadcdc9facb50c39023e39ca7a731a61f509cc360ac1b4c3f061c0af",
+          "bridge-linker.mjs": "74881f2229d820952e6195d75011e0b5d397800d53597cb731dac5268c0f99d0",
+          "cargo-loader.mjs": "b486778947fa4b392ab65afa70c05ff60ef88307f01a9e8e58f669e3a9437ad7",
+          "conditional-context.mjs": "5d103366c9c6d52d57b2a660b56ba486706ff611f9962ed808fae744923d7913",
+          "file-parser.mjs": "17b6dbf71ed9612996c8dae2ad7bccb3804e27773d42310a0e1225f32f97bba0",
+          "fingerprint.mjs": "1ce92e329c8f0e850bc135218ca64c0a012f73697ce02633799e3f47f895e096",
+          "flow-tools.mjs": "f906e00c9a8dbcac775fb81ac2b0c9ed1faa0917135a290e6561c66059b180e8",
+          "flow-verifier.mjs": "5620b2244ce693d26a0f5e40af4304b20d02d4b5504d6fdc51a53bcb824c98b0",
+          "framework-callbacks.mjs": "011be8cbb357c5543f4424281b62d1dea628603dcb9decb6dcd1a71ae553e968",
+          "graph-builder.mjs": "83086e011580c56d3b1a9b1523f615aa749c52c302873a4ef27528acc5fa4205",
+          "graph-diff.mjs": "f8849fb9fecfbdaf8e48813c2facafe3a4a105b37596e2dcb8003452ce5c007d",
+          "hook-runner.mjs": "29825bd3de8242490f7a05ea049d7c67e623a75405b410d18bb9c2db4881d916",
+          "js-imports.mjs": "012fcbbc14d1ea15a53397a006fcf5d13acc0b9cba7d21623db44d7da86748aa",
+          "lang-presets.mjs": "37894c3f125be038364952dff07d5fc9779a6569cf6faeb98114595f3b28d66a",
+          "lexer.mjs": "b485a3251743b648f4fa48d12386d34fbb111022f56b673b473fd269186c651a",
+          "package-boundaries.mjs": "6af00f1007422f63c52e56d48acb35ffb001b7194cfc9bfbec673fce952173c0",
+          "python-dependencies.mjs": "a17be80a98658c40f419e0a8d36b7d751e0422816b4694a741101a62e1328ad1",
+          "react-lifecycle.mjs": "4b404ac9b87cf2cee732c477694050b465913bfcb84cb1e27babc615ce7cbc25",
+          "rpc-input.mjs": "1b894bf3017ddbb67d784192cb09c500e377513ee3d008b833c1736020e90093",
+          "rust-imports.mjs": "8f5cf5548103a9f179d2a7bfc7044a384593ecde5bbaa3478a2243b44ee2f7ec",
+          "rust-macro-types.mjs": "12bdf172b9c5c071acc70989ecf20570ecd65036558c52371d7e1b435114bb25",
+          "rust-project.mjs": "c4652d5fa4040336dddffb2f20688a3bff782a4235fe4bf4a05da6fefc15b51d",
+          "rust-receivers.mjs": "81077e64eeb2bc11f3a2fa74f8a2b312575bb759f05a1c332b5a5ade57132b71",
+          "rust-type-flow.mjs": "773121817df954633c0bd9c7e622049995cfdc8f055e9e6093a08e94b95856a9",
+          "rust-zones.mjs": "9ebf307cebc61b00e4e4426c4959c4824eb02e1b9f98a6f7eb87af13c8b75033",
+          "server.mjs": "19ef9c63cc5d0b44c5cf667c2e7f2ecb633d08f2500f6a6b98ac7355e2d539d6",
+          "similarity-index.mjs": "92b7e73f1f2152a78bd242d53547bf7835046a8c6ecbb26d514d6cee071ef429",
+          "state-store.mjs": "78dc567a3a89ba93ba06d127e0254600e66ccfba8341ebfedc0b7a6c38825d19",
+          "test-process.mjs": "5aa0c6abb00079f4ff23d10978c319f4510f95661d8dfd67b982a260cf75a285",
+          "test-runner.mjs": "1e8dc1730f74b499f5ddf744a03f0a531f637d854289c09fb6e72a2b81e83ff2",
+          "vue-template.mjs": "4b2b6d7973933df935c71c2fafbc650fca4f9509b6bf77b1893d82bc2a9e3013",
+          "wiring-contract.mjs": "4f217db394f56cb3a75ecfbbba47c43459195d36f1744fe659e9d5b5ba7cb83c"
+        },
+        "commit": "47399621c4017601ea493cd63c3af581f4fb33e3",
+        "status": "",
+        "node": "v24.14.0",
+        "platform": "win32",
+        "timeoutMs": 120000,
+        "runs": [
+          {
+            "index": 1,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "elapsedMs": 4991,
+            "stderr": "",
+            "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\axum\\1.json",
+            "verifyMs": 4587,
+            "totalMs": 4820,
+            "rssMiB": 263,
+            "resultHash": "a48f127c86f83d6525593f970c61215d9c6b3b685b6a251ba9292b8d7e517f44"
+          },
+          {
+            "index": 2,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "elapsedMs": 5035,
+            "stderr": "",
+            "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\axum\\2.json",
+            "verifyMs": 4561,
+            "totalMs": 4859,
+            "rssMiB": 261,
+            "resultHash": "a48f127c86f83d6525593f970c61215d9c6b3b685b6a251ba9292b8d7e517f44"
+          }
+        ],
+        "startedAt": "2026-11-13T10:31:33.659Z",
+        "completed": true,
+        "deterministic": true,
+        "finishedAt": "2026-11-13T10:31:43.893Z"
+      }
+    },
+    {
+      "name": "clash-verge-rev",
+      "commit": "389dddf51204984e91a9769c3dee08db2eeefbb2",
+      "counts": {
+        "total": 614,
+        "satisfied": 0,
+        "violated": 0,
+        "inconclusive": 614
+      },
+      "runs": {
+        "engine": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\engine-snapshot",
+        "workspace": "D:\\Myproject\\crack\\clash-verge-rev",
+        "sourceHash": "bd0f86cc5584a809da5b465731c01f6ddac8ad5758e4414c0a578c1a7613ccdf",
+        "sourceFiles": {
+          "arch-vision.mjs": "42aca858fadcdc9facb50c39023e39ca7a731a61f509cc360ac1b4c3f061c0af",
+          "bridge-linker.mjs": "74881f2229d820952e6195d75011e0b5d397800d53597cb731dac5268c0f99d0",
+          "cargo-loader.mjs": "b486778947fa4b392ab65afa70c05ff60ef88307f01a9e8e58f669e3a9437ad7",
+          "conditional-context.mjs": "5d103366c9c6d52d57b2a660b56ba486706ff611f9962ed808fae744923d7913",
+          "file-parser.mjs": "17b6dbf71ed9612996c8dae2ad7bccb3804e27773d42310a0e1225f32f97bba0",
+          "fingerprint.mjs": "1ce92e329c8f0e850bc135218ca64c0a012f73697ce02633799e3f47f895e096",
+          "flow-tools.mjs": "f906e00c9a8dbcac775fb81ac2b0c9ed1faa0917135a290e6561c66059b180e8",
+          "flow-verifier.mjs": "5620b2244ce693d26a0f5e40af4304b20d02d4b5504d6fdc51a53bcb824c98b0",
+          "framework-callbacks.mjs": "011be8cbb357c5543f4424281b62d1dea628603dcb9decb6dcd1a71ae553e968",
+          "graph-builder.mjs": "83086e011580c56d3b1a9b1523f615aa749c52c302873a4ef27528acc5fa4205",
+          "graph-diff.mjs": "f8849fb9fecfbdaf8e48813c2facafe3a4a105b37596e2dcb8003452ce5c007d",
+          "hook-runner.mjs": "29825bd3de8242490f7a05ea049d7c67e623a75405b410d18bb9c2db4881d916",
+          "js-imports.mjs": "012fcbbc14d1ea15a53397a006fcf5d13acc0b9cba7d21623db44d7da86748aa",
+          "lang-presets.mjs": "37894c3f125be038364952dff07d5fc9779a6569cf6faeb98114595f3b28d66a",
+          "lexer.mjs": "b485a3251743b648f4fa48d12386d34fbb111022f56b673b473fd269186c651a",
+          "package-boundaries.mjs": "6af00f1007422f63c52e56d48acb35ffb001b7194cfc9bfbec673fce952173c0",
+          "python-dependencies.mjs": "a17be80a98658c40f419e0a8d36b7d751e0422816b4694a741101a62e1328ad1",
+          "react-lifecycle.mjs": "4b404ac9b87cf2cee732c477694050b465913bfcb84cb1e27babc615ce7cbc25",
+          "rpc-input.mjs": "1b894bf3017ddbb67d784192cb09c500e377513ee3d008b833c1736020e90093",
+          "rust-imports.mjs": "8f5cf5548103a9f179d2a7bfc7044a384593ecde5bbaa3478a2243b44ee2f7ec",
+          "rust-macro-types.mjs": "12bdf172b9c5c071acc70989ecf20570ecd65036558c52371d7e1b435114bb25",
+          "rust-project.mjs": "c4652d5fa4040336dddffb2f20688a3bff782a4235fe4bf4a05da6fefc15b51d",
+          "rust-receivers.mjs": "81077e64eeb2bc11f3a2fa74f8a2b312575bb759f05a1c332b5a5ade57132b71",
+          "rust-type-flow.mjs": "773121817df954633c0bd9c7e622049995cfdc8f055e9e6093a08e94b95856a9",
+          "rust-zones.mjs": "9ebf307cebc61b00e4e4426c4959c4824eb02e1b9f98a6f7eb87af13c8b75033",
+          "server.mjs": "19ef9c63cc5d0b44c5cf667c2e7f2ecb633d08f2500f6a6b98ac7355e2d539d6",
+          "similarity-index.mjs": "92b7e73f1f2152a78bd242d53547bf7835046a8c6ecbb26d514d6cee071ef429",
+          "state-store.mjs": "78dc567a3a89ba93ba06d127e0254600e66ccfba8341ebfedc0b7a6c38825d19",
+          "test-process.mjs": "5aa0c6abb00079f4ff23d10978c319f4510f95661d8dfd67b982a260cf75a285",
+          "test-runner.mjs": "1e8dc1730f74b499f5ddf744a03f0a531f637d854289c09fb6e72a2b81e83ff2",
+          "vue-template.mjs": "4b2b6d7973933df935c71c2fafbc650fca4f9509b6bf77b1893d82bc2a9e3013",
+          "wiring-contract.mjs": "4f217db394f56cb3a75ecfbbba47c43459195d36f1744fe659e9d5b5ba7cb83c"
+        },
+        "commit": "389dddf51204984e91a9769c3dee08db2eeefbb2",
+        "status": "",
+        "node": "v24.14.0",
+        "platform": "win32",
+        "timeoutMs": 120000,
+        "runs": [
+          {
+            "index": 1,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "elapsedMs": 5357,
+            "stderr": "",
+            "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\clash-verge-rev\\1.json",
+            "verifyMs": 4853,
+            "totalMs": 5192,
+            "rssMiB": 332,
+            "resultHash": "7beb3f6b380d1adbf16663da948b3ecd45d510bdb202b286bfd8d0d4ffa56ef1"
+          },
+          {
+            "index": 2,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "elapsedMs": 5829,
+            "stderr": "",
+            "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\clash-verge-rev\\2.json",
+            "verifyMs": 5222,
+            "totalMs": 5663,
+            "rssMiB": 334,
+            "resultHash": "7beb3f6b380d1adbf16663da948b3ecd45d510bdb202b286bfd8d0d4ffa56ef1"
+          }
+        ],
+        "startedAt": "2026-11-13T10:31:44.099Z",
+        "completed": true,
+        "deterministic": true,
+        "finishedAt": "2026-11-13T10:31:55.492Z"
+      }
+    },
+    {
+      "name": "fd",
+      "commit": "24d90b28d25438af2a8f2e7f7e46d03d6828da94",
+      "counts": {
+        "total": 129,
+        "satisfied": 0,
+        "violated": 0,
+        "inconclusive": 129
+      },
+      "runs": {
+        "engine": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\engine-snapshot",
+        "workspace": "D:\\Myproject\\crack\\fd",
+        "sourceHash": "bd0f86cc5584a809da5b465731c01f6ddac8ad5758e4414c0a578c1a7613ccdf",
+        "sourceFiles": {
+          "arch-vision.mjs": "42aca858fadcdc9facb50c39023e39ca7a731a61f509cc360ac1b4c3f061c0af",
+          "bridge-linker.mjs": "74881f2229d820952e6195d75011e0b5d397800d53597cb731dac5268c0f99d0",
+          "cargo-loader.mjs": "b486778947fa4b392ab65afa70c05ff60ef88307f01a9e8e58f669e3a9437ad7",
+          "conditional-context.mjs": "5d103366c9c6d52d57b2a660b56ba486706ff611f9962ed808fae744923d7913",
+          "file-parser.mjs": "17b6dbf71ed9612996c8dae2ad7bccb3804e27773d42310a0e1225f32f97bba0",
+          "fingerprint.mjs": "1ce92e329c8f0e850bc135218ca64c0a012f73697ce02633799e3f47f895e096",
+          "flow-tools.mjs": "f906e00c9a8dbcac775fb81ac2b0c9ed1faa0917135a290e6561c66059b180e8",
+          "flow-verifier.mjs": "5620b2244ce693d26a0f5e40af4304b20d02d4b5504d6fdc51a53bcb824c98b0",
+          "framework-callbacks.mjs": "011be8cbb357c5543f4424281b62d1dea628603dcb9decb6dcd1a71ae553e968",
+          "graph-builder.mjs": "83086e011580c56d3b1a9b1523f615aa749c52c302873a4ef27528acc5fa4205",
+          "graph-diff.mjs": "f8849fb9fecfbdaf8e48813c2facafe3a4a105b37596e2dcb8003452ce5c007d",
+          "hook-runner.mjs": "29825bd3de8242490f7a05ea049d7c67e623a75405b410d18bb9c2db4881d916",
+          "js-imports.mjs": "012fcbbc14d1ea15a53397a006fcf5d13acc0b9cba7d21623db44d7da86748aa",
+          "lang-presets.mjs": "37894c3f125be038364952dff07d5fc9779a6569cf6faeb98114595f3b28d66a",
+          "lexer.mjs": "b485a3251743b648f4fa48d12386d34fbb111022f56b673b473fd269186c651a",
+          "package-boundaries.mjs": "6af00f1007422f63c52e56d48acb35ffb001b7194cfc9bfbec673fce952173c0",
+          "python-dependencies.mjs": "a17be80a98658c40f419e0a8d36b7d751e0422816b4694a741101a62e1328ad1",
+          "react-lifecycle.mjs": "4b404ac9b87cf2cee732c477694050b465913bfcb84cb1e27babc615ce7cbc25",
+          "rpc-input.mjs": "1b894bf3017ddbb67d784192cb09c500e377513ee3d008b833c1736020e90093",
+          "rust-imports.mjs": "8f5cf5548103a9f179d2a7bfc7044a384593ecde5bbaa3478a2243b44ee2f7ec",
+          "rust-macro-types.mjs": "12bdf172b9c5c071acc70989ecf20570ecd65036558c52371d7e1b435114bb25",
+          "rust-project.mjs": "c4652d5fa4040336dddffb2f20688a3bff782a4235fe4bf4a05da6fefc15b51d",
+          "rust-receivers.mjs": "81077e64eeb2bc11f3a2fa74f8a2b312575bb759f05a1c332b5a5ade57132b71",
+          "rust-type-flow.mjs": "773121817df954633c0bd9c7e622049995cfdc8f055e9e6093a08e94b95856a9",
+          "rust-zones.mjs": "9ebf307cebc61b00e4e4426c4959c4824eb02e1b9f98a6f7eb87af13c8b75033",
+          "server.mjs": "19ef9c63cc5d0b44c5cf667c2e7f2ecb633d08f2500f6a6b98ac7355e2d539d6",
+          "similarity-index.mjs": "92b7e73f1f2152a78bd242d53547bf7835046a8c6ecbb26d514d6cee071ef429",
+          "state-store.mjs": "78dc567a3a89ba93ba06d127e0254600e66ccfba8341ebfedc0b7a6c38825d19",
+          "test-process.mjs": "5aa0c6abb00079f4ff23d10978c319f4510f95661d8dfd67b982a260cf75a285",
+          "test-runner.mjs": "1e8dc1730f74b499f5ddf744a03f0a531f637d854289c09fb6e72a2b81e83ff2",
+          "vue-template.mjs": "4b2b6d7973933df935c71c2fafbc650fca4f9509b6bf77b1893d82bc2a9e3013",
+          "wiring-contract.mjs": "4f217db394f56cb3a75ecfbbba47c43459195d36f1744fe659e9d5b5ba7cb83c"
+        },
+        "commit": "24d90b28d25438af2a8f2e7f7e46d03d6828da94",
+        "status": "",
+        "node": "v24.14.0",
+        "platform": "win32",
+        "timeoutMs": 120000,
+        "runs": [
+          {
+            "index": 1,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "elapsedMs": 699,
+            "stderr": "",
+            "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\fd\\1.json",
+            "verifyMs": 538,
+            "totalMs": 557,
+            "rssMiB": 109,
+            "resultHash": "a64e7a5333e2225a14f8a7c399f0d16b35fe502bf88b426e46ab59cda8d96b36"
+          },
+          {
+            "index": 2,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "elapsedMs": 683,
+            "stderr": "",
+            "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\fd\\2.json",
+            "verifyMs": 526,
+            "totalMs": 545,
+            "rssMiB": 105,
+            "resultHash": "a64e7a5333e2225a14f8a7c399f0d16b35fe502bf88b426e46ab59cda8d96b36"
+          }
+        ],
+        "startedAt": "2026-11-13T10:31:55.684Z",
+        "completed": true,
+        "deterministic": true,
+        "finishedAt": "2026-11-13T10:31:57.234Z"
+      }
+    },
+    {
+      "name": "pot-desktop",
+      "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+      "counts": {
+        "total": 46,
+        "satisfied": 0,
+        "violated": 0,
+        "inconclusive": 46
+      },
+      "runs": {
+        "engine": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\engine-snapshot",
+        "workspace": "D:\\Myproject\\crack\\pot-desktop",
+        "sourceHash": "bd0f86cc5584a809da5b465731c01f6ddac8ad5758e4414c0a578c1a7613ccdf",
+        "sourceFiles": {
+          "arch-vision.mjs": "42aca858fadcdc9facb50c39023e39ca7a731a61f509cc360ac1b4c3f061c0af",
+          "bridge-linker.mjs": "74881f2229d820952e6195d75011e0b5d397800d53597cb731dac5268c0f99d0",
+          "cargo-loader.mjs": "b486778947fa4b392ab65afa70c05ff60ef88307f01a9e8e58f669e3a9437ad7",
+          "conditional-context.mjs": "5d103366c9c6d52d57b2a660b56ba486706ff611f9962ed808fae744923d7913",
+          "file-parser.mjs": "17b6dbf71ed9612996c8dae2ad7bccb3804e27773d42310a0e1225f32f97bba0",
+          "fingerprint.mjs": "1ce92e329c8f0e850bc135218ca64c0a012f73697ce02633799e3f47f895e096",
+          "flow-tools.mjs": "f906e00c9a8dbcac775fb81ac2b0c9ed1faa0917135a290e6561c66059b180e8",
+          "flow-verifier.mjs": "5620b2244ce693d26a0f5e40af4304b20d02d4b5504d6fdc51a53bcb824c98b0",
+          "framework-callbacks.mjs": "011be8cbb357c5543f4424281b62d1dea628603dcb9decb6dcd1a71ae553e968",
+          "graph-builder.mjs": "83086e011580c56d3b1a9b1523f615aa749c52c302873a4ef27528acc5fa4205",
+          "graph-diff.mjs": "f8849fb9fecfbdaf8e48813c2facafe3a4a105b37596e2dcb8003452ce5c007d",
+          "hook-runner.mjs": "29825bd3de8242490f7a05ea049d7c67e623a75405b410d18bb9c2db4881d916",
+          "js-imports.mjs": "012fcbbc14d1ea15a53397a006fcf5d13acc0b9cba7d21623db44d7da86748aa",
+          "lang-presets.mjs": "37894c3f125be038364952dff07d5fc9779a6569cf6faeb98114595f3b28d66a",
+          "lexer.mjs": "b485a3251743b648f4fa48d12386d34fbb111022f56b673b473fd269186c651a",
+          "package-boundaries.mjs": "6af00f1007422f63c52e56d48acb35ffb001b7194cfc9bfbec673fce952173c0",
+          "python-dependencies.mjs": "a17be80a98658c40f419e0a8d36b7d751e0422816b4694a741101a62e1328ad1",
+          "react-lifecycle.mjs": "4b404ac9b87cf2cee732c477694050b465913bfcb84cb1e27babc615ce7cbc25",
+          "rpc-input.mjs": "1b894bf3017ddbb67d784192cb09c500e377513ee3d008b833c1736020e90093",
+          "rust-imports.mjs": "8f5cf5548103a9f179d2a7bfc7044a384593ecde5bbaa3478a2243b44ee2f7ec",
+          "rust-macro-types.mjs": "12bdf172b9c5c071acc70989ecf20570ecd65036558c52371d7e1b435114bb25",
+          "rust-project.mjs": "c4652d5fa4040336dddffb2f20688a3bff782a4235fe4bf4a05da6fefc15b51d",
+          "rust-receivers.mjs": "81077e64eeb2bc11f3a2fa74f8a2b312575bb759f05a1c332b5a5ade57132b71",
+          "rust-type-flow.mjs": "773121817df954633c0bd9c7e622049995cfdc8f055e9e6093a08e94b95856a9",
+          "rust-zones.mjs": "9ebf307cebc61b00e4e4426c4959c4824eb02e1b9f98a6f7eb87af13c8b75033",
+          "server.mjs": "19ef9c63cc5d0b44c5cf667c2e7f2ecb633d08f2500f6a6b98ac7355e2d539d6",
+          "similarity-index.mjs": "92b7e73f1f2152a78bd242d53547bf7835046a8c6ecbb26d514d6cee071ef429",
+          "state-store.mjs": "78dc567a3a89ba93ba06d127e0254600e66ccfba8341ebfedc0b7a6c38825d19",
+          "test-process.mjs": "5aa0c6abb00079f4ff23d10978c319f4510f95661d8dfd67b982a260cf75a285",
+          "test-runner.mjs": "1e8dc1730f74b499f5ddf744a03f0a531f637d854289c09fb6e72a2b81e83ff2",
+          "vue-template.mjs": "4b2b6d7973933df935c71c2fafbc650fca4f9509b6bf77b1893d82bc2a9e3013",
+          "wiring-contract.mjs": "4f217db394f56cb3a75ecfbbba47c43459195d36f1744fe659e9d5b5ba7cb83c"
+        },
+        "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+        "status": "",
+        "node": "v24.14.0",
+        "platform": "win32",
+        "timeoutMs": 120000,
+        "runs": [
+          {
+            "index": 1,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "elapsedMs": 1335,
+            "stderr": "",
+            "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\pot-desktop\\1.json",
+            "verifyMs": 1055,
+            "totalMs": 1209,
+            "rssMiB": 135,
+            "resultHash": "ef0e2f61c7da9c5553863658431292cca999b7b2ead3e89863a6c93d1c95a555"
+          },
+          {
+            "index": 2,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "elapsedMs": 1446,
+            "stderr": "",
+            "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\pot-desktop\\2.json",
+            "verifyMs": 1068,
+            "totalMs": 1315,
+            "rssMiB": 139,
+            "resultHash": "ef0e2f61c7da9c5553863658431292cca999b7b2ead3e89863a6c93d1c95a555"
+          }
+        ],
+        "startedAt": "2026-11-13T10:31:57.464Z",
+        "completed": true,
+        "deterministic": true,
+        "finishedAt": "2026-11-13T10:32:00.437Z"
+      }
+    },
+    {
+      "name": "ripgrep",
+      "commit": "178cc027e283fd965cb72d0a7395b219eada170c",
+      "counts": {
+        "total": 1589,
+        "satisfied": 0,
+        "violated": 0,
+        "inconclusive": 1589
+      },
+      "runs": {
+        "engine": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\engine-snapshot",
+        "workspace": "D:\\Myproject\\crack\\ripgrep",
+        "sourceHash": "bd0f86cc5584a809da5b465731c01f6ddac8ad5758e4414c0a578c1a7613ccdf",
+        "sourceFiles": {
+          "arch-vision.mjs": "42aca858fadcdc9facb50c39023e39ca7a731a61f509cc360ac1b4c3f061c0af",
+          "bridge-linker.mjs": "74881f2229d820952e6195d75011e0b5d397800d53597cb731dac5268c0f99d0",
+          "cargo-loader.mjs": "b486778947fa4b392ab65afa70c05ff60ef88307f01a9e8e58f669e3a9437ad7",
+          "conditional-context.mjs": "5d103366c9c6d52d57b2a660b56ba486706ff611f9962ed808fae744923d7913",
+          "file-parser.mjs": "17b6dbf71ed9612996c8dae2ad7bccb3804e27773d42310a0e1225f32f97bba0",
+          "fingerprint.mjs": "1ce92e329c8f0e850bc135218ca64c0a012f73697ce02633799e3f47f895e096",
+          "flow-tools.mjs": "f906e00c9a8dbcac775fb81ac2b0c9ed1faa0917135a290e6561c66059b180e8",
+          "flow-verifier.mjs": "5620b2244ce693d26a0f5e40af4304b20d02d4b5504d6fdc51a53bcb824c98b0",
+          "framework-callbacks.mjs": "011be8cbb357c5543f4424281b62d1dea628603dcb9decb6dcd1a71ae553e968",
+          "graph-builder.mjs": "83086e011580c56d3b1a9b1523f615aa749c52c302873a4ef27528acc5fa4205",
+          "graph-diff.mjs": "f8849fb9fecfbdaf8e48813c2facafe3a4a105b37596e2dcb8003452ce5c007d",
+          "hook-runner.mjs": "29825bd3de8242490f7a05ea049d7c67e623a75405b410d18bb9c2db4881d916",
+          "js-imports.mjs": "012fcbbc14d1ea15a53397a006fcf5d13acc0b9cba7d21623db44d7da86748aa",
+          "lang-presets.mjs": "37894c3f125be038364952dff07d5fc9779a6569cf6faeb98114595f3b28d66a",
+          "lexer.mjs": "b485a3251743b648f4fa48d12386d34fbb111022f56b673b473fd269186c651a",
+          "package-boundaries.mjs": "6af00f1007422f63c52e56d48acb35ffb001b7194cfc9bfbec673fce952173c0",
+          "python-dependencies.mjs": "a17be80a98658c40f419e0a8d36b7d751e0422816b4694a741101a62e1328ad1",
+          "react-lifecycle.mjs": "4b404ac9b87cf2cee732c477694050b465913bfcb84cb1e27babc615ce7cbc25",
+          "rpc-input.mjs": "1b894bf3017ddbb67d784192cb09c500e377513ee3d008b833c1736020e90093",
+          "rust-imports.mjs": "8f5cf5548103a9f179d2a7bfc7044a384593ecde5bbaa3478a2243b44ee2f7ec",
+          "rust-macro-types.mjs": "12bdf172b9c5c071acc70989ecf20570ecd65036558c52371d7e1b435114bb25",
+          "rust-project.mjs": "c4652d5fa4040336dddffb2f20688a3bff782a4235fe4bf4a05da6fefc15b51d",
+          "rust-receivers.mjs": "81077e64eeb2bc11f3a2fa74f8a2b312575bb759f05a1c332b5a5ade57132b71",
+          "rust-type-flow.mjs": "773121817df954633c0bd9c7e622049995cfdc8f055e9e6093a08e94b95856a9",
+          "rust-zones.mjs": "9ebf307cebc61b00e4e4426c4959c4824eb02e1b9f98a6f7eb87af13c8b75033",
+          "server.mjs": "19ef9c63cc5d0b44c5cf667c2e7f2ecb633d08f2500f6a6b98ac7355e2d539d6",
+          "similarity-index.mjs": "92b7e73f1f2152a78bd242d53547bf7835046a8c6ecbb26d514d6cee071ef429",
+          "state-store.mjs": "78dc567a3a89ba93ba06d127e0254600e66ccfba8341ebfedc0b7a6c38825d19",
+          "test-process.mjs": "5aa0c6abb00079f4ff23d10978c319f4510f95661d8dfd67b982a260cf75a285",
+          "test-runner.mjs": "1e8dc1730f74b499f5ddf744a03f0a531f637d854289c09fb6e72a2b81e83ff2",
+          "vue-template.mjs": "4b2b6d7973933df935c71c2fafbc650fca4f9509b6bf77b1893d82bc2a9e3013",
+          "wiring-contract.mjs": "4f217db394f56cb3a75ecfbbba47c43459195d36f1744fe659e9d5b5ba7cb83c"
+        },
+        "commit": "178cc027e283fd965cb72d0a7395b219eada170c",
+        "status": "",
+        "node": "v24.14.0",
+        "platform": "win32",
+        "timeoutMs": 120000,
+        "runs": [
+          {
+            "index": 1,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "elapsedMs": 3399,
+            "stderr": "",
+            "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\ripgrep\\1.json",
+            "verifyMs": 3130,
+            "totalMs": 3209,
+            "rssMiB": 275,
+            "resultHash": "77188d77e55cad9376a4b643d8a43735499405d6b30c0a2ddd4e8092f150b75d"
+          },
+          {
+            "index": 2,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "elapsedMs": 3372,
+            "stderr": "",
+            "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\ripgrep\\2.json",
+            "verifyMs": 3109,
+            "totalMs": 3184,
+            "rssMiB": 291,
+            "resultHash": "77188d77e55cad9376a4b643d8a43735499405d6b30c0a2ddd4e8092f150b75d"
+          }
+        ],
+        "startedAt": "2026-11-13T10:32:00.698Z",
+        "completed": true,
+        "deterministic": true,
+        "finishedAt": "2026-11-13T10:32:07.658Z"
+      }
+    },
+    {
+      "name": "SwitchHosts",
+      "commit": "7c8eaa50a6c45dde8ce7614c5659747000b36671",
+      "counts": {
+        "total": 313,
+        "satisfied": 0,
+        "violated": 0,
+        "inconclusive": 313
+      },
+      "runs": {
+        "engine": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\engine-snapshot",
+        "workspace": "D:\\Myproject\\crack\\SwitchHosts",
+        "sourceHash": "bd0f86cc5584a809da5b465731c01f6ddac8ad5758e4414c0a578c1a7613ccdf",
+        "sourceFiles": {
+          "arch-vision.mjs": "42aca858fadcdc9facb50c39023e39ca7a731a61f509cc360ac1b4c3f061c0af",
+          "bridge-linker.mjs": "74881f2229d820952e6195d75011e0b5d397800d53597cb731dac5268c0f99d0",
+          "cargo-loader.mjs": "b486778947fa4b392ab65afa70c05ff60ef88307f01a9e8e58f669e3a9437ad7",
+          "conditional-context.mjs": "5d103366c9c6d52d57b2a660b56ba486706ff611f9962ed808fae744923d7913",
+          "file-parser.mjs": "17b6dbf71ed9612996c8dae2ad7bccb3804e27773d42310a0e1225f32f97bba0",
+          "fingerprint.mjs": "1ce92e329c8f0e850bc135218ca64c0a012f73697ce02633799e3f47f895e096",
+          "flow-tools.mjs": "f906e00c9a8dbcac775fb81ac2b0c9ed1faa0917135a290e6561c66059b180e8",
+          "flow-verifier.mjs": "5620b2244ce693d26a0f5e40af4304b20d02d4b5504d6fdc51a53bcb824c98b0",
+          "framework-callbacks.mjs": "011be8cbb357c5543f4424281b62d1dea628603dcb9decb6dcd1a71ae553e968",
+          "graph-builder.mjs": "83086e011580c56d3b1a9b1523f615aa749c52c302873a4ef27528acc5fa4205",
+          "graph-diff.mjs": "f8849fb9fecfbdaf8e48813c2facafe3a4a105b37596e2dcb8003452ce5c007d",
+          "hook-runner.mjs": "29825bd3de8242490f7a05ea049d7c67e623a75405b410d18bb9c2db4881d916",
+          "js-imports.mjs": "012fcbbc14d1ea15a53397a006fcf5d13acc0b9cba7d21623db44d7da86748aa",
+          "lang-presets.mjs": "37894c3f125be038364952dff07d5fc9779a6569cf6faeb98114595f3b28d66a",
+          "lexer.mjs": "b485a3251743b648f4fa48d12386d34fbb111022f56b673b473fd269186c651a",
+          "package-boundaries.mjs": "6af00f1007422f63c52e56d48acb35ffb001b7194cfc9bfbec673fce952173c0",
+          "python-dependencies.mjs": "a17be80a98658c40f419e0a8d36b7d751e0422816b4694a741101a62e1328ad1",
+          "react-lifecycle.mjs": "4b404ac9b87cf2cee732c477694050b465913bfcb84cb1e27babc615ce7cbc25",
+          "rpc-input.mjs": "1b894bf3017ddbb67d784192cb09c500e377513ee3d008b833c1736020e90093",
+          "rust-imports.mjs": "8f5cf5548103a9f179d2a7bfc7044a384593ecde5bbaa3478a2243b44ee2f7ec",
+          "rust-macro-types.mjs": "12bdf172b9c5c071acc70989ecf20570ecd65036558c52371d7e1b435114bb25",
+          "rust-project.mjs": "c4652d5fa4040336dddffb2f20688a3bff782a4235fe4bf4a05da6fefc15b51d",
+          "rust-receivers.mjs": "81077e64eeb2bc11f3a2fa74f8a2b312575bb759f05a1c332b5a5ade57132b71",
+          "rust-type-flow.mjs": "773121817df954633c0bd9c7e622049995cfdc8f055e9e6093a08e94b95856a9",
+          "rust-zones.mjs": "9ebf307cebc61b00e4e4426c4959c4824eb02e1b9f98a6f7eb87af13c8b75033",
+          "server.mjs": "19ef9c63cc5d0b44c5cf667c2e7f2ecb633d08f2500f6a6b98ac7355e2d539d6",
+          "similarity-index.mjs": "92b7e73f1f2152a78bd242d53547bf7835046a8c6ecbb26d514d6cee071ef429",
+          "state-store.mjs": "78dc567a3a89ba93ba06d127e0254600e66ccfba8341ebfedc0b7a6c38825d19",
+          "test-process.mjs": "5aa0c6abb00079f4ff23d10978c319f4510f95661d8dfd67b982a260cf75a285",
+          "test-runner.mjs": "1e8dc1730f74b499f5ddf744a03f0a531f637d854289c09fb6e72a2b81e83ff2",
+          "vue-template.mjs": "4b2b6d7973933df935c71c2fafbc650fca4f9509b6bf77b1893d82bc2a9e3013",
+          "wiring-contract.mjs": "4f217db394f56cb3a75ecfbbba47c43459195d36f1744fe659e9d5b5ba7cb83c"
+        },
+        "commit": "7c8eaa50a6c45dde8ce7614c5659747000b36671",
+        "status": "",
+        "node": "v24.14.0",
+        "platform": "win32",
+        "timeoutMs": 120000,
+        "runs": [
+          {
+            "index": 1,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "elapsedMs": 2386,
+            "stderr": "",
+            "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\SwitchHosts\\1.json",
+            "verifyMs": 2049,
+            "totalMs": 2239,
+            "rssMiB": 259,
+            "resultHash": "09796addc15641b0b62c247a958bedb661b72827439458dd2cd45b26a6b4e4c5"
+          },
+          {
+            "index": 2,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "elapsedMs": 2305,
+            "stderr": "",
+            "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase16-final3-validation\\SwitchHosts\\2.json",
+            "verifyMs": 2036,
+            "totalMs": 2170,
+            "rssMiB": 259,
+            "resultHash": "09796addc15641b0b62c247a958bedb661b72827439458dd2cd45b26a6b4e4c5"
+          }
+        ],
+        "startedAt": "2026-11-13T10:32:07.881Z",
+        "completed": true,
+        "deterministic": true,
+        "finishedAt": "2026-11-13T10:32:12.735Z"
+      }
+    }
+  ],
+  "sourceAudit": [
+    {
+      "repository": "clash-verge-rev",
+      "target": "CoreManager.get_clash_logs",
+      "file": "src-tauri/src/core/manager/state.rs",
+      "line": 153,
+      "runtimeReachable": true,
+      "sourceReachable": true,
+      "edges": [
+        {
+          "fromId": "src-tauri/src/cmd/clash.rs::get_clash_logs#L246",
+          "toId": "src-tauri/src/core/manager/state.rs::CoreManager.get_clash_logs#L153",
+          "kind": "SEQ_CALL",
+          "evidence": {
+            "file": "src-tauri/src/cmd/clash.rs",
+            "line": 247,
+            "reason": "顺序调用步骤: get_clash_logs ➔ get_clash_logs",
+            "argumentSites": [
+              {
+                "line": 247,
+                "passedArgs": [],
+                "positionalArgs": null,
+                "argumentMapping": "UNRESOLVED"
+              }
+            ],
+            "returnFlow": "CONSUMED_EXPR"
+          },
+          "resolution": {
+            "mode": "RUST_TYPED_RECEIVER",
+            "confidence": "HIGH"
+          }
+        }
+      ]
+    },
+    {
+      "repository": "clash-verge-rev",
+      "target": "Sysopt.refresh_guard",
+      "file": "src-tauri/src/core/sysopt.rs",
+      "line": 324,
+      "runtimeReachable": true,
+      "sourceReachable": true,
+      "edges": [
+        {
+          "fromId": "src-tauri/src/core/proxy_control.rs::refresh_guard#L582",
+          "toId": "src-tauri/src/core/sysopt.rs::Sysopt.refresh_guard#L324",
+          "kind": "SEQ_CALL",
+          "evidence": {
+            "file": "src-tauri/src/core/proxy_control.rs",
+            "line": 592,
+            "reason": "顺序调用步骤: refresh_guard ➔ refresh_guard",
+            "argumentSites": [
+              {
+                "line": 592,
+                "passedArgs": [],
+                "positionalArgs": null,
+                "argumentMapping": "UNRESOLVED"
+              }
+            ],
+            "returnFlow": "CONSUMED_EXPR"
+          },
+          "resolution": {
+            "mode": "RUST_TYPED_RECEIVER",
+            "confidence": "HIGH"
+          }
+        }
+      ]
+    },
+    {
+      "repository": "clash-verge-rev",
+      "target": "SilentUpdater.install_update",
+      "file": "src-tauri/src/core/updater.rs",
+      "line": 396,
+      "runtimeReachable": true,
+      "sourceReachable": true,
+      "edges": [
+        {
+          "fromId": "src-tauri/src/cmd/app.rs::install_update#L63",
+          "toId": "src-tauri/src/core/updater.rs::SilentUpdater.install_update#L396",
+          "kind": "SEQ_CALL",
+          "evidence": {
+            "file": "src-tauri/src/cmd/app.rs",
+            "line": 69,
+            "reason": "顺序调用步骤: install_update ➔ install_update",
+            "argumentSites": [
+              {
+                "line": 69,
+                "passedArgs": [],
+                "positionalArgs": null,
+                "argumentMapping": "UNRESOLVED"
+              }
+            ],
+            "returnFlow": "CONSUMED_EXPR"
+          },
+          "resolution": {
+            "mode": "RUST_TYPED_RECEIVER",
+            "confidence": "HIGH"
+          }
+        }
+      ]
+    },
+    {
+      "repository": "ripgrep",
+      "target": "LineBuffer.set_binary_detection",
+      "file": "crates/searcher/src/line_buffer.rs",
+      "line": 330,
+      "runtimeReachable": false,
+      "sourceReachable": true,
+      "edges": [
+        {
+          "fromId": "crates/searcher/src/searcher/mod.rs::Searcher.set_binary_detection#L798",
+          "toId": "crates/searcher/src/line_buffer.rs::LineBuffer.set_binary_detection#L330",
+          "kind": "SEQ_CALL",
+          "evidence": {
+            "file": "crates/searcher/src/searcher/mod.rs",
+            "line": 800,
+            "reason": "顺序调用步骤: set_binary_detection ➔ set_binary_detection",
+            "argumentSites": [
+              {
+                "line": 800,
+                "passedArgs": [],
+                "positionalArgs": null,
+                "argumentMapping": "UNRESOLVED"
+              }
+            ],
+            "returnFlow": "CONSUMED_EXPR"
+          },
+          "resolution": {
+            "mode": "RUST_TYPED_RECEIVER",
+            "confidence": "HIGH"
+          }
+        }
+      ]
+    }
+  ],
+  "pot": {
+    "sourceHash": "bd0f86cc5584a809da5b465731c01f6ddac8ad5758e4414c0a578c1a7613ccdf",
+    "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+    "results": [
+      {
+        "symbol": "start_server",
+        "variant": "control",
+        "modes": {
+          "full": {
+            "targetStatuses": [],
+            "verdict": "INCONCLUSIVE"
+          },
+          "incremental": {
+            "targetStatuses": [],
+            "verdict": "INCONCLUSIVE"
+          },
+          "planned": {
+            "targetStatuses": [
+              "SATISFIED"
+            ],
+            "verdict": "INCONCLUSIVE"
+          }
+        }
+      },
+      {
+        "symbol": "start_server",
+        "variant": "defect",
+        "modes": {
+          "full": {
+            "targetStatuses": [
+              "INCONCLUSIVE"
+            ],
+            "verdict": "INCONCLUSIVE"
+          },
+          "incremental": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          },
+          "planned": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          }
+        }
+      },
+      {
+        "symbol": "tray_event_handler",
+        "variant": "control",
+        "modes": {
+          "full": {
+            "targetStatuses": [
+              "INCONCLUSIVE"
+            ],
+            "verdict": "INCONCLUSIVE"
+          },
+          "incremental": {
+            "targetStatuses": [],
+            "verdict": "INCONCLUSIVE"
+          },
+          "planned": {
+            "targetStatuses": [
+              "INCONCLUSIVE"
+            ],
+            "verdict": "INCONCLUSIVE"
+          }
+        }
+      },
+      {
+        "symbol": "tray_event_handler",
+        "variant": "defect",
+        "modes": {
+          "full": {
+            "targetStatuses": [
+              "INCONCLUSIVE"
+            ],
+            "verdict": "INCONCLUSIVE"
+          },
+          "incremental": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          },
+          "planned": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          }
+        }
+      }
+    ],
+    "limitations": [
+      "Real upstream source mutations with static expectations, not executed Tauri behavior",
+      "Cases used during development; not an independent accuracy estimate"
+    ]
+  },
+  "clash": {
+    "sourceHash": "bd0f86cc5584a809da5b465731c01f6ddac8ad5758e4414c0a578c1a7613ccdf",
+    "commit": "389dddf51204984e91a9769c3dee08db2eeefbb2",
+    "results": [
+      {
+        "target": "CoreManager.get_clash_logs",
+        "variant": "control",
+        "statuses": [
+          "SATISFIED"
+        ],
+        "incremental": null
+      },
+      {
+        "target": "CoreManager.get_clash_logs",
+        "variant": "defect",
+        "statuses": [
+          "VIOLATED"
+        ],
+        "incremental": [
+          "VIOLATED"
+        ]
+      },
+      {
+        "target": "Sysopt.refresh_guard",
+        "variant": "control",
+        "statuses": [
+          "SATISFIED"
+        ],
+        "incremental": null
+      },
+      {
+        "target": "Sysopt.refresh_guard",
+        "variant": "defect",
+        "statuses": [
+          "VIOLATED"
+        ],
+        "incremental": [
+          "VIOLATED"
+        ]
+      },
+      {
+        "target": "SilentUpdater.install_update",
+        "variant": "control",
+        "statuses": [
+          "SATISFIED"
+        ],
+        "incremental": null
+      },
+      {
+        "target": "SilentUpdater.install_update",
+        "variant": "defect",
+        "statuses": [
+          "VIOLATED"
+        ],
+        "incremental": [
+          "VIOLATED"
+        ]
+      }
+    ],
+    "limitation": "Complete upstream source copies with static connection mutations; desktop app not built or executed."
+  },
+  "probes": {
+    "sourceHash": "bd0f86cc5584a809da5b465731c01f6ddac8ad5758e4414c0a578c1a7613ccdf",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+    "results": [
+      {
+        "name": "real-singleton-macro",
+        "runtimeCount": 1,
+        "target": "src/main.rs::Worker.execute#L6",
+        "analyzerRuntimeReachable": true,
+        "candidate": true,
+        "sourceSha256": "2151c34ef364d468bbf2f8d802b1a97f92af7d57be3809bfed87ff47422ceedb"
+      },
+      {
+        "name": "generic-field-refcell",
+        "runtimeCount": 1,
+        "target": "src/main.rs::Worker.execute#L6",
+        "analyzerRuntimeReachable": true,
+        "candidate": true,
+        "sourceSha256": "36a212d41ecd32a5b8f3155fca65e738575e66e3ea1e500fa562c60daff4cbeb"
+      },
+      {
+        "name": "generic-delegate",
+        "runtimeCount": 1,
+        "target": "src/main.rs::Worker.execute#L6",
+        "analyzerRuntimeReachable": true,
+        "candidate": true,
+        "sourceSha256": "33d3b33eeb89eb081f37288a9547e815527b6adf80a7af31a9f3855e7f387229"
+      },
+      {
+        "name": "deleted-call",
+        "runtimeCount": 0,
+        "target": "src/main.rs::Worker.execute#L6",
+        "analyzerRuntimeReachable": false,
+        "candidate": false,
+        "sourceSha256": "af63351e0a808fe07350628af84199515ee38302ac06ff598c0bfebc3b5f328d"
+      },
+      {
+        "name": "direct-callback",
+        "runtimeCount": 1,
+        "target": "src/main.rs::event#L10",
+        "analyzerRuntimeReachable": true,
+        "candidate": true,
+        "sourceSha256": "fd3e37610e1647b280c8952e945d1f556b4f0e55ce35f9558cb9a1ed321901d3"
+      },
+      {
+        "name": "stored-callback",
+        "runtimeCount": 0,
+        "target": "src/main.rs::event#L10",
+        "analyzerRuntimeReachable": false,
+        "candidate": true,
+        "sourceSha256": "70818ca1212a58b15b0de76f83a57075e91c5bc142595cf2880b7df146bfde03"
+      }
+    ],
+    "limitation": "Small compiler-backed controls, including exact upstream singleton macro; not full crate compilation or desktop runtime tests."
+  },
+  "mcp": [
+    {
+      "node": "v24.14.0",
+      "platform": "win32",
+      "results": [
+        {
+          "sdk": "1.32.2",
+          "outcome": "PASSED",
+          "tests": [
+            "initialize",
+            "list",
+            "overview",
+            "trace",
+            "blueprint",
+            "inconclusive",
+            "behavior-pass",
+            "behavior-fail",
+            "unknown-tool",
+            "invalid-workspace",
+            "ping"
+          ],
+          "stderr": ""
+        },
+        {
+          "sdk": "2.4.0",
+          "outcome": "PASSED",
+          "tests": [
+            "initialize",
+            "list",
+            "overview",
+            "trace",
+            "blueprint",
+            "inconclusive",
+            "behavior-pass",
+            "behavior-fail",
+            "unknown-tool",
+            "invalid-workspace",
+            "ping"
+          ],
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "node": "v22.23.3",
+      "platform": "linux",
+      "results": [
+        {
+          "sdk": "1.32.2",
+          "outcome": "PASSED",
+          "tests": [
+            "initialize",
+            "list",
+            "overview",
+            "trace",
+            "blueprint",
+            "inconclusive",
+            "behavior-pass",
+            "behavior-fail",
+            "unknown-tool",
+            "invalid-workspace",
+            "ping"
+          ],
+          "stderr": ""
+        },
+        {
+          "sdk": "2.4.0",
+          "outcome": "PASSED",
+          "tests": [
+            "initialize",
+            "list",
+            "overview",
+            "trace",
+            "blueprint",
+            "inconclusive",
+            "behavior-pass",
+            "behavior-fail",
+            "unknown-tool",
+            "invalid-workspace",
+            "ping"
+          ],
+          "stderr": ""
+        }
+      ]
+    }
+  ],
+  "archiveSha256": "40afc9047d1eb94d057f81271f9c4a4e06e4335e34dede9a5aba46887b635d72",
+  "packageSourcesMatch": true,
+  "limits": [
+    "Nominal type flow and simple declarative factory signatures only; not complete Rust typing, procedural macros, arbitrary trait dispatch or arbitrary cfg selection.",
+    "Callback registration is structural evidence, not execution. Local synchronous direct-invoker bodies can provide call edges; external host execution still requires real tests.",
+    "No Tauri desktop business runtime tests or complete upstream Cargo builds; no fresh 39-repository/performance/independent accuracy claim.",
+    "Historical saved baselines without callback candidate fields cannot reconstruct these facts; create a fresh baseline after upgrading. Git baselines are reconstructed by the current engine."
+  ]
+}

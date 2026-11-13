@@ -18,13 +18,19 @@
     "README.md",
     "README.en.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "OPERATIONS.md"
   ],
   "scripts": {
     "start": "node src/server.mjs",
-    "test": "node test/torture-suite.mjs && node test/task-benchmark-suite.mjs",
+    "test": "node test/torture-suite.mjs && node test/task-benchmark-suite.mjs && node --test test/verification-regression.test.mjs test/engine-integrity.test.mjs test/real-world-regression.test.mjs test/mcp-transport.test.mjs test/react-lifecycle.test.mjs test/js-imports.test.mjs test/import-config-integration.test.mjs test/rust-project.test.mjs test/framework-boundaries.test.mjs test/vue-template.test.mjs test/rust-receivers.test.mjs test/rust-receivers-audit.test.mjs test/python-dependencies.test.mjs test/python-dependencies-audit.test.mjs test/rust-self-crate.test.mjs test/rust-zones.test.mjs test/rust-semantics.test.mjs",
     "test:torture": "node test/torture-suite.mjs",
     "test:tasks": "node test/task-benchmark-suite.mjs",
+    "test:regression": "node --test test/verification-regression.test.mjs",
+    "test:integrity": "node --test test/engine-integrity.test.mjs",
+    "test:real-world": "node --test test/real-world-regression.test.mjs",
+    "test:mcp": "node --test test/mcp-transport.test.mjs",
+    "test:mcp-sdk": "node benchmark/mcp-client/integration.mjs",
     "verify:self": "node src/server.mjs --cli verify ."
   },
   "repository": {

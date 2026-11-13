@@ -1,0 +1,12 @@
+[
+  {
+    "repository": "axum",
+    "file": "axum/src/macros.rs",
+    "sourceSha256": "2af99aabe340d3a7c464260fb617bc4b487eeff48e71d1e3fb0f2761e79dbefb",
+    "diagnostic": "ENTRY_WIRING VIOLATED: axum/src/macros.rs:20-22 (name.new)",
+    "evidence": "The declaration is inside macro_rules! opaque_future; $name and $actual are template metavariables, not a separately emitted function.",
+    "disposition": "Fixed in delivery: macro_rules template bodies are masked before declaration/import/call extraction; unresolved macro expansion remains explicit uncertainty.",
+    "scanSourceHash": "b24554b5d7546c8973b1750e81f8f78f616198eda59fae1188e050f0d31d23bc",
+    "fixedSourceHash": "7b120c3c2d2e09f4883b2ef65854ae45bebeb02ad2378ddb09145ee2aa1eefab"
+  }
+]

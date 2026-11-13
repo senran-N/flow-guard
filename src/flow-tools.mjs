@@ -19,7 +19,7 @@ export function generateFlowOverview(workspaceRoot, syncToAgentsMd = false, opti
     projectMode: options.projectMode || "auto"
   });
   if (options.saveBaseline) {
-    saveSessionBaseline(workspaceRoot, graph);
+    saveSessionBaseline(workspaceRoot, graph, options);
   }
 
   const prodFiles = graph.files.filter((f) => f.zone === "prod");
@@ -194,6 +194,7 @@ export function traceSymbolFlow(workspaceRoot, query, options = {}) {
       location: `${rec.evidence?.file || ""}:${rec.evidence?.line || 1}`,
       reason: rec.evidence?.reason || rec.kind,
       ...(rec.evidence?.passedArgs ? { passedArgs: rec.evidence.passedArgs } : {}),
+      ...(rec.evidence?.argumentSites ? { argumentSites: rec.evidence.argumentSites } : {}),
       ...(rec.evidence?.returnFlow ? { returnFlow: rec.evidence.returnFlow } : {}),
       ...(rec.evidence?.stateField ? { stateField: rec.evidence.stateField } : {}),
       ...(rec.evidence?.contract ? { contract: rec.evidence.contract } : {}),
@@ -352,6 +353,7 @@ export function traceSymbolFlow(workspaceRoot, query, options = {}) {
       architecturalContext: computeSymbolArchContext(graph, sym),
       waterFlowStatus: {
         connectedToRuntimeEntry: graph.reachableFromRuntimeSource.has(sym.id),
+        possiblyConnectedToRuntimeEntry: graph.possiblyReachableFromRuntimeSource.has(sym.id),
         connectedToTrueSource: graph.reachableFromSource.has(sym.id),
         exposureSurface: sym.exposure,
         reachesTrueSink: graph.reachesSink.has(sym.id)
@@ -474,6 +476,7 @@ export function generateWiringBlueprint(workspaceRoot, referenceQueryOrOptions, 
   }
 
   const wiringPlan = buildAndSaveWiringPlan(graph, workspaceRoot, {
+    ...opts,
     referenceQuery,
     referenceFile: targetFile,
     fileSyms,

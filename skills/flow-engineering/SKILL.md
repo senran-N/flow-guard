@@ -52,4 +52,7 @@ FlowGuard 按三层证据逐级核验：
   - **`SATISFIED`（满足）**：已找到所需连接与数据消费证据。
   - **`VIOLATED`（违反）**：存在漏注册、协议字段未消费、过滤仍用旧常量、重启未恢复或应用新增导出未接入口等明确冲突，必须按 `remediation` 补齐真实关系（严禁造假调用消警）。
   - **`INCONCLUSIVE`（待确认）**：存在外部插件动态订阅、反射加载或缺少运行期测试覆盖，交卷时须向用户如实说明待确认项。
-- 清理死代码时：仅直接删除 `CONFIRMED_SAFE_TO_DELETE` 的内部废管；对 `NO_STATIC_CALLER_EVIDENCE` 与 `reservedContracts` 保持审慎核实。
+- 清理死代码时：`NO_STATIC_CALLER_EVIDENCE` 仅说明未发现静态引用。先核对分析范围、不确定性、动态/外部调用契约并运行测试，再决定保留、接入或删除；保护 `reservedContracts`。
+
+- 多任务并行时，为 overview、blueprint、verify 传入相同的 `sessionId` / `taskId`，避免复用其他任务状态。
+- 检查 `baseline` 的实际提交与 `stateDiagnostics`；失效状态需重新生成。测试超时、命令启动失败或输出超限属于执行故障，不能当作业务断言违反。

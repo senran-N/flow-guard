@@ -1,0 +1,350 @@
+{
+  "sourceHash": "0323942c1d88f42755fa890cf5917262e0ca0868fee841bc84800e64203790b5",
+  "files": {
+    "arch-vision.mjs": "42aca858fadcdc9facb50c39023e39ca7a731a61f509cc360ac1b4c3f061c0af",
+    "bridge-linker.mjs": "74881f2229d820952e6195d75011e0b5d397800d53597cb731dac5268c0f99d0",
+    "cargo-loader.mjs": "b486778947fa4b392ab65afa70c05ff60ef88307f01a9e8e58f669e3a9437ad7",
+    "conditional-context.mjs": "5d103366c9c6d52d57b2a660b56ba486706ff611f9962ed808fae744923d7913",
+    "file-parser.mjs": "de4ac3b67d3993cd0e734a92b9053ec94b51cfeb5965e6501a4c850c66c19674",
+    "fingerprint.mjs": "1ce92e329c8f0e850bc135218ca64c0a012f73697ce02633799e3f47f895e096",
+    "flow-tools.mjs": "f906e00c9a8dbcac775fb81ac2b0c9ed1faa0917135a290e6561c66059b180e8",
+    "flow-verifier.mjs": "388b49a164cabc05e8f26bb839dd8317ea617472d73974e0d44dc3c31c804843",
+    "graph-builder.mjs": "2a189c99b2a9cb377434d5fad5f2a1b70b8d332f4bb7e69a40f1a5807c7071d9",
+    "graph-diff.mjs": "015fd2773c9cc4aefe18d0d4e7532cefb7e752c75cbade74d76334eb05ee7c0b",
+    "hook-runner.mjs": "29825bd3de8242490f7a05ea049d7c67e623a75405b410d18bb9c2db4881d916",
+    "js-imports.mjs": "0eacada96dd643283b0d5c92393dedcba62b1263c7f546269b3a91ea6a9007bf",
+    "lang-presets.mjs": "37894c3f125be038364952dff07d5fc9779a6569cf6faeb98114595f3b28d66a",
+    "lexer.mjs": "b485a3251743b648f4fa48d12386d34fbb111022f56b673b473fd269186c651a",
+    "package-boundaries.mjs": "2822804fe29d6fcb8b900c557ce8158276158778514107579be4e40ed0061826",
+    "react-lifecycle.mjs": "4b404ac9b87cf2cee732c477694050b465913bfcb84cb1e27babc615ce7cbc25",
+    "rpc-input.mjs": "1b894bf3017ddbb67d784192cb09c500e377513ee3d008b833c1736020e90093",
+    "rust-imports.mjs": "515ee791aa1668074bb45f8f5381a97c425f3ed051387df285d10389d9a01581",
+    "rust-project.mjs": "c4652d5fa4040336dddffb2f20688a3bff782a4235fe4bf4a05da6fefc15b51d",
+    "server.mjs": "19ef9c63cc5d0b44c5cf667c2e7f2ecb633d08f2500f6a6b98ac7355e2d539d6",
+    "similarity-index.mjs": "28f6fad21014dc102d63e582c4853b503ccd6e7c58ee8bdb1f19bd8cd7365b3e",
+    "state-store.mjs": "78dc567a3a89ba93ba06d127e0254600e66ccfba8341ebfedc0b7a6c38825d19",
+    "test-process.mjs": "5aa0c6abb00079f4ff23d10978c319f4510f95661d8dfd67b982a260cf75a285",
+    "test-runner.mjs": "1e8dc1730f74b499f5ddf744a03f0a531f637d854289c09fb6e72a2b81e83ff2",
+    "wiring-contract.mjs": "96c0ece8e9e080aba54a9d353227f3e7804eeacede5167a9d7066de2d7044b44"
+  },
+  "counts": {
+    "repositories": 39,
+    "completedTwice": 37,
+    "deterministic": 37,
+    "runs": 78,
+    "completedRuns": 74,
+    "timeouts": [
+      {
+        "repository": "bruno",
+        "run": 1
+      },
+      {
+        "repository": "bruno",
+        "run": 2
+      },
+      {
+        "repository": "llama.cpp",
+        "run": 1
+      },
+      {
+        "repository": "llama.cpp",
+        "run": 2
+      }
+    ],
+    "explicitL2FaultsBlocked": 10,
+    "explicitL2Faults": 10,
+    "explicitL2ControlsBlocked": 0,
+    "newCases": 6
+  },
+  "diagnostics": [
+    {
+      "repository": "Alamofire",
+      "verifyMs": 2083,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0
+    },
+    {
+      "repository": "axum",
+      "verifyMs": 2543,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0
+    },
+    {
+      "repository": "BepInEx",
+      "verifyMs": 910,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0
+    },
+    {
+      "repository": "bits-ui",
+      "verifyMs": 43768,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0
+    },
+    {
+      "repository": "bruno",
+      "timedOut": true
+    },
+    {
+      "repository": "clash-verge-rev",
+      "verifyMs": 15962,
+      "verdict": "VIOLATED",
+      "violated": 67,
+      "inconclusive": 10
+    },
+    {
+      "repository": "cobra",
+      "verifyMs": 712,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 3
+    },
+    {
+      "repository": "Dapper",
+      "verifyMs": 1530,
+      "verdict": "VIOLATED",
+      "violated": 3,
+      "inconclusive": 1
+    },
+    {
+      "repository": "dio",
+      "verifyMs": 1809,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 4
+    },
+    {
+      "repository": "fastapi",
+      "verifyMs": 21354,
+      "verdict": "VIOLATED",
+      "violated": 4,
+      "inconclusive": 6
+    },
+    {
+      "repository": "fd",
+      "verifyMs": 631,
+      "verdict": "VIOLATED",
+      "violated": 9,
+      "inconclusive": 0
+    },
+    {
+      "repository": "flask",
+      "verifyMs": 1066,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 1
+    },
+    {
+      "repository": "fmt",
+      "verifyMs": 2701,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0
+    },
+    {
+      "repository": "full-stack-fastapi-template",
+      "verifyMs": 817,
+      "verdict": "VIOLATED",
+      "violated": 56,
+      "inconclusive": 1
+    },
+    {
+      "repository": "gin",
+      "verifyMs": 1140,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0
+    },
+    {
+      "repository": "gson",
+      "verifyMs": 2539,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0
+    },
+    {
+      "repository": "hono",
+      "verifyMs": 9381,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 1
+    },
+    {
+      "repository": "httpx",
+      "verifyMs": 954,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 2
+    },
+    {
+      "repository": "jq",
+      "verifyMs": 874,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 9
+    },
+    {
+      "repository": "koel",
+      "verifyMs": 60205,
+      "verdict": "VIOLATED",
+      "violated": 4,
+      "inconclusive": 10
+    },
+    {
+      "repository": "llama.cpp",
+      "timedOut": true
+    },
+    {
+      "repository": "memos",
+      "verifyMs": 56139,
+      "verdict": "VIOLATED",
+      "violated": 33,
+      "inconclusive": 17
+    },
+    {
+      "repository": "okhttp",
+      "verifyMs": 31504,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 15
+    },
+    {
+      "repository": "pinia",
+      "verifyMs": 1441,
+      "verdict": "VIOLATED",
+      "violated": 1,
+      "inconclusive": 0
+    },
+    {
+      "repository": "pocketbase",
+      "verifyMs": 34299,
+      "verdict": "VIOLATED",
+      "violated": 19,
+      "inconclusive": 16
+    },
+    {
+      "repository": "pot-desktop",
+      "verifyMs": 2016,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 13
+    },
+    {
+      "repository": "retrofit",
+      "verifyMs": 4525,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 6
+    },
+    {
+      "repository": "ripgrep",
+      "verifyMs": 3124,
+      "verdict": "VIOLATED",
+      "violated": 57,
+      "inconclusive": 5
+    },
+    {
+      "repository": "serilog",
+      "verifyMs": 2126,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0
+    },
+    {
+      "repository": "sidekiq",
+      "verifyMs": 1464,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 9
+    },
+    {
+      "repository": "SwitchHosts",
+      "verifyMs": 2534,
+      "verdict": "VIOLATED",
+      "violated": 16,
+      "inconclusive": 15
+    },
+    {
+      "repository": "uptime-kuma",
+      "verifyMs": 14970,
+      "verdict": "VIOLATED",
+      "violated": 11,
+      "inconclusive": 13
+    },
+    {
+      "repository": "zod",
+      "verifyMs": 24510,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 1
+    },
+    {
+      "repository": "chi",
+      "verifyMs": 692,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 9
+    },
+    {
+      "repository": "click",
+      "verifyMs": 1402,
+      "verdict": "VIOLATED",
+      "violated": 3,
+      "inconclusive": 2
+    },
+    {
+      "repository": "p-limit",
+      "verifyMs": 222,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0
+    },
+    {
+      "repository": "httprouter",
+      "verifyMs": 231,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0
+    },
+    {
+      "repository": "packaging",
+      "verifyMs": 1503,
+      "verdict": "INCONCLUSIVE",
+      "violated": 0,
+      "inconclusive": 1
+    },
+    {
+      "repository": "yocto-queue",
+      "verifyMs": 139,
+      "verdict": "SATISFIED",
+      "violated": 0,
+      "inconclusive": 0
+    }
+  ],
+  "linux": {
+    "exitCode": 0,
+    "stderr": "w\u0000s\u0000l\u0000:\u0000 \u0000�hKm0R \u0000l\u0000o\u0000c\u0000a\u0000l\u0000h\u0000o\u0000s\u0000t\u0000 \u0000�N\u0006tM�n\f�FO*g\\��P0R \u0000W\u0000S\u0000L\u0000\u00020N\u0000A\u0000T\u0000 \u0000!j\u000f_\u000bN�v \u0000W\u0000S\u0000L\u0000 \u0000\rN/e\u0001c \u0000l\u0000o\u0000c\u0000a\u0000l\u0000h\u0000o\u0000s\u0000t\u0000 \u0000�N\u0006t\u00020\r\u0000\n\u0000"
+  },
+  "tests": {
+    "assertions": 142,
+    "nodeCases": 102,
+    "windowsNode": [
+      18,
+      24
+    ],
+    "linuxNode": [
+      22
+    ]
+  },
+  "limitations": [
+    "Large-repository latency remains unresolved",
+    "No global precision or recall claim",
+    "Rust cross-crate/type/cfg/macro resolution remains incomplete",
+    "TypeScript config inheritance remains unresolved",
+    "Corpus scans overlapped other tests; timing is not a controlled benchmark"
+  ]
+}

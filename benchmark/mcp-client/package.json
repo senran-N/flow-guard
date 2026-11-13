@@ -1,0 +1,11 @@
+{
+  "name": "flowguard-mcp-integration",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node integration.mjs" },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.4.0",
+    "@modelcontextprotocol/sdk": "1.32.2"
+  }
+}

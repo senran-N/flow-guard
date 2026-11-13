@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -9,6 +8,7 @@ import {
   generateWiringBlueprint
 } from "./flow-tools.mjs";
 import { verifyWorkspaceFlow } from "./flow-verifier.mjs";
+import { createRpcInput } from "./rpc-input.mjs";
 
 const TOOLS = [
   {
@@ -133,35 +133,67 @@ const TOOLS = [
         clearPlan: {
           type: "boolean",
           description: "是否在本次验收前清除已保存的旧蓝图接入清单"
+        },
+        allowInconclusive: {
+          type: "boolean",
+          description: "仅允许 CLI 将 INCONCLUSIVE 以兼容性退出码 0 返回；报告状态仍为 INCONCLUSIVE，不能掩盖违反或执行错误"
         }
       }
     }
   }
 ];
 
+for (const tool of TOOLS) {
+  Object.assign(tool.inputSchema.properties, {
+    sessionId: { type: "string", description: "会话隔离标识；也可通过 FLOWGUARD_SESSION_ID 设置" },
+    taskId: { type: "string", description: "同一会话内的任务隔离标识；也可通过 FLOWGUARD_TASK_ID 设置" }
+  });
+}
+TOOLS.find((tool) => tool.name === "flow_verify").inputSchema.properties.testTimeoutMs = {
+  type: "integer", minimum: 1, maximum: 3600000, description: "测试超时（毫秒），默认 60000；超时不等于测试断言失败"
+};
+Object.assign(TOOLS.find(tool => tool.name === 'flow_verify').inputSchema.properties, {
+  rustSemantic: { type: 'boolean', description: '使用本机 rust-analyzer 补充 Rust 语义调用证据；要求 fullScan:true 且不传 baseRef' },
+  rustBuildScripts: { type: 'boolean', description: '允许 Cargo 执行 build.rs 和过程宏以完成语义分析（默认 false；仅分析可信代码）' },
+  rustFeatures: { type: 'string', description: '语义分析所选 Cargo features，逗号分隔' },
+  rustNoDefaultFeatures: { type: 'boolean', description: '语义分析禁用默认 Cargo features' },
+  rustTarget: { type: 'string', description: '语义分析所选 Rust target triple' },
+  rustSemanticTimeoutMs: { type: 'integer', minimum: 1, maximum: 3600000, description: 'Rust 语义分析超时毫秒数，默认 120000' }
+});
+
 let initializedWorkspaceRoot = "";
 
 export function resolveRoot(argRoot) {
-  if (argRoot && fs.existsSync(argRoot)) return path.resolve(argRoot);
+  if (argRoot) {
+    if (!fs.existsSync(argRoot) || !fs.statSync(argRoot).isDirectory()) throw new Error(`Invalid workspaceRoot: ${argRoot}`);
+    return path.resolve(argRoot);
+  }
   if (initializedWorkspaceRoot && fs.existsSync(initializedWorkspaceRoot)) {
     return path.resolve(initializedWorkspaceRoot);
-  }
-  const candidateDirs = [process.env.PLUGIN_DATA, os.tmpdir()].filter(Boolean);
-  for (const dir of candidateDirs) {
-    const cachePath = path.join(dir, "flowguard-last-workspace.txt");
-    if (fs.existsSync(cachePath)) {
-      const cached = fs.readFileSync(cachePath, "utf8").trim();
-      if (cached && fs.existsSync(cached)) return path.resolve(cached);
-    }
   }
   return process.cwd();
 }
 
 export function executeTool(name, args = {}) {
+  if (!args || typeof args !== "object" || Array.isArray(args)) throw new TypeError("Tool arguments must be an object");
+  const schema = TOOLS.find((tool) => tool.name === name)?.inputSchema;
+  for (const key of schema?.required || []) {
+    if (args[key] === undefined || (typeof args[key] === "string" && !args[key].trim())) throw new TypeError(`${key} is required`);
+  }
+  for (const [key, rule] of Object.entries(schema?.properties || {})) {
+    const value = args[key];
+    if (value === undefined) continue;
+    const validType = rule.type === "integer" ? Number.isInteger(value) : typeof value === rule.type;
+    if (!validType || (rule.enum && !rule.enum.includes(value)) ||
+        (rule.minimum !== undefined && value < rule.minimum) || (rule.maximum !== undefined && value > rule.maximum)) {
+      throw new TypeError(`Invalid ${key}: expected ${rule.type}${rule.enum ? ` (${rule.enum.join(", ")})` : ""}`);
+    }
+  }
   const root = resolveRoot(args.workspaceRoot);
   switch (name) {
     case "flow_overview":
       return generateFlowOverview(root, Boolean(args.syncToAgentsMd), {
+        ...args,
         saveBaseline: Boolean(args.saveBaseline),
         projectMode: args.projectMode
       });
@@ -171,6 +203,7 @@ export function executeTool(name, args = {}) {
       });
     case "flow_blueprint":
       return generateWiringBlueprint(root, args.reference, {
+        ...args,
         targetSymbol: args.targetSymbol,
         targetField: args.targetField,
         consumerTarget: args.consumerTarget,
@@ -180,6 +213,7 @@ export function executeTool(name, args = {}) {
       });
     case "flow_verify":
       return verifyWorkspaceFlow(root, {
+        ...args,
         fullScan: Boolean(args.fullScan),
         baseRef: args.baseRef,
         projectMode: args.projectMode,
@@ -192,7 +226,6 @@ export function executeTool(name, args = {}) {
 }
 
 let useHeaderFraming = false;
-let buffer = Buffer.alloc(0);
 
 export function sendRpcResponse(msg) {
   const json = JSON.stringify(msg);
@@ -205,8 +238,16 @@ export function sendRpcResponse(msg) {
 }
 
 export function handleRpcMessage(msg) {
-  if (!msg || typeof msg !== "object") return;
+  if (!msg || typeof msg !== "object" || Array.isArray(msg) || msg.jsonrpc !== "2.0" ||
+      typeof msg.method !== "string" || (msg.id !== undefined && msg.id !== null && typeof msg.id !== "string" && typeof msg.id !== "number") ||
+      (msg.params !== undefined && (!msg.params || typeof msg.params !== "object" || Array.isArray(msg.params)))) {
+    sendRpcResponse({ jsonrpc: "2.0", id: typeof msg?.id === "string" || typeof msg?.id === "number" ? msg.id : null,
+      error: { code: -32600, message: "Invalid Request" } });
+    return;
+  }
   const { id, method, params } = msg;
+  // A notification never expects a response or executes a request-only tool.
+  if (id === undefined) return;
 
   if (method === "initialize") {
     const rawUri =
@@ -228,7 +269,8 @@ export function handleRpcMessage(msg) {
       jsonrpc: "2.0",
       id,
       result: {
-        protocolVersion: params?.protocolVersion || "2024-11-05",
+        protocolVersion: ["2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25"].includes(params?.protocolVersion)
+          ? params.protocolVersion : "2025-11-25",
         capabilities: { tools: {} },
         serverInfo: { name: "flow-guard", version: "0.2.0" }
       }
@@ -246,7 +288,7 @@ export function handleRpcMessage(msg) {
   }
   if (method === "tools/call") {
     try {
-      const data = executeTool(params?.name, params?.arguments || {});
+      const data = executeTool(params?.name, params?.arguments === undefined ? {} : params.arguments);
       sendRpcResponse({
         jsonrpc: "2.0",
         id,
@@ -274,6 +316,70 @@ const isMainModule =
   Boolean(process.argv[1]) &&
   path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 
+function parseCliArguments(toolName, tokens) {
+  const valueFlags = {
+    "--base": "baseRef",
+    "--target": "targetSymbol",
+    "--field": "targetField",
+    "--consumer": "consumerTarget",
+    "--run-tests": "runTestsCommand",
+    "--project-mode": "projectMode",
+    "--session": "sessionId", "--task": "taskId", "--test-timeout": "testTimeoutMs",
+    "--rust-features": "rustFeatures", "--rust-target": "rustTarget", "--rust-semantic-timeout": "rustSemanticTimeoutMs"
+  };
+  const booleanFlags = {
+    "--full": ["fullScan", true],
+    "--persist": ["requirePersistence", "required"],
+    "--allow-inconclusive": ["allowInconclusive", true],
+    "--rust-semantic": ['rustSemantic', true], "--rust-build-scripts": ['rustBuildScripts', true],
+    "--rust-no-default-features": ['rustNoDefaultFeatures', true]
+  };
+  const supportedFlags = {
+    flow_overview: ["--project-mode"],
+    flow_trace: ["--project-mode"],
+    flow_blueprint: ["--target", "--field", "--consumer", "--persist", "--project-mode"],
+    flow_verify: ["--base", "--full", "--run-tests", "--project-mode", "--test-timeout", "--allow-inconclusive",
+      '--rust-semantic', '--rust-build-scripts', '--rust-features', '--rust-no-default-features', '--rust-target', '--rust-semantic-timeout']
+  };
+  const positional = [];
+  const overrides = {};
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (!token.startsWith("--")) {
+      positional.push(token);
+      continue;
+    }
+    if (!["--session", "--task"].includes(token) && !supportedFlags[toolName]?.includes(token)) throw new Error(`Unsupported option for ${toolName}: ${token}`);
+    if (booleanFlags[token]) {
+      const [key, value] = booleanFlags[token];
+      overrides[key] = value;
+    } else {
+      const value = tokens[++i];
+      if (!value?.trim() || value.startsWith("--")) throw new Error(`Missing value for ${token}`);
+      overrides[valueFlags[token]] = value;
+    }
+  }
+
+  const usesJson = positional[0]?.trim().startsWith("{");
+  if (positional.length > (usesJson || !["flow_trace", "flow_blueprint"].includes(toolName) ? 1 : 2)) {
+    throw new Error("Too many positional arguments");
+  }
+  const args = usesJson ? JSON.parse(positional[0]) : {
+    ...(positional[0] ? { workspaceRoot: positional[0] } : {}),
+    ...(positional[1] ? { [toolName === "flow_blueprint" ? "reference" : "target"]: positional[1] } : {})
+  };
+  Object.assign(args, overrides);
+  if (args.testTimeoutMs !== undefined) args.testTimeoutMs = Number(args.testTimeoutMs);
+  if (args.rustSemanticTimeoutMs !== undefined) args.rustSemanticTimeoutMs = Number(args.rustSemanticTimeoutMs);
+  if (toolName === "flow_trace" && !args.target) throw new Error("flow_trace requires a target");
+  if (toolName === "flow_blueprint" && !args.reference) throw new Error("flow_blueprint requires a reference");
+  if (args.projectMode && !["auto", "application", "library", "hybrid"].includes(args.projectMode)) {
+    throw new Error(`Invalid project mode: ${args.projectMode}`);
+  }
+  if (args.workspaceRoot && !fs.statSync(args.workspaceRoot).isDirectory()) throw new Error("workspaceRoot must be a directory");
+  return args;
+}
+
 if (isMainModule) {
   if (process.argv[2] === "--cli") {
     const rawName = process.argv[3] || "flow_overview";
@@ -284,64 +390,35 @@ if (isMainModule) {
       verify: "flow_verify"
     };
     const toolName = toolMap[rawName] || rawName;
-    const rawRest = process.argv.slice(4);
-    const hasFullFlag = rawRest.includes("--full");
-    let baseRefArg = undefined;
-    const positional = [];
-    for (let i = 0; i < rawRest.length; i++) {
-      if (rawRest[i] === "--full") continue;
-      if (rawRest[i] === "--base" && rawRest[i + 1]) {
-        baseRefArg = rawRest[++i];
-        continue;
-      }
-      positional.push(rawRest[i]);
+    try {
+      const rawArgs = parseCliArguments(toolName, process.argv.slice(4));
+      const result = executeTool(toolName, rawArgs);
+      process.stdout.write(JSON.stringify(result, null, 2) + "\n");
+      process.exitCode = result.executionErrors?.length
+        ? 2
+        : toolName === "flow_verify" && (result.verificationVerdict === "VIOLATED" || result.status === "ISSUES_FOUND")
+          ? 1
+          : toolName === "flow_verify" && result.verificationVerdict === "INCONCLUSIVE"
+            ? rawArgs.allowInconclusive === true ? 0 : 3
+            : 0;
+    } catch (err) {
+      process.stderr.write(`FlowGuard CLI error: ${err.message}\n`);
+      process.exitCode = 2;
     }
-    let rawArgs = {};
-    if (positional[0]) {
-      if (positional[0].trim().startsWith("{")) {
-        rawArgs = JSON.parse(positional[0]);
-      } else {
-        rawArgs = { workspaceRoot: positional[0] };
-        if (positional[1]) {
-          rawArgs.target = positional[1];
-          rawArgs.reference = positional[1];
-        }
+  } else {
+    const input = createRpcInput({
+      onMessage: handleRpcMessage,
+      onParseError: () => sendRpcResponse({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }),
+      onFraming: (header) => { useHeaderFraming = header; }
+    });
+    process.stdin.on("data", (chunk) => {
+      try { input.write(chunk); }
+      catch (error) {
+        process.stderr.write(`FlowGuard transport error: ${error.message}\n`);
+        process.exitCode = 2;
+        process.stdin.destroy();
       }
-    }
-    if (hasFullFlag) rawArgs.fullScan = true;
-    if (baseRefArg) rawArgs.baseRef = baseRefArg;
-    const result = executeTool(toolName, rawArgs);
-    process.stdout.write(JSON.stringify(result, null, 2) + "\n");
-    process.exit(0);
+    });
+    process.stdin.on("end", () => input.end());
   }
-
-  process.stdin.on("data", (chunk) => {
-    buffer = Buffer.concat([buffer, chunk]);
-    while (buffer.length > 0) {
-      const strPreview = buffer.slice(0, Math.min(buffer.length, 64)).toString("utf8");
-      if (strPreview.startsWith("Content-Length:")) {
-        useHeaderFraming = true;
-        const headerEnd = buffer.indexOf("\r\n\r\n");
-        if (headerEnd === -1) break;
-        const headerStr = buffer.slice(0, headerEnd).toString("utf8");
-        const m = headerStr.match(/Content-Length:\s*(\d+)/i);
-        if (!m) {
-          buffer = buffer.slice(headerEnd + 4);
-          continue;
-        }
-        const len = parseInt(m[1], 10);
-        const totalNeeded = headerEnd + 4 + len;
-        if (buffer.length < totalNeeded) break;
-        const bodyStr = buffer.slice(headerEnd + 4, totalNeeded).toString("utf8");
-        buffer = buffer.slice(totalNeeded);
-        handleRpcMessage(JSON.parse(bodyStr));
-      } else {
-        const nlIdx = buffer.indexOf("\n");
-        if (nlIdx === -1) break;
-        const lineStr = buffer.slice(0, nlIdx).toString("utf8").trim();
-        buffer = buffer.slice(nlIdx + 1);
-        if (lineStr) handleRpcMessage(JSON.parse(lineStr));
-      }
-    }
-  });
 }

@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import {
@@ -15,6 +16,14 @@ import {
   isRuntimeEntrySource
 } from "./lang-presets.mjs";
 import { scanTokensAndScopes, resolveSymbolBounds } from "./lexer.mjs";
+import { conditionalContexts } from "./conditional-context.mjs";
+import { parseRustImports, rustAttributesBefore, rustAttributeBodies } from "./rust-imports.mjs";
+import { rustAttributesZone } from "./rust-zones.mjs";
+import { parseRustReceiverFacts } from "./rust-receivers.mjs";
+import { parsePythonDependencies } from "./python-dependencies.mjs";
+import { parseFrameworkCallbackFacts } from "./framework-callbacks.mjs";
+import { parseRustTypeFlow } from './rust-type-flow.mjs';
+import { parseRustMacroTypes } from './rust-macro-types.mjs';
 
 function makeIdentRegex(ident, flags = "", lang = "") {
   const esc = ident.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -51,40 +60,39 @@ function stripNestedClosureBodies(code) {
 }
 
 function extractBaseTypes(lang, line) {
+  const omitBalanced = (text, open, close) => {
+    let depth = 0, out = "";
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (ch === open) { depth++; continue; }
+      if (ch === close && depth > 0 && !(close === ">" && /[-=]/.test(text[i - 1] || ""))) { depth--; continue; }
+      if (depth === 0) out += ch;
+    }
+    return out;
+  };
+  // Generic parameter constraints are not inheritance clauses; keep qualified
+  // type names intact instead of treating their module and type as two bases.
+  const header = omitBalanced(line, "<", ">").split(/\bwhere\b/)[0];
   const bases = new Set();
+  const add = (value) => {
+    const cleaned = value.replace(/\b(?:public|protected|private|virtual)\s+/g, "").replace(/@\w+\s+/g, "").trim();
+    const name = cleaned.match(/^\\?[A-Za-z_$][A-Za-z0-9_$]*(?:(?:::|[.\\])[A-Za-z_$][A-Za-z0-9_$]*)*/)?.[0];
+    if (name && !/^(?:object|ABC|ABCMeta|Generic|Protocol|Enum|IntEnum|Exception|BaseException|dict|list|tuple|str|int|Object|BasicObject|StandardError|RuntimeError|Error|Array|Map|Set|AnyObject|Codable|Sendable|Equatable|Hashable|IDisposable|IAsyncDisposable|IEnumerable|IComparable|IEquatable|Attribute)$/.test(name)) bases.add(name);
+  };
   if (lang === "python") {
-    const m = line.match(/class\s+[A-Za-z_][A-Za-z0-9_]*\s*\(([^)]+)\)/);
+    const m = omitBalanced(header, "[", "]").match(/class\s+[A-Za-z_][A-Za-z0-9_]*\s*\(([^)]+)\)/);
     if (m) {
-      for (const id of m[1].match(/[A-Za-z_][A-Za-z0-9_]*/g) || []) {
-        if (!/^(object|ABC|ABCMeta|Generic|Protocol|Enum|IntEnum|Exception|BaseException|dict|list|tuple|str|int)$/.test(id)) {
-          bases.add(id);
-        }
-      }
+      for (const base of m[1].split(",")) if (!base.includes("=")) add(base);
     }
   } else if (lang === "ruby") {
     const m = line.match(/(?:class|module)\s+[A-Za-z0-9_:]+\s*<\s*([A-Z][A-Za-z0-9_:]*)/);
-    if (m) {
-      const base = m[1].split("::").pop();
-      if (base && !/^(Object|BasicObject|StandardError|RuntimeError)$/.test(base)) bases.add(base);
-    }
+    if (m) add(m[1]);
   } else if (lang === "ts" || lang === "vue" || lang === "java" || lang === "dart" || lang === "php") {
-    const m = line.match(/\b(?:extends|implements|with|on)\s+([^{]+)/);
-    if (m) {
-      const stripped = m[1].replace(/<[^>]*>/g, " ");
-      for (const id of stripped.match(/\b[A-Z][A-Za-z0-9_]*\b/g) || []) {
-        if (!/^(extends|implements|with|on|Object|Error|Exception|Array|Map|Set)$/.test(id)) bases.add(id);
-      }
-    }
+    const m = header.match(/\b(?:extends|implements|with|on)\s+([^{]+)/);
+    if (m) for (const base of m[1].replace(/\b(?:extends|implements|with|on)\b/g, ",").split(",")) add(base);
   } else if (lang === "csharp" || lang === "cpp" || lang === "kotlin" || lang === "swift") {
-    const m = line.match(/:\s*([^{;]+)/);
-    if (m) {
-      const stripped = m[1].replace(/<[^>]*>/g, " ").replace(/\b(?:public|protected|private|virtual|where|AnyObject|Codable|Sendable|Equatable|Hashable|Error)\b/g, " ");
-      for (const id of stripped.match(/\b[A-Z][A-Za-z0-9_]*\b/g) || []) {
-        if (!/^(IDisposable|IAsyncDisposable|IEnumerable|IComparable|IEquatable|Object|Exception|Attribute)$/.test(id)) {
-          bases.add(id);
-        }
-      }
-    }
+    const m = omitBalanced(header, "(", ")").match(/(?<!:):(?!:)\s*([^{;]+)/);
+    if (m) for (const base of m[1].split(",")) add(base);
   }
   return Array.from(bases);
 }
@@ -130,8 +138,6 @@ function findRubyBlockEnd(lines, startLineIdx, baseIndent) {
 
 function isIntentionalStubBody(innerBody) {
   const stripped = innerBody
-    .replace(/^[^{]*\{/, "")
-    .replace(/\}\s*$/, "")
     .replace(/^\s*["'`]+\s*$/gm, "")
     .trim();
   if (!stripped) return true;
@@ -158,6 +164,21 @@ function isIntentionalStubBody(innerBody) {
   return false;
 }
 
+function braceBodyLines(lines, bounds, cleanCode, startLine) {
+  const span = bounds?.braceSpan;
+  if (!span) return lines;
+  const openColumn = span.openOffset - (cleanCode.lastIndexOf("\n", span.openOffset - 1) + 1);
+  const closeColumn = span.closeOffset - (cleanCode.lastIndexOf("\n", span.closeOffset - 1) + 1);
+  return lines.map((line, index) => {
+    const absoluteLine = startLine + index;
+    if (absoluteLine < span.openLine || absoluteLine > span.closeLine) return "";
+    let result = line;
+    if (absoluteLine === span.closeLine) result = result.slice(0, closeColumn);
+    if (absoluteLine === span.openLine) result = " ".repeat(openColumn + 1) + result.slice(openColumn + 1);
+    return result;
+  });
+}
+
 function extractDataFlowAndTouches({
   lang,
   decl,
@@ -172,9 +193,15 @@ function extractDataFlowAndTouches({
   prevLines
 }) {
   const sigHeader = ownCleanLines.slice(0, Math.max(1, bodyStartLineOffset)).join(" ");
-  let innerLines = ownCleanLines.slice(Math.max(1, bodyStartLineOffset));
+  if (lang !== "python" && lang !== "ruby" && bounds?.hasBraceBody && bounds.braceSpan) {
+    const startLine = bounds.endLine - ownCleanLines.length + 1;
+    fullLexicalLines = braceBodyLines(fullLexicalLines || ownCleanLines, bounds, cleanCode, startLine);
+    ownCleanLines = braceBodyLines(ownCleanLines, bounds, cleanCode, startLine);
+    bodyStartLineOffset = bounds.braceSpan.openLine - startLine;
+  }
+  let innerLines = ownCleanLines.slice(bodyStartLineOffset);
   let innerBody = innerLines.join("\n");
-  let fullLexicalInnerBody = (fullLexicalLines || ownCleanLines).slice(Math.max(1, bodyStartLineOffset)).join("\n");
+  let fullLexicalInnerBody = (fullLexicalLines || ownCleanLines).slice(bodyStartLineOffset).join("\n");
 
   if (bounds && bounds.isExpressionBody && bounds.exprStartOffset !== undefined) {
     let endOff = bounds.exprStartOffset;
@@ -283,7 +310,7 @@ function extractDataFlowAndTouches({
   if (isFnOrMethod && hasRealBody && !bounds?.isExpressionBody) {
     let lastCodeLineIdx = -1;
     if ((lang === "swift" && hasRustOrSwiftReturnType) || lang === "ruby") {
-      for (let sIdx = ownCleanLines.length - 1; sIdx >= Math.max(1, bodyStartLineOffset); sIdx--) {
+      for (let sIdx = ownCleanLines.length - 1; sIdx >= bodyStartLineOffset; sIdx--) {
         const t = ownCleanLines[sIdx].trim();
         if (t && t !== "}" && t !== "end") {
           lastCodeLineIdx = sIdx;
@@ -292,7 +319,7 @@ function extractDataFlowAndTouches({
       }
     }
     let prevNonEmptyLine = "";
-    for (let idx = Math.max(1, bodyStartLineOffset); idx < ownCleanLines.length; idx++) {
+    for (let idx = bodyStartLineOffset; idx < ownCleanLines.length; idx++) {
       const line = ownCleanLines[idx].trim();
       if (!line) continue;
 
@@ -540,6 +567,14 @@ function extractDataFlowAndTouches({
   const writes = new Set();
   const delegatedWrites = new Set();
   const reads = new Set();
+  const parameterFieldReads = [];
+  const parameterReadRe = /\b([A-Za-z_$][A-Za-z0-9_$]*)(?:\??\.|->)(#?[A-Za-z_$][A-Za-z0-9_$]*)/g;
+  while ((m = parameterReadRe.exec(innerBody)) !== null) {
+    const after = innerBody.slice(m.index + m[0].length);
+    if (paramSet.has(m[1]) && !/^\s*(?:=(?!=)|\()/.test(after)) {
+      parameterFieldReads.push({ parameter: m[1], field: m[2] });
+    }
+  }
   const returnsOrPassesLocalState = /\breturn\s+state\b|&\s*state\b/.test(fullBody);
   const DOM_CALLBACK_PROPS = /^(?:onmessage|onerror|onclose|onopen|onload|onabort|onupgradeneeded|onsuccess|onreadystatechange)$/;
   const writeRe =
@@ -610,6 +645,10 @@ function extractDataFlowAndTouches({
 
   return {
     unusedParams,
+    parameterFieldReads,
+    readParams: hasRealBody && !bounds?.isTruncatedOrUncertain
+      ? params.filter((p) => makeIdentRegex(p, "", lang).test(paramSearchText))
+      : null,
     hasReturnValue,
     canIgnoreReturnValue,
     hasInternalMutation,
@@ -646,14 +685,16 @@ function preprocessSfcContent(content) {
   }
 
   // Extract template event handlers & bound expressions outside <script> and <style>
+  const blankMarkup = (value) => value.replace(/[^\r\n]/g, " ");
   let markup = content
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
-    .replace(/<!--[\s\S]*?-->/g, " ");
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, blankMarkup)
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, blankMarkup)
+    .replace(/<!--[\s\S]*?-->/g, blankMarkup);
 
   const sfcEventIdents = new Set();
   const sfcTemplateIdents = new Set();
   const sfcMemberReads = new Set();
+  const sfcTemplateEventHandlers = [];
 
   const addExprIdents = (expr, targetSet) => {
     for (const id of expr.match(/[A-Za-z_$][A-Za-z0-9_$]*/g) || []) {
@@ -668,17 +709,62 @@ function preprocessSfcContent(content) {
     }
   };
 
-  const eventAttrRe =
-    /(?:(?:@|v-on:|on:)[A-Za-z0-9_.:-]+\s*=\s*(?:"([^"]*)"|'([^']*)'|\{([^}]*)\})|\bon[a-z]+\s*=\s*\{([^}]*)\})/g;
-  while ((m = eventAttrRe.exec(markup)) !== null) {
-    const expr = m[1] ?? m[2] ?? m[3] ?? m[4] ?? "";
-    addExprIdents(expr, sfcEventIdents);
-    addExprIdents(expr, sfcTemplateIdents);
+  // Keep the lexical template scope while walking tags.  In particular, a
+  // `v-for` alias remains in scope for its descendants, so an event handler
+  // with the same spelling must not be resolved to a script binding.
+  const templateTagRe = /<(\/)?([A-Za-z][A-Za-z0-9_.:-]*)(\s[^<>]*?)?(\/?)>/g;
+  const templateScope = [];
+  const voidTags = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
+  while ((m = templateTagRe.exec(markup)) !== null) {
+    const isCloseTag = Boolean(m[1]);
+    const tagName = m[2];
+    if (isCloseTag) {
+      for (let index = templateScope.length - 1; index >= 0; index--) {
+        if (templateScope[index].tagName.toLowerCase() === tagName.toLowerCase()) {
+          templateScope.length = index;
+          break;
+        }
+      }
+      continue;
+    }
+
+    const attrs = m[3] || "";
+    const loopLocals = new Set();
+    const forMatch = attrs.match(/\bv-for\s*=\s*(?:"([^"]*)"|'([^']*)')/);
+    const forExpr = forMatch?.[1] ?? forMatch?.[2] ?? "";
+    const forAlias = forExpr.match(/^\s*(?:\(([^)]*)\)|([A-Za-z_$][A-Za-z0-9_$]*))\s+(?:in|of)\b/);
+    for (const local of (forAlias?.[1] || forAlias?.[2] || "").split(",")) {
+      const name = local.trim();
+      if (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)) loopLocals.add(name);
+    }
+    const scopedLocals = new Set(templateScope.flatMap((scope) => [...scope.locals]));
+    for (const local of loopLocals) scopedLocals.add(local);
+    const eventAttrRe = /(?:@|v-on:)[A-Za-z0-9_.:-]+\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+    let event;
+    while ((event = eventAttrRe.exec(attrs)) !== null) {
+      const expr = event[1] ?? event[2] ?? "";
+      addExprIdents(expr, sfcEventIdents);
+      const handler = expr.match(/^\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*(?:\([^]*\))?\s*$/)?.[1];
+      if (handler && !scopedLocals.has(handler)) {
+        const eventOffset = m.index + event.index;
+        sfcTemplateEventHandlers.push({ name: handler, line: content.slice(0, eventOffset).split(/\r?\n/).length });
+      }
+    }
+
+    if (m[4] !== "/" && !voidTags.has(tagName.toLowerCase())) {
+      templateScope.push({ tagName, locals: loopLocals });
+    }
   }
 
   const bindAttrRe = /(?:v-bind:|v-model(?::[A-Za-z0-9_-]+)?|v-if|v-else-if|v-show|v-for|bind:|use:|class:|:)[A-Za-z0-9_.-]*\s*=\s*(?:"([^"]*)"|'([^']*)'|\{([^}]*)\})/g;
   while ((m = bindAttrRe.exec(markup)) !== null) {
-    addExprIdents(m[1] ?? m[2] ?? m[3] ?? "", sfcTemplateIdents);
+    const expr = m[1] ?? m[2] ?? m[3] ?? "";
+    // The left side of `item in items` declares a template-local alias; it
+    // is not a direct render reference to a same-named script symbol.
+    const renderedExpr = /\bv-for\s*=/.test(m[0])
+      ? (expr.match(/\b(?:in|of)\s+([\s\S]*)$/)?.[1] || "")
+      : expr;
+    addExprIdents(renderedExpr, sfcTemplateIdents);
   }
 
   const mustacheRe = /\{\{([\s\S]*?)\}\}|\{([^{}<>"']+)\}/g;
@@ -696,7 +782,8 @@ function preprocessSfcContent(content) {
     hasScriptBlock: scriptRanges.length > 0,
     sfcEventIdents,
     sfcTemplateIdents,
-    sfcMemberReads
+    sfcMemberReads,
+    sfcTemplateEventHandlers
   };
 }
 
@@ -705,9 +792,25 @@ function extractFileImports(lang, content, relPath = "") {
   const importedPaths = [];
   const reExportedPaths = [];
   const reExportedStems = new Set();
-  const importAliases = {};
+  // Source identifiers such as toString, constructor and __proto__ are ordinary
+  // names, not inherited Object properties or prototype setters.
+  const importAliases = Object.create(null);
+  const importBindings = [];
+  const exportBindings = [];
   let m;
   if (lang === "ts" || lang === "vue") {
+    const bindingsRe = /^\s*import\s+(?!type\b)((?:[A-Za-z_$][A-Za-z0-9_$]*(?:\s*,\s*)?)?(?:\{[^}]*\}|\*\s+as\s+[A-Za-z_$][A-Za-z0-9_$]*)?)\s+from\s*["']([^"']+)["']/gm;
+    while ((m = bindingsRe.exec(content)) !== null) {
+      const defaultName = m[1].match(/^([A-Za-z_$][A-Za-z0-9_$]*)\b/)?.[1];
+      if (defaultName) importBindings.push({ local: defaultName, imported: "default", source: m[2] });
+      const namespace = m[1].match(/\*\s+as\s+([A-Za-z_$][A-Za-z0-9_$]*)/);
+      if (namespace) importBindings.push({ local: namespace[1], imported: "*", source: m[2] });
+      const named = m[1].match(/\{([^}]+)\}/)?.[1] || "";
+      for (const spec of named.split(",")) {
+        const binding = spec.trim().match(/^([A-Za-z_$][A-Za-z0-9_$]*)(?:\s+as\s+([A-Za-z_$][A-Za-z0-9_$]*))?$/);
+        if (binding) importBindings.push({ local: binding[2] || binding[1], imported: binding[1], source: m[2] });
+      }
+    }
     const re = /\bfrom\s+["']([^"']+)["']/g;
     while ((m = re.exec(content)) !== null) {
       importedPaths.push(m[1]);
@@ -724,30 +827,37 @@ function extractFileImports(lang, content, relPath = "") {
         }
       }
     }
-    const reExportStarRe = /\bexport\s+\*\s*(?:as\s+[A-Za-z_$][A-Za-z0-9_$]*\s*)?from\s*["']([^"']+)["']/g;
+    const reExportStarRe = /\bexport\s+\*\s*(?:as\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*)?from\s*["']([^"']+)["']/g;
     while ((m = reExportStarRe.exec(content)) !== null) {
-      reExportedPaths.push(m[1]);
+      reExportedPaths.push(m[2]);
+      exportBindings.push({ exported: m[1] || "*", imported: "*", source: m[2] });
     }
     const reExportNamedRe = /\bexport\s+(?:type\s+)?\{([^}]+)\}\s*from\s*["']([^"']+)["']/g;
     while ((m = reExportNamedRe.exec(content)) !== null) {
       reExportedPaths.push(m[2]);
+      if (/\bexport\s+type\s*\{/.test(m[0])) continue;
       for (const spec of m[1].split(",")) {
         const cleaned = spec.replace(/^\s*type\s+/, "").trim();
         const aliasM = cleaned.match(/^([A-Za-z_$][A-Za-z0-9_$]*)\s+as\s+([A-Za-z_$][A-Za-z0-9_$]*)$/);
+        if (!/^\s*type\s+/.test(spec) && /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(cleaned)) exportBindings.push({ exported: cleaned, imported: cleaned, source: m[2] });
+        else if (aliasM && !/^\s*type\s+/.test(spec)) exportBindings.push({ exported: aliasM[2], imported: aliasM[1], source: m[2] });
         if (aliasM && aliasM[1] !== "default") {
           importAliases[aliasM[2]] = aliasM[1];
         }
       }
     }
-  } else if (lang === "rust") {
-    const re = /\b(?:mod|use\s+(?:crate|super|self)::(?:[a-zA-Z0-9_]+::)*)([a-zA-Z0-9_]+)/g;
-    while ((m = re.exec(content)) !== null) importedStems.add(m[1]);
-    const pubRe = /\bpub\s+(?:mod|use\s+(?:crate|super|self)::(?:[a-zA-Z0-9_]+::)*)([a-zA-Z0-9_]+)/g;
-    while ((m = pubRe.exec(content)) !== null) reExportedStems.add(m[1]);
-    const rsAliasRe = /\buse\s+[^;]*?\b([A-Za-z_][A-Za-z0-9_]*)\s+as\s+([A-Za-z_][A-Za-z0-9_]*)/g;
-    while ((m = rsAliasRe.exec(content)) !== null) {
-      if (m[2] !== "_") importAliases[m[2]] = m[1];
+    for (const match of content.matchAll(/\bexport\s+(?:const|let|var)\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*(?=;|$)/gm)) {
+      exportBindings.push({ exported: match[1], imported: match[2], source: null });
     }
+    for (const match of content.matchAll(/\bexport\s*\{([^}]+)\}\s*(?=;|$)/gm)) {
+      for (const spec of match[1].split(",")) {
+        const binding = spec.trim().match(/^([A-Za-z_$][A-Za-z0-9_$]*)(?:\s+as\s+([A-Za-z_$][A-Za-z0-9_$]*))?$/);
+        if (binding) exportBindings.push({ exported: binding[2] || binding[1], imported: binding[1], source: null });
+      }
+    }
+  } else if (lang === "rust") {
+    // Rust aliases and nested use trees are resolved with their module/block
+    // scope, rather than flattening every imported name into this file.
   } else if (lang === "python") {
     const isInitPy = /(?:^|\/|\\)__init__\.py$/i.test(relPath);
     const re = /\b(?:from|import)\s+(\.*[a-zA-Z0-9_.]+)/g;
@@ -817,6 +927,7 @@ function extractFileImports(lang, content, relPath = "") {
   } else if (lang === "java" || lang === "kotlin") {
     const re = /\bimport\s+(?:static\s+)?((?:[A-Za-z0-9_]+\.)+)([A-Za-z0-9_*]+)(?:\s+as\s+([A-Za-z0-9_]+))?/g;
     while ((m = re.exec(content)) !== null) {
+      importBindings.push({ local: m[3] || m[2], imported: m[1] + m[2], source: m[1] + m[2] });
       if (m[2] && m[2] !== "*") {
         importedStems.add(m[2]);
         if (m[3]) importAliases[m[3]] = m[2];
@@ -839,8 +950,63 @@ function extractFileImports(lang, content, relPath = "") {
     importedPaths,
     reExportedPaths,
     reExportedStems: Array.from(reExportedStems),
-    importAliases
+    importAliases,
+    importBindings,
+    exportBindings
   };
+}
+
+// JSX elements are component references, not ordinary positional function calls.
+// Keep their local import binding and source line so resolution cannot connect a
+// same-named component from a different import or invent argument consumption.
+function extractJsxReferences(text, startLine = 1) {
+  const references = [];
+  const tags = /<([A-Z][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)?)(?=[\s/>])/g;
+  let match;
+  let line = startLine;
+  let previousOffset = 0;
+  while ((match = tags.exec(text)) !== null) {
+    for (let i = previousOffset; i < match.index; i++) if (text[i] === "\n") line++;
+    previousOffset = match.index;
+    if (/[A-Za-z0-9_$]/.test(text[match.index - 1] || "")) continue;
+    let braces = 0;
+    let end = tags.lastIndex;
+    for (; end < text.length; end++) {
+      if (text[end] === "{") braces++;
+      else if (text[end] === "}") braces--;
+      else if (text[end] === ">" && braces === 0) break;
+    }
+    if (end === text.length) continue;
+    const selfClosing = /\/\s*$/.test(text.slice(tags.lastIndex, end));
+    if (!selfClosing && !text.slice(end + 1).includes(`</${match[1]}`)) continue;
+    const [local, member] = match[1].split(".");
+    references.push({ local, member: member || null, line });
+  }
+  return references;
+}
+
+function extractJsxLocalBindings(text) {
+  const bindings = [];
+  const parseReference = (expression) => {
+    const root = expression.trim().match(/^([A-Za-z_$][A-Za-z0-9_$]*)/);
+    if (!root) return null;
+    let tail = expression.trim().slice(root[0].length);
+    const segments = [];
+    while (tail.trim()) {
+      const member = tail.match(/^\s*\.\s*([A-Za-z_$][A-Za-z0-9_$]*)/);
+      const index = tail.match(/^\s*\[\s*(?:["']([A-Za-z_$][A-Za-z0-9_$]*)["']|([A-Za-z_$][A-Za-z0-9_$]*))\s*\]/);
+      if (member) { segments.push(member[1]); tail = tail.slice(member[0].length); }
+      else if (index) { segments.push(index[1] || "*"); tail = tail.slice(index[0].length); }
+      else return null;
+    }
+    return { root: root[1], segments };
+  };
+  for (const match of text.matchAll(/\bconst\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*([^;\n]+)/g)) {
+    const ternary = match[2].match(/^[^?]+\?([^:]+):(.+)$/);
+    const options = (ternary ? [ternary[1], ternary[2]] : [match[2]]).map(parseReference);
+    if (options.every(Boolean)) bindings.push({ local: match[1], options, conditional: Boolean(ternary) });
+  }
+  return bindings;
 }
 
 function extractBalancedCallArgs(text, openParenIdx) {
@@ -857,7 +1023,7 @@ function extractBalancedCallArgs(text, openParenIdx) {
   return text.slice(openParenIdx + 1, maxEnd);
 }
 
-function extractArgTokensFromSlice(argText) {
+function splitCallArguments(argText) {
   if (!argText || !argText.trim()) return [];
   const parts = [];
   let p = 0;
@@ -878,10 +1044,29 @@ function extractArgTokensFromSlice(argText) {
     }
   }
   parts.push(argText.slice(last));
+  return parts;
+}
 
+function unwrapGroupedArgument(text) {
+  let value = text.trim();
+  while (value.startsWith("(") && value.endsWith(")")) {
+    let depth = 0, closesAtEnd = false;
+    for (let i = 0; i < value.length; i++) {
+      if (value[i] === "(") depth++;
+      else if (value[i] === ")") depth--;
+      if (depth === 0) { closesAtEnd = i === value.length - 1; break; }
+    }
+    if (!closesAtEnd) break;
+    value = value.slice(1, -1).trim();
+  }
+  return value;
+}
+
+function extractArgTokensFromSlice(argText) {
+  const parts = splitCallArguments(argText);
   const out = [];
   for (const raw of parts.slice(0, 8)) {
-    const trimmed = raw.trim();
+    const trimmed = unwrapGroupedArgument(raw);
     if (!trimmed) continue;
     const propChainM = trimmed.match(/^(?:await\s+)?((?:this|self|state|store|ctx|config|\$this)(?:\.|->)#?[A-Za-z_$][A-Za-z0-9_$.]*|[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)+)$/);
     if (propChainM) {
@@ -961,8 +1146,14 @@ function extractCallSitesForSymbol({
   let braceDepth = 0;
   let lastPoppedCondHeader = null;
   let lastSingleLineCondHeader = null;
-  const startIdx = isExpressionBody ? 0 : Math.max(1, bodyStartLineOffset);
+  const startIdx = isExpressionBody ? 0 : bodyStartLineOffset;
   const fullJoined = ownCleanLines.join("\n");
+  let nextLineOffset = 0;
+  const lineOffsets = ownCleanLines.map((line) => {
+    const offset = nextLineOffset;
+    nextLineOffset += line.length + 1;
+    return offset;
+  });
 
   for (let relIdx = startIdx; relIdx < ownCleanLines.length; relIdx++) {
     const rawLine = ownCleanLines[relIdx];
@@ -1049,13 +1240,30 @@ function extractCallSitesForSymbol({
       /(?:(?:\b|\$)([A-Za-z_][A-Za-z0-9_]*)(?:(?:\??\.|->)#?[A-Za-z_][A-Za-z0-9_]*)*(?:\??\.|->|::))?(?:\bnew\s+)?(#?[A-Za-z_$][A-Za-z0-9_$]*)\s*(?:(?:::)?<[^;{}()=]+>\s*|<<<[^;{}]+>>>\s*)?\(/g;
     let cm;
     while ((cm = lineCallRe.exec(rawLine)) !== null) {
-      const receiver = cm[1] || null;
+      // Preserve the whole Rust member receiver. `self.inner.run()` is not
+      // dispatch on `self`; its field type must be resolved independently.
+      const receiver = lang === "rust" && cm[1] && !cm[0].includes("::")
+        ? cm[0].slice(0, cm[0].lastIndexOf(cm[2])).replace(/(?:\?\.|\.|->)\s*$/, "").trim()
+        : cm[1] || null;
       const rawCallee = cm[2];
-      if (!rawCallee || rawCallee === declName || SKIP_CALLEES.test(rawCallee)) continue;
+      if (!rawCallee || (rawCallee === declName && !(lang === "rust" && receiver)) ||
+        (SKIP_CALLEES.test(rawCallee) && !(lang === "rust" && rawCallee === "new" && receiver))) continue;
       const callee = importAliases[rawCallee] || rawCallee;
       const openIdx = rawLine.indexOf("(", cm.index + cm[0].length - 1);
-      const argSlice = extractBalancedCallArgs(rawLine, openIdx >= 0 ? openIdx : rawLine.indexOf("(", cm.index));
+      const callOpen = openIdx >= 0 ? openIdx : rawLine.indexOf("(", cm.index);
+      const callText = fullJoined.slice(lineOffsets[relIdx], lineOffsets[relIdx] + callOpen + 361);
+      const argSlice = extractBalancedCallArgs(callText, callOpen);
       const passedArgs = extractArgTokensFromSlice(argSlice);
+      const argumentParts = splitCallArguments(argSlice);
+      // Keep literals/complex expressions as null slots; never flatten or deduplicate positions.
+      const positionalArgs = argumentParts.map((part) => {
+        const ref = unwrapGroupedArgument(part);
+        return /^(?:[A-Za-z_$][A-Za-z0-9_$]*)(?:(?:\.|->)#?[A-Za-z_$][A-Za-z0-9_$]*)*$/.test(ref)
+          && !/^(?:true|false|null|None|nil|undefined)$/.test(ref) ? ref : null;
+      });
+      const argumentMapping = callText[callOpen + argSlice.length + 1] === ")"
+        && !argumentParts.some((part) => /^(?:\.\.\.|\*|[A-Za-z_$][A-Za-z0-9_$]*\s*[:=](?!=))/.test(part.trim()))
+        ? "POSITIONAL" : "UNRESOLVED";
 
       const prefixBeforeCall = rawLine.slice(0, cm.index).trim();
       let returnFlow = "CONSUMED_EXPR";
@@ -1076,16 +1284,40 @@ function extractCallSitesForSymbol({
         callee,
         rawCallee,
         receiver,
+        ...(lang === "rust" ? { rustPath: ((rawLine.slice(0, cm.index).match(/((?:::)?(?:[A-Za-z_][A-Za-z0-9_]*::)+|::)$/)?.[1] || "") +
+          (receiver && cm[0].includes("::") ? receiver + "::" : "") + rawCallee) } : {}),
         line: absLine,
         passedArgs,
+        positionalArgs,
+        argumentMapping,
         returnFlow,
         inConditionalBranch,
         branchHeaderLine,
         isRegistrationRef: false
       });
 
+      // A qualified function item passed as an argument retains its module
+      // path. Registering it is candidate exposure, not proof of invocation.
+      let callbackOffset = 0;
+      let callbackArgumentIndex = -1;
+      if (lang === "rust" && callText[callOpen + argSlice.length + 1] === ")") for (const part of argumentParts) {
+        callbackArgumentIndex++;
+        const reference = part.trim();
+        const referenceOffset = callbackOffset + part.indexOf(reference);
+        callbackOffset += part.length + 1;
+        if (!/^(?:r#)?[A-Za-z_]\w*(?:::(?:r#)?[A-Za-z_]\w*)*$/.test(reference) ||
+          /^(?:true|false|self|Self)$/.test(reference) || localVars.has(reference) || params.includes(reference)) continue;
+        const name = reference.split("::").at(-1).replace(/^r#/, "");
+        sites.push({ callee: name, rawCallee: name, receiver: null, rustPath: reference,
+          line: absLine + argSlice.slice(0, referenceOffset).split("\n").length - 1,
+          passedArgs: [], returnFlow: "REGISTERED_REF", inConditionalBranch,
+          branchHeaderLine, isRegistrationRef: true,
+          registeredBy: { rawCallee, receiver, rustPath: receiver && cm[0].includes('::') ? `${receiver}::${rawCallee}` : rawCallee,
+            line: absLine, argumentIndex: callbackArgumentIndex } });
+      }
+
       if (
-        receiver &&
+        lang !== "rust" && receiver &&
         !/^(?:this|self|super|base)$/.test(receiver) &&
         !localVars.has(receiver) &&
         !params.includes(receiver) &&
@@ -1109,7 +1341,7 @@ function extractCallSitesForSymbol({
     // First-class registration / dispatch map / callback references on this line
     const lineRefRe = /(?:[,(\[{]\s*|[A-Za-z0-9_"'`]\s*:\s*|\+=\s*)([a-zA-Z_][a-zA-Z0-9_]{2,})\s*(?=[,)\]}]|$)/g;
     let rm;
-    while ((rm = lineRefRe.exec(rawLine)) !== null) {
+    while (lang !== "rust" && (rm = lineRefRe.exec(rawLine)) !== null) {
       const rawRef = rm[1];
       if (
         rawRef !== declName &&
@@ -1177,18 +1409,37 @@ export function parseSourceFileContent(content, relPath) {
   const rawLines = content.split(/\r?\n/);
   const sfcInfo = ext === ".vue" || ext === ".svelte" ? preprocessSfcContent(content) : null;
   const lexInput = sfcInfo ? sfcInfo.scriptContent : content;
-  const { cleanCode, commentlessCode, lineStartOffsets, parenSpans, braceSpans } = scanTokensAndScopes(
+  let { cleanCode, commentlessCode, lineStartOffsets, parenSpans, braceSpans } = scanTokensAndScopes(
     lexInput,
     sfcInfo ? "ts" : lang
   );
+  const rustImports = lang === "rust" ? parseRustImports(cleanCode, braceSpans, commentlessCode) : null;
+  const rustMacroTypes = rustImports ? parseRustMacroTypes(cleanCode, rustImports, braceSpans) : null;
+  if (rustImports?.macroDefinitions?.length) {
+    const maskTemplates = (code) => {
+      let end = 0, masked = '';
+      for (const definition of rustImports.macroDefinitions) {
+        if (definition.startOffset < end) continue;
+        masked += code.slice(end, definition.startOffset) +
+          code.slice(definition.startOffset, definition.endOffset).replace(/[^\r\n]/g, ' ');
+        end = definition.endOffset;
+      }
+      return masked + code.slice(end);
+    };
+    cleanCode = maskTemplates(cleanCode);
+    commentlessCode = maskTemplates(commentlessCode);
+  }
   const cleanLines = cleanCode.split(/\r?\n/);
+  const conditionsByLine = conditionalContexts(commentlessCode, lang);
 
   const fileZone = classifyZone(relPath);
-  const { importedStems, importedPaths, reExportedPaths, reExportedStems, importAliases } = extractFileImports(
+  const { importedStems, importedPaths, reExportedPaths, reExportedStems, importAliases, importBindings, exportBindings } = extractFileImports(
     lang,
-    lexInput,
+    commentlessCode,
     relPath
   );
+  const hasJsx = [".jsx", ".tsx", ".js", ".mjs"].includes(ext) && /<[A-Z][A-Za-z0-9_$.]*(?=[\s/>])/.test(cleanCode);
+  const jsxBindingLines = hasJsx ? commentlessCode.split(/\r?\n/) : [];
   const fileHasUnityOrHarmony =
     lang === "csharp" && /\b(?:UnityEngine|MonoBehaviour|BaseUnityPlugin|HarmonyLib|HarmonyPatch)\b/.test(content);
 
@@ -1216,23 +1467,27 @@ export function parseSourceFileContent(content, relPath) {
   }
 
   // Detect Rust inline `#[cfg(test)]` block ranges so inline unit test modules are marked as `test` zone
-  const inlineTestRanges = [];
-  if (lang === "rust") {
-    for (let i = 0; i < rawLines.length; i++) {
-      if (/#\s*\[\s*cfg\s*\(\s*test\b/.test(rawLines[i])) {
-        const line1 = i + 1;
-        for (const bs of braceSpans) {
-          if (bs.openLine >= line1 && bs.openLine <= line1 + 6) {
-            inlineTestRanges.push({ startLine: line1, endLine: bs.closeLine });
-            break;
-          }
-        }
-      }
-    }
-  }
+  const inlineTestRanges = (rustImports?.modules || [])
+    .filter((mod) => mod.inline && rustAttributesZone(mod.attributes) === 'test')
+    .map((mod) => ({ startLine: mod.bodyStart, endLine: mod.endLine }));
 
   const rawDecls = [];
   const containerRanges = []; // { name, startLine, endLine, symbolId, kind }
+  const kotlinObjects = new Map();
+  if (lang === "kotlin") {
+    for (const match of cleanCode.matchAll(/\bobject\s*:\s*[A-Za-z_][A-Za-z0-9_.<>?,\s()]*/g)) {
+      const span = braceSpans.find((b) => b.openOffset === match.index + match[0].trimEnd().length ||
+        (b.openOffset >= match.index + match[0].length && /^\s*$/.test(cleanCode.slice(match.index + match[0].length, b.openOffset))));
+      if (!span) continue;
+      const lineIdx = lineStartOffsets.findIndex((start, i) => start <= match.index && (lineStartOffsets[i + 1] ?? Infinity) > match.index);
+      const argument = parenSpans.filter((p) => p.openOffset < match.index && p.closeOffset > span.closeOffset)
+        .sort((a, b) => b.openOffset - a.openOffset)[0];
+      const callee = argument && cleanCode.slice(Math.max(0, argument.openOffset - 100), argument.openOffset).match(/([A-Za-z_][A-Za-z0-9_]*)\s*$/)?.[1];
+      const assignment = /\b(?:val|var)\s+[A-Za-z_][A-Za-z0-9_]*\s*(?::[^=\n]+)?=\s*$/.test(cleanCode.slice(lineStartOffsets[lineIdx], match.index));
+      kotlinObjects.set(lineIdx, { span, header: cleanCode.slice(match.index, span.openOffset),
+        passedTo: !assignment && callee && !/^(?:if|while|when|for|catch)$/.test(callee) ? callee : null });
+    }
+  }
 
   // Pass 1: Identify all symbol declarations and their exact line spans
   for (let i = 0; i < cleanLines.length; i++) {
@@ -1250,7 +1505,7 @@ export function parseSourceFileContent(content, relPath) {
     if (enclosingClass) {
       const deeperBrace = braceSpans.some(
         (bs) =>
-          bs.openLine > enclosingClass.startLine &&
+          bs.openLine > (enclosingClass.bodyOpenLine || enclosingClass.startLine) &&
           bs.openLine < currentLine &&
           bs.closeLine >= currentLine
       );
@@ -1277,7 +1532,9 @@ export function parseSourceFileContent(content, relPath) {
       (lang === "ts" || lang === "vue") && /=\s*(?:async\s*)?(?:<[^>]*>\s*)?\([^;]*$/.test(cleanLines[i])
         ? cleanLines.slice(i, Math.min(cleanLines.length, i + 8)).join(" ")
         : cleanLines[i];
-    const decl = matchSymbolDeclaration(lang, declLineText, inClassScope, inVueOptionsScope);
+    const object = kotlinObjects.get(i);
+    const decl = object ? { name: `anonymous@${currentLine}`, kind: "class", isAnonymousObject: true, isPublicApi: false }
+      : matchSymbolDeclaration(lang, declLineText, inClassScope, inVueOptionsScope);
     if (!decl) continue;
 
     const startLine = currentLine;
@@ -1286,7 +1543,10 @@ export function parseSourceFileContent(content, relPath) {
     let bodyStartLineOffset = 1;
     let bounds = null;
 
-    if (lang === "python" || lang === "ruby") {
+    if (object) {
+      bounds = { endLine: object.span.closeLine, braceSpan: object.span, hasBraceBody: true, paramSpan: null };
+      endLine = bounds.endLine;
+    } else if (lang === "python" || lang === "ruby") {
       bounds = resolveSymbolBounds(cleanCode, cleanLines, lineStartOffsets, i, decl, lang, parenSpans, braceSpans);
       let sigEndLineIdx = i;
       if (bounds.paramSpan) {
@@ -1316,7 +1576,10 @@ export function parseSourceFileContent(content, relPath) {
         endLine,
         symbolId: existingStruct ? existingStruct.symbolId : null,
         kind: "impl",
-        isTraitImpl: Boolean(decl.isTraitImpl)
+        implementationScope: cleanLines.slice(i, bounds.braceSpan ? bounds.braceSpan.openLine : i + 1).join(" ").split("{")[0].replace(/\s+/g, " ").trim(),
+        bodyOpenLine: bounds.braceSpan?.openLine,
+        isTraitImpl: Boolean(decl.isTraitImpl),
+        conditionalContext: conditionsByLine[i]
       });
       continue;
     }
@@ -1330,6 +1593,19 @@ export function parseSourceFileContent(content, relPath) {
       }
     }
 
+    const parentFunction = rawDecls.findLast((candidate) =>
+      (candidate.decl.kind === "function" || candidate.decl.kind === "method") &&
+      candidate.startLine < startLine && candidate.endLine >= endLine &&
+      (!parentContainer || candidate.startLine > parentContainer.startLine)
+    );
+    if (parentFunction) {
+      parentContainer = null;
+      if (decl.kind === "method") decl.kind = "function";
+    }
+    const conditionalContext = lang === "rust"
+      ? [...(parentFunction?.conditionalContext || parentContainer?.conditionalContext || []), ...conditionsByLine[i]]
+      : conditionsByLine[i];
+
     if (
       parentContainer?.isTraitImpl ||
       parentContainer?.isTrait ||
@@ -1342,6 +1618,7 @@ export function parseSourceFileContent(content, relPath) {
     if ((lang === "csharp" || lang === "java") && parentContainer?.hasBaseOrInterface) {
       decl.isContractMethod = true;
     }
+    if (parentContainer?.isAnonymousObject) decl.isPublicApi = false;
 
     const containerName = parentContainer ? parentContainer.name : decl.receiverType || null;
     const symId = containerName
@@ -1349,9 +1626,9 @@ export function parseSourceFileContent(content, relPath) {
       : `${relPath}::${decl.name}#L${startLine}`;
 
     if (decl.kind === "class" || decl.kind === "struct") {
-      const clsHeaderText = cleanLines
-        .slice(i, Math.min(cleanLines.length, i + Math.max(1, bodyStartLineOffset)))
-        .join(" ");
+      const clsHeaderText = object ? object.header : bounds?.braceSpan
+        ? cleanCode.slice(lineStartOffsets[i], bounds.braceSpan.openOffset)
+        : cleanLines.slice(i, Math.min(cleanLines.length, i + Math.max(1, bodyStartLineOffset))).join(" ");
       const baseTypes = extractBaseTypes(lang, clsHeaderText);
       const hasBaseOrInterface =
         baseTypes.length > 0 ||
@@ -1364,10 +1641,13 @@ export function parseSourceFileContent(content, relPath) {
         endLine,
         symbolId: symId,
         kind: decl.kind,
+        bodyOpenLine: bounds?.braceSpan?.openLine,
         isTrait: Boolean(decl.isTrait),
         isInterface: Boolean(decl.isInterface),
+        isAnonymousObject: Boolean(decl.isAnonymousObject),
         baseTypes,
-        hasBaseOrInterface
+        hasBaseOrInterface,
+        conditionalContext
       });
     }
 
@@ -1381,6 +1661,9 @@ export function parseSourceFileContent(content, relPath) {
       bodyStartLineOffset,
       containerName,
       parentContainerId: parentContainer ? parentContainer.symbolId : null,
+      parentFunctionId: parentFunction?.symId || null,
+      implementationScope: parentContainer?.implementationScope || null,
+      conditionalContext,
       symId
     });
   }
@@ -1424,15 +1707,12 @@ export function parseSourceFileContent(content, relPath) {
     const prevLines = rawLines.slice(Math.max(0, i - 6), i + 1).join("\n");
     const ownCleanBodyText = ownCleanLines.join("\n");
 
-    let symZone = fileZone;
-    if (
-      symZone === "prod" &&
-      lang === "rust" &&
+    const rustAttributes = lang === "rust" ? rustAttributesBefore(cleanCode, commentlessCode,
+      lineStartOffsets[i] + (cleanLines[i].search(/\S/) < 0 ? 0 : cleanLines[i].search(/\S/))) : '';
+    const rustTestOnly = lang === "rust" &&
       (inlineTestRanges.some((r) => startLine >= r.startLine && endLine <= r.endLine) ||
-        /#\s*\[\s*(?:tokio::)?test\b|#\s*\[\s*cfg\s*\(\s*test\b/.test(prevLines))
-    ) {
-      symZone = "test";
-    }
+        rustAttributesZone(rustAttributes) === 'test' || rustAttributeBodies(rustAttributes).some((attribute) => /^(?:tokio::)?test\b/.test(attribute)));
+    const symZone = rustTestOnly ? "test" : fileZone;
 
     const params = decl.kind === "function" || decl.kind === "method" ? extractParamNames(lang, paramText) : [];
     const promotedParams = decl.isConstructor ? extractPromotedParamNames(lang, paramText) : [];
@@ -1546,10 +1826,8 @@ export function parseSourceFileContent(content, relPath) {
     const rawDocAndHeader = rawLines
       .slice(Math.max(0, i - 4), Math.min(rawLines.length, i + 16))
       .join("\n");
-    const isFeatureGated =
-      /#\s*\[\s*(?:cfg|allow\s*\(\s*dead_code)\b|^\s*#\s*if\b|\bpragma:\s*no\s*cover\b|\/\/\s*reserved\b/im.test(
-        rawDocAndHeader
-      );
+    const isFeatureGated = rd.conditionalContext.length > 0 ||
+      /#\s*\[\s*allow\s*\(\s*dead_code\b|\bpragma:\s*no\s*cover\b|\/\/\s*reserved\b/im.test(prevLines);
     const isExtensionHook =
       Boolean(decl.isContractMethod) ||
       Boolean(decl.isOverride) ||
@@ -1562,9 +1840,9 @@ export function parseSourceFileContent(content, relPath) {
       decl.kind === "function" || decl.kind === "method"
         ? extractCallSitesForSymbol({
             lang,
-            ownCleanLines,
+            ownCleanLines: lang !== "python" && lang !== "ruby" && bounds?.hasBraceBody ? braceBodyLines(ownCleanLines, bounds, cleanCode, startLine) : ownCleanLines,
             startLine,
-            bodyStartLineOffset,
+            bodyStartLineOffset: lang !== "python" && lang !== "ruby" && bounds?.hasBraceBody ? bounds.braceSpan.openLine - startLine : bodyStartLineOffset,
             declName: decl.name,
             params,
             localVars: df.localVars,
@@ -1573,17 +1851,36 @@ export function parseSourceFileContent(content, relPath) {
           })
         : [];
 
+    if (lang === "rust") for (const site of callSites) {
+      calls.add(site.rawCallee);
+      fileCalls.add(site.rawCallee);
+    }
+
     const normFinger = decl.kind === "function" || decl.kind === "method" ? normalizeFinger(ownCleanBodyText) : "";
     symbols.push({
       id: symId,
       name: decl.name,
       parentContainerName: containerName,
       parentContainerId,
+      parentFunctionId: rd.parentFunctionId,
+      implementationScope: rd.implementationScope,
+      ...(lang === "rust" ? { rustTestOnly } : {}),
       baseTypes: decl.baseTypes || [],
       kind: decl.kind,
+      isInterface: Boolean(decl.isInterface),
+      isTrait: Boolean(decl.isTrait),
+      isAbstract: /\babstract\b/.test(cleanLines[i]) || /@(?:abc\.)?abstractmethod\b/.test(prevLines),
+      hasImplementation: Boolean(bounds?.hasBraceBody || bounds?.isExpressionBody || ((lang === "python" || lang === "ruby") && endLine > startLine)),
+      callablePropertyNames: (decl.kind === "class" || decl.kind === "struct") && (lang === "ts" || lang === "vue")
+        ? Array.from(ownCleanBodyText.matchAll(/^\s*(?:(?:public|readonly|override|declare)\s+)*([A-Za-z_$][A-Za-z0-9_$]*)\s*:\s*typeof\s+[A-Za-z_$][^\n=]*=\s*[A-Za-z_$][A-Za-z0-9_$]*(?:\s*;?\s*)$/gm), (m) => m[1])
+        : [],
       isPublicApi: Boolean(decl.isPublicApi),
+      isAnonymousObject: Boolean(decl.isAnonymousObject),
+      anonymousObjectPassedTo: kotlinObjects.get(i)?.passedTo || null,
+      isConstructor: Boolean(decl.isConstructor),
       isExtensionHook,
       isFeatureGated,
+      conditionalContext: rd.conditionalContext,
       file: relPath,
       lang,
       zone: symZone,
@@ -1594,6 +1891,9 @@ export function parseSourceFileContent(content, relPath) {
       isTauriCommand: lang === "rust" && /#\[(?:tauri::)?command(?:\s*\([^)]*\))?\s*\]|#\[specta::specta\b/.test(prevLines),
       paired: detectPairedKind(decl.name),
       params,
+      parameterSlots: extractParamNames(lang, paramText, true),
+      readParams: df.readParams,
+      parameterFieldReads: df.parameterFieldReads,
       localVars: Array.from(df.localVars),
       unusedParams: df.unusedParams,
       reservedParams: [],
@@ -1605,6 +1905,8 @@ export function parseSourceFileContent(content, relPath) {
       conditionalCount: df.conditionalCount,
       qualifiedCalls: df.qualifiedCalls,
       callSites,
+      jsxReferences: hasJsx ? extractJsxReferences(ownCleanLines.join("\n"), startLine) : [],
+      jsxLocalBindings: hasJsx ? extractJsxLocalBindings(ownCleanLines.map((line, offset) => line ? jsxBindingLines[i + offset] : "").join("\n")) : [],
       upperConstantsRead: df.upperConstantsRead || [],
       calls: Array.from(calls),
       writes: df.writes,
@@ -1700,7 +2002,7 @@ export function parseSourceFileContent(content, relPath) {
   for (const s of symbols) delete s.ownCleanBodyText;
 
   // Track explicitly private container fields (`#field` or `private field`) and file-wide `.prop` member reads
-  const privateFieldsByContainer = {};
+  const privateFieldsByContainer = Object.create(null);
   for (const c of containerRanges) {
     if (!c.name) continue;
     const privSet = new Set(privateFieldsByContainer[c.name] || []);
@@ -1756,14 +2058,13 @@ export function parseSourceFileContent(content, relPath) {
     }
   }
 
-  // Wire Vue / Svelte SFC template bindings (`@click="fn"`, `{{ fmt(x) }}`) directly to `<script>` symbols
+  // Render expressions (`{{ fmt(x) }}`, bindings) are same-file references.
+  // Vue event directives are handled separately as runtime-conditional
+  // registrations below, so they must not promote the handler to a library
+  // surface or a confirmed direct call.
   if (sfcInfo) {
     for (const s of symbols) {
-      if (sfcInfo.sfcEventIdents.has(s.name)) {
-        s.isReferencedInFile = true;
-        s.isEntrySource = true;
-        if (!s.roles.includes("source")) s.roles.push("source");
-      } else if (sfcInfo.sfcTemplateIdents.has(s.name)) {
+      if (sfcInfo.sfcTemplateIdents.has(s.name)) {
         s.isReferencedInFile = true;
       }
     }
@@ -1772,34 +2073,53 @@ export function parseSourceFileContent(content, relPath) {
   // Same-file first-class callback / table registration / Rust serde / C# reflection binding detection
   const hasReflectedDeclaredMethods =
     lang === "csharp" && /\b(?:DeclaredMethods|GetMethods)\b/.test(cleanCode);
-  const rawOutsideLines = rawLines;
+  const referenceCode = (lang === "rust" ? rawLines : cleanLines).join("\n")
+    .replace(/\bexport\s*(?:type\s*)?\{[^}]*\}/g, (s) => s.replace(/[^\n]/g, " "))
+    .replace(/\bexport\s+default\s+[A-Za-z_$][A-Za-z0-9_$]*\s*;?/g, (s) => s.replace(/[^\n]/g, " "))
+    .replace(/\bmodule\.exports\s*=\s*\{[^}]*\}/g, (s) => s.replace(/[^\n]/g, " "));
+  const referenceOffsets = [0];
+  for (let index = 0; index < referenceCode.length; index++) if (referenceCode[index] === "\n") referenceOffsets.push(index + 1);
+  const referenceNames = new Set(symbols.filter((s) => s.kind === "function" || s.kind === "method").map((s) => s.name));
+  const indexReferences = (code) => {
+    const index = new Map();
+    const tokens = /(?<![A-Za-z0-9_$])#?[A-Za-z_$][A-Za-z0-9_$]*/g;
+    for (const token of code.matchAll(tokens)) {
+      const names = [token[0]];
+      if (token[0].startsWith("#") || (["php", "kotlin", "dart"].includes(lang) && token[0].startsWith("$"))) names.push(token[0].slice(1));
+      for (const name of names) if (referenceNames.has(name)) {
+        if (!index.has(name)) index.set(name, []);
+        index.get(name).push(token.index);
+      }
+    }
+    return index;
+  };
+  const fileReferenceIndex = indexReferences(referenceCode);
+  const otherSymbolReferences = new Map(symbols.map((s) => [s.id, indexReferences(cleanLines.slice(s.startLine - 1, s.endLine).join("\n"))]));
+  const callbackReferenceIndex = new Map();
+  const callbackReferencePattern = /(?:\+=\s*([A-Za-z_$][A-Za-z0-9_$]*)\b(?!\s*\()|\b(?!const\b|let\b|var\b|auto\b|export\b|return\b)[A-Za-z_][A-Za-z0-9_]*\s*=(?!=)\s*(?:new\s+[A-Za-z0-9_.<>]+\s*\(\s*)?([A-Za-z_$][A-Za-z0-9_$]*)\b(?!\s*\()|[,(\[]\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*(?=[,)\]}]))/g;
+  for (const match of referenceCode.matchAll(callbackReferencePattern)) {
+    const name = match[1] || match[2] || match[3];
+    if (!referenceNames.has(name)) continue;
+    if (!callbackReferenceIndex.has(name)) callbackReferenceIndex.set(name, []);
+    callbackReferenceIndex.get(name).push(match.index + match[0].lastIndexOf(name));
+  }
   for (const s of symbols) {
     if (s.kind !== "function" && s.kind !== "method") continue;
     if (hasReflectedDeclaredMethods && s.parentContainerName && cleanCode.includes(`typeof(${s.parentContainerName})`)) {
       s.isReferencedInFile = true;
       continue;
     }
-    const refRe = makeIdentRegex(s.name, "", lang);
-    const useRawLines = lang === "rust";
-    const beforeSym = (useRawLines ? rawOutsideLines : cleanLines).slice(0, s.startLine - 1).join("\n");
-    const afterSym = (useRawLines ? rawOutsideLines : cleanLines).slice(s.endLine).join("\n");
-    const outsideCombined = `${beforeSym}\n${afterSym}`
-      .replace(/\bexport\s*(?:type\s*)?\{[^}]*\}/g, " ")
-      .replace(/\bexport\s+default\s+[A-Za-z_$][A-Za-z0-9_$]*\s*;?/g, " ")
-      .replace(/\bmodule\.exports\s*=\s*\{[^}]*\}/g, " ");
-    if (refRe.test(outsideCombined)) {
+    const beforeOffset = referenceOffsets[s.startLine - 1];
+    const afterOffset = referenceOffsets[s.endLine] ?? referenceCode.length;
+    const isOutside = (offset) => offset < beforeOffset || offset >= afterOffset;
+    if ((fileReferenceIndex.get(s.name) || []).some(isOutside)) {
       s.isReferencedInFile = true;
-      const escName = s.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const delegateBindRe = new RegExp(
-        `(?:\\+=\\s*${escName}\\b(?!\\s*\\()|\\b(?!const\\b|let\\b|var\\b|auto\\b|export\\b|return\\b)[A-Za-z_][A-Za-z0-9_]*\\s*=(?!=)\\s*(?:new\\s+[A-Za-z0-9_.<>]+\\s*\\(\\s*)?${escName}\\b(?!\\s*\\()|[,(\\[]\\s*${escName}\\s*(?=[,)\\]}]))`
-      );
-      if (delegateBindRe.test(outsideCombined)) {
+      if ((callbackReferenceIndex.get(s.name) || []).some(isOutside)) {
         s.isCallbackRef = true;
       }
       for (const other of symbols) {
         if (other.id !== s.id && (s.startLine < other.startLine || s.endLine > other.endLine)) {
-          const otherSlice = cleanLines.slice(other.startLine - 1, other.endLine).join("\n");
-          if (refRe.test(otherSlice)) {
+          if (otherSymbolReferences.get(other.id).has(s.name)) {
             if (!other.calls.includes(s.name)) other.calls.push(s.name);
             if (
               other.callSites &&
@@ -2194,14 +2514,24 @@ export function parseSourceFileContent(content, relPath) {
     }
   }
 
-  if (symbols.length === 0) {
+  // Retain actual top-level calls as well as rendering when modules also declare
+  // helpers. Benchmark/tool scripts are consumers, even outside production code.
+  const hasJsModule = lang === "ts" || lang === "vue";
+  const moduleLines = (hasJsx || hasJsModule) && symbols.length > 0 ? cleanLines.map((line, index) =>
+    symbols.some((s) => index + 1 >= s.startLine && index + 1 <= s.endLine) ? "" : line) : cleanLines;
+  const moduleCode = moduleLines.join("\n");
+  const moduleJsx = hasJsx ? extractJsxReferences(moduleCode) : [];
+  const moduleSites = hasJsModule ? extractCallSitesForSymbol({ lang, ownCleanLines: moduleLines, startLine: 1,
+    bodyStartLineOffset: 0, declName: "", params: [], localVars: new Set(), importAliases, isExpressionBody: false }) : [];
+  if (symbols.length === 0 || moduleJsx.length > 0 || moduleSites.some((site) => !site.isRegistrationRef) ||
+      sfcInfo?.sfcTemplateEventHandlers.length > 0) {
     const baseName = path.basename(relPath, ext);
     const df = extractDataFlowAndTouches({
       lang,
       decl: { name: baseName, kind: "module" },
       bounds: null,
-      cleanCode,
-      ownCleanLines: cleanLines,
+      cleanCode: moduleCode,
+      ownCleanLines: moduleLines,
       params: [],
       bodyStartLineOffset: 1,
       prevLines: content.slice(0, 300)
@@ -2211,16 +2541,16 @@ export function parseSourceFileContent(content, relPath) {
       relPath,
       baseName,
       content.slice(0, 300),
-      cleanCode,
+      moduleCode,
       fileHasUnityOrHarmony
     );
     const calls = new Set();
     const callRe = /\b([A-Za-z_][A-Za-z0-9_]*)\s*\(/g;
-    while ((m = callRe.exec(cleanCode)) !== null) {
+    while ((m = callRe.exec(moduleCode)) !== null) {
       if (m[1].length >= 2) calls.add(m[1]);
     }
     symbols.push({
-      id: `${relPath}::${baseName}#L1`,
+      id: `${relPath}::${baseName}${symbols.length ? "#module" : ""}#L1`,
       name: baseName,
       parentContainerName: null,
       parentContainerId: null,
@@ -2244,7 +2574,9 @@ export function parseSourceFileContent(content, relPath) {
       deadLocalVars: [],
       conditionalCount: df.conditionalCount,
       qualifiedCalls: df.qualifiedCalls,
-      callSites: [],
+      callSites: moduleSites,
+      jsxReferences: moduleJsx,
+      jsxLocalBindings: hasJsx ? extractJsxLocalBindings(moduleLines.map((line, offset) => line ? jsxBindingLines[offset] : "").join("\n")) : [],
       upperConstantsRead: df.upperConstantsRead || [],
       calls: Array.from(calls),
       writes: df.writes,
@@ -2255,7 +2587,19 @@ export function parseSourceFileContent(content, relPath) {
     });
   }
 
+  const rustReceiverFacts = lang === 'rust' ? parseRustReceiverFacts(cleanCode, braceSpans, symbols) : null;
+  if (rustReceiverFacts) for (const symbol of symbols) {
+    for (const continuation of rustReceiverFacts.get(symbol.id)?.chainContinuations || []) {
+      if (symbol.callSites.some(site => site.line === continuation.line && site.rawCallee === continuation.name)) continue;
+      symbol.calls = [...new Set([...symbol.calls, continuation.name])];
+      symbol.callSites.push({ callee: continuation.name, rawCallee: continuation.name, receiver: null,
+        line: continuation.line, passedArgs: [], positionalArgs: null, argumentMapping: 'UNRESOLVED',
+        returnFlow: 'CONSUMED_EXPR', isRegistrationRef: false });
+    }
+  }
   return {
+    contentHash: crypto.createHash("sha256").update(content).digest("hex"),
+    packageName: ["go", "java", "kotlin"].includes(lang) ? cleanCode.match(/^\s*package\s+([\w.]+)/m)?.[1] || null : null,
     file: relPath,
     lang,
     zone: fileZone,
@@ -2263,6 +2607,18 @@ export function parseSourceFileContent(content, relPath) {
     importedPaths,
     reExportedPaths,
     reExportedStems,
+    importBindings,
+    exportBindings,
+    frameworkCallbackFacts: parseFrameworkCallbackFacts(cleanCode, commentlessCode, symbols, importBindings, lang, relPath),
+    templateEventHandlers: sfcInfo?.sfcTemplateEventHandlers || [],
+    ...(lang === "rust" ? { rustImports } : {}),
+    ...(lang === "rust" ? { rustReceiverFacts } : {}),
+    ...(lang === 'rust' ? { rustTypeFlow: parseRustTypeFlow(cleanCode, braceSpans, parenSpans, symbols) } : {}),
+    ...(lang === 'rust' ? { rustMacroTypes } : {}),
+    ...(lang === "python" ? { pythonDependencies: parsePythonDependencies(cleanCode, symbols) } : {}),
+    isAlembicRevision: lang === "python" && /^\s*(?:from\s+alembic\s+import|import\s+alembic\b)/m.test(cleanCode) &&
+      /^revision\s*(?::[^=\n]+)?=/m.test(cleanCode) && /^down_revision\s*(?::[^=\n]+)?=/m.test(cleanCode),
+    defaultExportName: lang === "ts" ? commentlessCode.match(/\bexport\s+default\s+(?:(?:async\s+)?function\s+|class\s+)?([A-Za-z_$][A-Za-z0-9_$]*)\b/)?.[1] || null : null,
     privateFieldsByContainer,
     memberReads: Array.from(memberReadsSet),
     symbols,

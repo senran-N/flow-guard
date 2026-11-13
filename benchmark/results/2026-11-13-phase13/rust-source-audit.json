@@ -1,0 +1,304 @@
+{
+  "sourceHash": "d045c3b926d18ee3fd896c785251068274ea8c1f413c56d37f01c08f16683265",
+  "checks": [
+    {
+      "name": "LayeredFuture::new exact call",
+      "edge": {
+        "fromId": "axum/src/handler/mod.rs::Layered.call#L330",
+        "toId": "axum/src/handler/future.rs::LayeredFuture.new#L35",
+        "kind": "SEQ_CALL",
+        "evidence": {
+          "file": "axum/src/handler/mod.rs",
+          "line": 349,
+          "reason": "顺序调用步骤: call ➔ new",
+          "passedArgs": [
+            "future"
+          ],
+          "argumentSites": [
+            {
+              "line": 349,
+              "passedArgs": [
+                "future"
+              ],
+              "positionalArgs": [
+                "future"
+              ],
+              "argumentMapping": "POSITIONAL"
+            }
+          ],
+          "returnFlow": "CONSUMED_EXPR"
+        },
+        "resolution": {
+          "mode": "RUST_TYPED_RECEIVER",
+          "confidence": "HIGH"
+        }
+      }
+    },
+    {
+      "name": "WithPosition::new exact calls",
+      "edges": [
+        {
+          "fromId": "axum-macros/src/debug_handler.rs::check_inputs_impls_from_request#L223",
+          "toId": "axum-macros/src/with_position.rs::WithPosition.new#L43",
+          "kind": "SEQ_CALL",
+          "evidence": {
+            "file": "axum-macros/src/debug_handler.rs",
+            "line": 233,
+            "reason": "顺序调用步骤: check_inputs_impls_from_request ➔ new",
+            "passedArgs": [
+              "item_fn",
+              "sig",
+              "inputs"
+            ],
+            "argumentSites": [
+              {
+                "line": 233,
+                "passedArgs": [
+                  "item_fn",
+                  "sig",
+                  "inputs"
+                ],
+                "positionalArgs": [
+                  null,
+                  null
+                ],
+                "argumentMapping": "POSITIONAL"
+              }
+            ],
+            "returnFlow": "DISCARDED_BARE"
+          },
+          "resolution": {
+            "mode": "RUST_TYPED_RECEIVER",
+            "confidence": "HIGH"
+          }
+        },
+        {
+          "fromId": "axum-macros/src/debug_handler.rs::check_output_tuples#L341",
+          "toId": "axum-macros/src/with_position.rs::WithPosition.new#L43",
+          "kind": "BRANCH_DISPATCH",
+          "evidence": {
+            "file": "axum-macros/src/debug_handler.rs",
+            "line": 359,
+            "reason": "条件分支派发 (分支头 L359): check_output_tuples ➔ new",
+            "passedArgs": [
+              "elems"
+            ],
+            "argumentSites": [
+              {
+                "line": 359,
+                "passedArgs": [
+                  "elems"
+                ],
+                "positionalArgs": [
+                  "elems"
+                ],
+                "argumentMapping": "POSITIONAL"
+              }
+            ],
+            "returnFlow": "RETURNED"
+          },
+          "resolution": {
+            "mode": "RUST_TYPED_RECEIVER",
+            "confidence": "HIGH"
+          }
+        },
+        {
+          "fromId": "axum-macros/src/debug_handler.rs::check_input_order#L498",
+          "toId": "axum-macros/src/with_position.rs::WithPosition.new#L43",
+          "kind": "BRANCH_DISPATCH",
+          "evidence": {
+            "file": "axum-macros/src/debug_handler.rs",
+            "line": 556,
+            "reason": "条件分支派发 (分支头 L556): check_input_order ➔ new",
+            "passedArgs": [
+              "types_that_consume_the_request"
+            ],
+            "argumentSites": [
+              {
+                "line": 556,
+                "passedArgs": [
+                  "types_that_consume_the_request"
+                ],
+                "positionalArgs": [
+                  "types_that_consume_the_request"
+                ],
+                "argumentMapping": "POSITIONAL"
+              }
+            ],
+            "returnFlow": "ASSIGNED:types"
+          },
+          "resolution": {
+            "mode": "RUST_TYPED_RECEIVER",
+            "confidence": "HIGH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "FromRef callback remains candidate",
+      "edge": {
+        "fromId": "axum-macros/src/lib.rs::derive_from_ref#L714",
+        "toId": "axum-macros/src/from_ref.rs::expand#L11",
+        "kind": "REGISTRATION",
+        "evidence": {
+          "file": "axum-macros/src/lib.rs",
+          "line": 715,
+          "reason": "注册/挂载引用: derive_from_ref ➔ expand",
+          "argumentSites": [],
+          "returnFlow": "REGISTERED_REF"
+        },
+        "resolution": {
+          "mode": "RUST_CALLBACK_REFERENCE",
+          "confidence": "MEDIUM"
+        }
+      }
+    },
+    {
+      "name": "has_routes field receiver uncertainty",
+      "candidates": [
+        {
+          "file": "axum/src/routing/mod.rs",
+          "line": 329,
+          "reason": "未解析 Rust 接收者候选: has_routes"
+        }
+      ]
+    },
+    {
+      "name": "call_with_state field receiver uncertainty",
+      "candidates": [
+        {
+          "file": "axum/src/boxed.rs",
+          "line": 124,
+          "reason": "未解析 Rust 接收者候选: call_with_state"
+        },
+        {
+          "file": "axum/src/routing/mod.rs",
+          "line": 453,
+          "reason": "未解析 Rust 接收者候选: call_with_state"
+        },
+        {
+          "file": "axum/src/routing/path_router.rs",
+          "line": 318,
+          "reason": "未解析 Rust 接收者候选: call_with_state"
+        }
+      ]
+    },
+    {
+      "name": "FailedToBufferBody callback paths",
+      "edges": [
+        {
+          "fromId": "axum-core/src/extract/request_parts.rs::body_to_bytes_mut#L84",
+          "toId": "axum-core/src/extract/rejection.rs::FailedToBufferBody.from_err#L18",
+          "kind": "REGISTRATION",
+          "evidence": {
+            "file": "axum-core/src/extract/request_parts.rs",
+            "line": 89,
+            "reason": "注册/挂载引用: body_to_bytes_mut ➔ from_err",
+            "argumentSites": [],
+            "returnFlow": "REGISTERED_REF"
+          },
+          "resolution": {
+            "mode": "RUST_CALLBACK_REFERENCE",
+            "confidence": "MEDIUM"
+          }
+        },
+        {
+          "fromId": "axum-core/src/extract/request_parts.rs::Bytes.from_request#L107",
+          "toId": "axum-core/src/extract/rejection.rs::FailedToBufferBody.from_err#L18",
+          "kind": "REGISTRATION",
+          "evidence": {
+            "file": "axum-core/src/extract/request_parts.rs",
+            "line": 112,
+            "reason": "注册/挂载引用: from_request ➔ from_err",
+            "argumentSites": [],
+            "returnFlow": "REGISTERED_REF"
+          },
+          "resolution": {
+            "mode": "RUST_CALLBACK_REFERENCE",
+            "confidence": "MEDIUM"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cargo module membership classifies axum_test as production source",
+      "file": "axum-macros/src/axum_test.rs",
+      "zone": "prod"
+    }
+  ],
+  "rustVersion": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "compiledControls": [
+    {
+      "name": "constructor",
+      "source": "struct Worker(u8);\nimpl Worker { fn new() -> Self { Self(7) } }\nstruct Other(u8);\nimpl Other { fn new() -> Self { Self(99) } }\nfn main() { assert_eq!(Worker::new().0, 7); assert_eq!(Other::new().0, 99); }\n",
+      "compilation": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "execution": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "callback",
+      "source": "use std::sync::atomic::{AtomicUsize, Ordering};\nstatic COUNT: AtomicUsize = AtomicUsize::new(0);\nmod api { pub fn expand() { super::COUNT.fetch_add(1, super::Ordering::SeqCst); } }\nfn register_only(_: fn()) {}\nfn execute(f: fn()) { f(); }\nfn main() { register_only(api::expand); assert_eq!(COUNT.load(Ordering::SeqCst), 0); execute(api::expand); assert_eq!(COUNT.load(Ordering::SeqCst), 1); }\n",
+      "compilation": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "execution": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "field",
+      "source": "struct Worker;\nimpl Worker { fn execute(&self) -> u8 { 7 } }\nstruct Inner { worker: Worker }\nstruct Outer { inner: Inner }\nimpl Outer { fn execute(&self) -> u8 { self.inner.worker.execute() } }\nfn main() { let outer = Outer { inner: Inner { worker: Worker } }; assert_eq!(outer.execute(), 7); }\n",
+      "compilation": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "execution": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "module_suffix",
+      "source": "#[path = \"ordinary_test.rs\"]\nmod ordinary;\nfn main() { assert_eq!(ordinary::run(), 7); }\n",
+      "compilation": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "execution": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "test_module",
+      "source": "#[cfg(test)]\n#[path = \"only_tests.rs\"]\nmod hidden;\nfn main() {}\n",
+      "compilation": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "execution": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ],
+  "verdict": "INCONCLUSIVE",
+  "remainingSandboxCandidates": []
+}

@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { generateFlowOverview } from "./flow-tools.mjs";
 import { verifyWorkspaceFlow } from "./flow-verifier.mjs";
-import { getFlowGuardDataDir } from "./graph-diff.mjs";
+import { readScopedState, writeScopedState } from "./state-store.mjs";
 
 export function readStdinJson() {
   const raw = fs.readFileSync(0, "utf8").trim();
@@ -18,11 +17,6 @@ export function resolveHookWorkspace(payload) {
     const p = payload.workspacePaths[0];
     if (p && fs.existsSync(p)) {
       const resolved = path.resolve(p);
-      const cacheDir = getFlowGuardDataDir();
-      fs.writeFileSync(path.join(cacheDir, "flowguard-last-workspace.txt"), resolved, "utf8");
-      if (cacheDir !== os.tmpdir()) {
-        fs.writeFileSync(path.join(os.tmpdir(), "flowguard-last-workspace.txt"), resolved, "utf8");
-      }
       return resolved;
     }
   }
@@ -31,9 +25,10 @@ export function resolveHookWorkspace(payload) {
 
 export function runHook(mode, payload = {}) {
   const workspaceRoot = resolveHookWorkspace(payload);
+  const scope = { sessionId: payload.sessionId || payload.conversationId, taskId: payload.taskId };
 
   if (mode === "session-start") {
-    const overview = generateFlowOverview(workspaceRoot, false, { saveBaseline: true });
+    const overview = generateFlowOverview(workspaceRoot, false, { ...scope, saveBaseline: true });
     if (overview.zoneCounts.prodFiles === 0) {
       return {};
     }
@@ -46,7 +41,7 @@ export function runHook(mode, payload = {}) {
     const msg = [
       `[FlowGuard 端到端水路基线已就绪] 模式: ${overview.workspaceProfile.projectMode} | 生产文件: ${overview.zoneCounts.prodFiles} | 真实水源(Sources): ${overview.flowSummary.trueSourcesCount} | 分流阀(Branches): ${overview.flowSummary.branchRoutersCount} | 真实终端(Sinks): ${overview.flowSummary.trueSinksCount}。`,
       `核心跨界桥: ${bridgesText}。`,
-      `提示: 改跨文件逻辑前调 flow_trace 透视带证据关系，接新模块前调 flow_blueprint 生成共享接入清单，收工前调 flow_verify 对照核验满足/违反/待确认。`
+      `会话: ${scope.sessionId || "default"}，任务: ${scope.taskId || "default"}；调用工具时使用相同 sessionId/taskId。提示: 改跨文件逻辑前调 flow_trace 透视带证据关系，接新模块前调 flow_blueprint 生成共享接入清单，收工前调 flow_verify 对照核验满足/违反/待确认。`
     ].join(" ");
 
     return {
@@ -68,7 +63,7 @@ export function runHook(mode, payload = {}) {
       return { decision: "allow" };
     }
 
-    const report = verifyWorkspaceFlow(workspaceRoot);
+    const report = verifyWorkspaceFlow(workspaceRoot, scope);
     const hasIncrementalScope =
       report.changedFilesScanned.length > 0 || (report.impactedUntouchedFiles?.length || 0) > 0;
 
@@ -115,14 +110,10 @@ export function runHook(mode, payload = {}) {
           )
           .digest("hex");
 
-        const cacheFile = path.join(
-          getFlowGuardDataDir(),
-          `flowguard-stop-${payload.conversationId || "default"}.txt`
-        );
-        const lastHash = fs.existsSync(cacheFile) ? fs.readFileSync(cacheFile, "utf8").trim() : "";
+        const lastHash = readScopedState("stop", workspaceRoot, scope)?.stateHash || "";
 
         if (lastHash !== stateHash) {
-          fs.writeFileSync(cacheFile, stateHash, "utf8");
+          writeScopedState("stop", workspaceRoot, { stateHash }, scope);
           return {
             decision: "continue",
             reason: `【FlowGuard 通水验收拦截】检测到明确违反的必要链路契约（注：待确认项不阻断，切勿添加无意义假调用掩盖告警）：\n${issues.join("\n")}\n请补齐真实接入关系并调用 flow_verify 复核后再结束任务。`

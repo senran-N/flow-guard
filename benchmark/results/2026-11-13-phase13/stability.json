@@ -1,0 +1,68 @@
+[
+  {
+    "repository": "axum",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      5546,
+      5049
+    ],
+    "finalStatus": "",
+    "finalCommit": "47399621c4017601ea493cd63c3af581f4fb33e3"
+  },
+  {
+    "repository": "clash-verge-rev",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      12385,
+      11789
+    ],
+    "finalStatus": "",
+    "finalCommit": "389dddf51204984e91a9769c3dee08db2eeefbb2"
+  },
+  {
+    "repository": "fd",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      562,
+      575
+    ],
+    "finalStatus": "",
+    "finalCommit": "24d90b28d25438af2a8f2e7f7e46d03d6828da94"
+  },
+  {
+    "repository": "pot-desktop",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      1216,
+      1193
+    ],
+    "finalStatus": "",
+    "finalCommit": "594d32ede96acd106b0256deaa8bb440ffcdff40"
+  },
+  {
+    "repository": "ripgrep",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      2950,
+      2843
+    ],
+    "finalStatus": "",
+    "finalCommit": "178cc027e283fd965cb72d0a7395b219eada170c"
+  },
+  {
+    "repository": "SwitchHosts",
+    "completed": true,
+    "deterministic": true,
+    "verifyMs": [
+      2125,
+      2205
+    ],
+    "finalStatus": "",
+    "finalCommit": "7c8eaa50a6c45dde8ce7614c5659747000b36671"
+  }
+]

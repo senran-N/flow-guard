@@ -1,0 +1,91 @@
+{
+  "engineHash": "00540c37c276e25b897f0917a2b2505f166d2beec4dbafc227123d792772b512",
+  "repository": "D:\\Myproject\\crack\\bruno",
+  "commit": "60d7517d0545ef82c032c10dcbb6a3c815d246cf",
+  "originalSourceSha256": "2c78bc6f36427adb57e564c42e200233443229a662b0e4ccb90878d9dd8b08ca",
+  "file": "packages/bruno-electron/src/store/cookies.js",
+  "results": [
+    {
+      "variant": "control",
+      "behavior": {
+        "passed": true,
+        "writes": 2,
+        "pending": 0,
+        "error": null
+      },
+      "target": {
+        "id": "OBL-2",
+        "station": "DATA_FLOW_CONSUMPTION",
+        "layer": "L2_DATA_FLOW",
+        "required": true,
+        "targetLocation": "业务计算消费者（参考: cookies.js:31 (CookiesStore.initializeEncryption); cookies.js:55 (CookiesStore.getCookies); cookies.js:85 (CookiesStore.setCookies)）",
+        "reason": "控制路径可达不等于目标数据生效：必须确保输入参数或新增配置字段真正传入下游计算并影响结果，而非仅写入状态/仅保存却仍使用旧常量或丢弃返回值",
+        "expectedRelation": "字段 \"#saveTimerId\" 被写入后，必须被非持久化的实际业务消费者读取并参与计算（禁止仍读旧常量）",
+        "sourceBasis": "参考模块现有状态消费者: cookies.js:31 (CookiesStore.initializeEncryption); cookies.js:55 (CookiesStore.getCookies); cookies.js:85 (CookiesStore.setCookies)",
+        "verificationMethod": "L2 数据流校验：检查字段写读闭环（剔除纯 Save/Serialize 假读取）、目标消费者是否仍引用大写旧常量、形参消费与返回值承接",
+        "ambiguity": "参考模块存在多个候选业务消费者 (cookies.js:31 (CookiesStore.initializeEncryption), cookies.js:55 (CookiesStore.getCookies), cookies.js:85 (CookiesStore.setCookies))，如需限定特定计算函数请传入 consumerTarget",
+        "checkSpec": {
+          "type": "TARGET_DATA_CONSUMPTION",
+          "targetSymbol": null,
+          "targetField": "#saveTimerId",
+          "consumerTarget": null,
+          "inferredConsumers": [
+            "cookies.js:31 (CookiesStore.initializeEncryption)",
+            "cookies.js:55 (CookiesStore.getCookies)",
+            "cookies.js:85 (CookiesStore.setCookies)",
+            "cookies.js:116 (CookiesStore.initializeCookies)"
+          ]
+        },
+        "status": "SATISFIED",
+        "evidence": [
+          "cookies.js:161 (CookiesStore.saveCookieJar)"
+        ],
+        "finding": "字段 \"#saveTimerId\" 已被下游业务函数 [saveCookieJar] 实际读取消费",
+        "remediation": null
+      },
+      "analyzedScope": "upstream CookiesStore source module in isolated workspace"
+    },
+    {
+      "variant": "defect",
+      "behavior": {
+        "passed": false,
+        "writes": 0,
+        "pending": 3,
+        "error": "AssertionError [ERR_ASSERTION]: A burst must retain only one scheduled write\n\n3 !== 1\n\n    at execute (file:///C:/Users/21143/.gemini/config/plugins/flow-guard/benchmark/timer-behavior-case.mjs:48:12)\n    at file:///C:/Users/21143/.gemini/config/plugins/flow-guard/benchmark/timer-behavior-case.mjs:67:20"
+      },
+      "target": {
+        "id": "OBL-2",
+        "station": "DATA_FLOW_CONSUMPTION",
+        "layer": "L2_DATA_FLOW",
+        "required": true,
+        "targetLocation": "业务计算消费者（参考: cookies.js:31 (CookiesStore.initializeEncryption); cookies.js:55 (CookiesStore.getCookies); cookies.js:85 (CookiesStore.setCookies)）",
+        "reason": "控制路径可达不等于目标数据生效：必须确保输入参数或新增配置字段真正传入下游计算并影响结果，而非仅写入状态/仅保存却仍使用旧常量或丢弃返回值",
+        "expectedRelation": "字段 \"#saveTimerId\" 被写入后，必须被非持久化的实际业务消费者读取并参与计算（禁止仍读旧常量）",
+        "sourceBasis": "参考模块现有状态消费者: cookies.js:31 (CookiesStore.initializeEncryption); cookies.js:55 (CookiesStore.getCookies); cookies.js:85 (CookiesStore.setCookies)",
+        "verificationMethod": "L2 数据流校验：检查字段写读闭环（剔除纯 Save/Serialize 假读取）、目标消费者是否仍引用大写旧常量、形参消费与返回值承接",
+        "ambiguity": "参考模块存在多个候选业务消费者 (cookies.js:31 (CookiesStore.initializeEncryption), cookies.js:55 (CookiesStore.getCookies), cookies.js:85 (CookiesStore.setCookies))，如需限定特定计算函数请传入 consumerTarget",
+        "checkSpec": {
+          "type": "TARGET_DATA_CONSUMPTION",
+          "targetSymbol": null,
+          "targetField": "#saveTimerId",
+          "consumerTarget": null,
+          "inferredConsumers": [
+            "cookies.js:31 (CookiesStore.initializeEncryption)",
+            "cookies.js:55 (CookiesStore.getCookies)",
+            "cookies.js:85 (CookiesStore.setCookies)",
+            "cookies.js:116 (CookiesStore.initializeCookies)"
+          ]
+        },
+        "status": "VIOLATED",
+        "evidence": [
+          "cookies.js:161 (CookiesStore.saveCookieJar)",
+          "cookies.js:161 (CookiesStore.saveCookieJar)"
+        ],
+        "finding": "违反：字段 \"#saveTimerId\" 缺少实际业务计算消费者（仅被持久化方法 [saveCookieJar] 读取，无任何业务计算函数消费）",
+        "remediation": "请将 \"#saveTimerId\" 接入下游核心过滤/业务逻辑计算（参考同类消费者: cookies.js:31 (CookiesStore.initializeEncryption), cookies.js:55 (CookiesStore.getCookies)）。"
+      },
+      "analyzedScope": "upstream CookiesStore source module in isolated workspace"
+    }
+  ],
+  "limitation": "Timers and external dependencies are substituted. This verifies cancellation/coalescing behavior, not Electron integration, encryption or persistence I/O."
+}

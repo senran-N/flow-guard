@@ -1,0 +1,106 @@
+{
+  "sourceHash": "2231f027c2f51200665ccad5803903b796588c4c0003eb444a6cb300d5a0f724",
+  "method": "V8 CPU profile, 2000 us samples, isolated process, unchanged phase7 snapshot",
+  "top": [
+    {
+      "functionName": ":readFileUtf8",
+      "selfMs": 8293
+    },
+    {
+      "functionName": "graph-builder.mjs:assembleFlowGraph",
+      "selfMs": 7216
+    },
+    {
+      "functionName": "file-parser.mjs:parseSourceFileContent",
+      "selfMs": 6815
+    },
+    {
+      "functionName": "lexer.mjs:scanTokensAndScopes",
+      "selfMs": 6609
+    },
+    {
+      "functionName": "file-parser.mjs:extractDataFlowAndTouches",
+      "selfMs": 4519
+    },
+    {
+      "functionName": ":(garbage collector)",
+      "selfMs": 3631
+    },
+    {
+      "functionName": "similarity-index.mjs:",
+      "selfMs": 3205
+    },
+    {
+      "functionName": "file-parser.mjs:extractCallSitesForSymbol",
+      "selfMs": 2569
+    },
+    {
+      "functionName": "similarity-index.mjs:findSimilarShinglePairs",
+      "selfMs": 2458
+    },
+    {
+      "functionName": "wiring-contract.mjs:getExternalProdCallersOfContainer",
+      "selfMs": 2437
+    },
+    {
+      "functionName": "graph-builder.mjs:addSymEdge",
+      "selfMs": 2358
+    },
+    {
+      "functionName": "lexer.mjs:resolveSymbolBounds",
+      "selfMs": 2005
+    },
+    {
+      "functionName": "file-parser.mjs:",
+      "selfMs": 1569
+    },
+    {
+      "functionName": "graph-builder.mjs:",
+      "selfMs": 1477
+    },
+    {
+      "functionName": ":RegExp: (?:(?:\\b|\\$)([A-Za-z_][A-Za-z0-9_]*)(?:(?:\\??\\.|->)#?[A-Za-z_][A-Za-z0-9_]*)*(?:\\??\\.|->|::))?(?:\\bnew\\s+)?(#?[A-Za-z_$][A-Za-z0-9_$]*)\\s*(?:(?:::)?<[^;{}()=]+>\\s*|<<<[^;{}]+>>>\\s*)?\\(",
+      "selfMs": 1408
+    },
+    {
+      "functionName": ":stat",
+      "selfMs": 1384
+    },
+    {
+      "functionName": "file-parser.mjs:indexReferences",
+      "selfMs": 1377
+    },
+    {
+      "functionName": ":RegExp: (#?[A-Za-z_$][A-Za-z0-9_$]*)\\s*(?:(?:::)?<[^;{}()=]+>\\s*|<<<[^;{}]+>>>\\s*)?\\(",
+      "selfMs": 1185
+    },
+    {
+      "functionName": ":RegExp: ^\\s*(?:(?:public|readonly|override|declare)\\s+)*([A-Za-z_$][A-Za-z0-9_$]*)\\s*:\\s*typeof\\s+[A-Za-z_$][^\\n=]*=\\s*[A-Za-z_$][A-Za-z0-9_$]*(?:\\s*;?\\s*)$",
+      "selfMs": 1093
+    },
+    {
+      "functionName": ":RegExp: ((?:(?:this|self)(?:\\.|->)|\\$this->)?[A-Za-z_$][A-Za-z0-9_$]*)\\s*\\[[^\\]]+\\]\\s*(?:=|\\+=|-=)(?!=)",
+      "selfMs": 986
+    },
+    {
+      "functionName": "graph-builder.mjs:buildEdgeMetaFromSites",
+      "selfMs": 864
+    },
+    {
+      "functionName": ":RegExp: (?<![A-Za-z0-9_$])#?[A-Za-z_$][A-Za-z0-9_$]*",
+      "selfMs": 800
+    },
+    {
+      "functionName": "file-parser.mjs:extractArgTokensFromSlice",
+      "selfMs": 782
+    },
+    {
+      "functionName": "fingerprint.mjs:normalizeFinger",
+      "selfMs": 769
+    },
+    {
+      "functionName": "graph-builder.mjs:walk",
+      "selfMs": 703
+    }
+  ]
+}

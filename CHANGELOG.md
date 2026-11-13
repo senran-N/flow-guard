@@ -1,8 +1,90 @@
 # Changelog
 
+## 2026-11-13 Rust nominal types and callback regressions
+
+- Follow concrete generic arguments, named fields, supported standard-library wrappers and simple local declarative macro factory signatures. Preserve cfg, scope, ambiguity and shadowing boundaries.
+- Distinguish direct callback invocation in a resolved local receiver from registration-only exposure. Snapshot candidate registration facts and report loss of the last production connection in incremental checks.
+- The real Pot tray callback deletion now fails incremental validation; compiler-backed controls and final-source evidence are recorded in the phase16 report.
+
+## 2026-11-13 Residual entry evidence
+
+- Capture Rust chained method continuations across lines; follow concrete factory return types when unambiguous, and preserve unresolved receiver candidates without creating executable edges.
+- Record scoped Serde attribute references and CodeMirror/Homebrew host callbacks as candidate evidence, never runtime roots.
+- Full-workspace unused-export diagnostics are advisory without an explicit task requirement. Explicit entry contracts and Git change checks retain failure behavior for missing connections.
+- Validation and remaining limits are recorded in the phase15 report.
+
+## 2026-11-13 Rust module zones
+
+- Classify Rust source membership from actual Cargo bin/lib targets and exact module paths. A test filename alone no longer overrides a proven production module. Test directories, attached test attributes, test-only module ancestry and file inner attributes retain their boundaries.
+- Share module path candidates with call resolution, including nested inline paths and custom crate roots. Recompute classifications without mutating parse-cache facts.
+- Ignore cfg_attr lint/documentation/Windows subsystem settings when deciding compilation selection. Keep code-selecting or unresolved attributes inconclusive.
+- 147 scenario assertions and 156 Node tests; final-source validation is recorded in the phase13 report.
+
+## 2026-11-13 Rust call hardening
+
+- Resolve qualified Rust `Type::new()` calls and preserve complete member receivers, including calls sharing the enclosing method name.
+- Resolve function-item arguments through their actual module paths or import aliases. Keep callback exposure as candidate evidence; imports, generic type arguments and unresolved calls no longer use name-only edges.
+- Report uncertain Rust callback/conditional test-zone references as inconclusive. Direct production-to-test calls remain violations.
+- 147 scenario assertions and 145 Node tests; versioned evidence and compiler controls are recorded in the phase12 report.
+
+## 2026-11-13 hardening
+
+- Resolve inherited TS/JS path configurations, including multiple bases and installed config packages. Invalidate cached graphs when inherited configurations change or missing configurations appear; config-only Git edits trigger a full workspace check.
+- Resolve local Cargo path dependencies, renamed crates, public re-exports/globs and sibling bin-to-lib imports with visibility checks. Add concrete receiver types and simple zero-argument method chains. Preserve explicit uncertainty for cfg, macros and unresolved receiver types.
+- Connect Vue template events as candidates and FastAPI decorator dependencies through exact imports. Restrict React Email template entries to configured directories and reject shadowed router/dependency bindings.
+- Index cross-file state readers and stream clone aggregation while preserving exact counts and preview order. Versioned performance and real-repository results are recorded separately in the phase11 report.
+- Local suite now contains 147 scenario assertions and 140 Node tests.
+
+- 三态门禁修复：INCONCLUSIVE 默认退出 3，显式兼容开关只影响退出码。
+- 补齐 MCP 异常消息、分片、参数校验与真实 SDK 集成验证。
+- 支持 JS/TS paths/baseUrl、React 生命周期候选路径及 Cargo 自定义入口；修复 Rust 重导出和 run 名称入口误判。
+- Windows Node 18/24、Linux Node 22 完整测试通过：142 项断言及 102 个测试。性能候选因跨仓库结果不一致撤回，大仓库性能仍待解决。
+
 All notable changes to **FlowGuard** will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Fixed
+- Treat `INCONCLUSIVE` as its own default verification status instead of reporting `PASS`. CLI now exits `3` for an inconclusive report; explicit `--allow-inconclusive` / JSON boolean `allowInconclusive: true` retains only the previous advisory exit-`0` behavior while the JSON report remains `INCONCLUSIVE`, without masking violations or execution errors.
+- Resolve Rust free-function calls through declared modules, scoped use trees, aliases and re-exports. Handle cyclic imports without unbounded expansion and inspect path attributes without a backtracking regular expression.
+- Preserve JS/TS top-level call sites alongside local declarations. Report test/tool-only consumers as inconclusive while keeping explicit production-entry contracts strict.
+- Keep Kotlin anonymous, named and companion objects in their own scopes; retain external callback arguments as possible entry paths. Resolve JVM base contracts through qualified imports, aliases and packages.
+- Follow JSX namespace re-exports and local component aliases; report runtime component selection as inconclusive instead of proving every candidate reachable.
+- Recognize timer cancellation as consumption of its handle, and keep persistence-only heuristics inconclusive when no explicit business-consumption contract exists.
+- Unwrap complete grouping parentheses around call arguments without treating comma expressions or arithmetic as direct argument references.
+- Prevent prototype property names such as `toString` and `__proto__` from corrupting import aliases and crashing blueprint evidence collection.
+- Separate generic constraints and qualified base types, retain nested function/impl scope, and count reserved argument slots without inventing trailing-comma parameters.
+- Require actual interface or abstract declarations for sibling method obligations; recognize callable properties and default implementations. Restrict inferred factory obligations to shared registries and keep public library alternatives uncertain.
+- Stop ordinary same-file calls from triggering callback signature exemptions, restoring detection of a dropped Click helper input.
+- Infer JS/TS monorepo, Go package and Python distribution boundaries separately from application code. Resolve unique unqualified Go package calls and retain uncertain library paths.
+- Compare only mutually exclusive conditional branches and their overload sets. Parse inline bodies and multiline generic class members; resolve same-named base contracts within their file/import scope.
+- Put bridge, sandbox, anti-pattern and data-flow diagnostics into the same obligation counts and headline. Uncontracted unused inputs remain inconclusive instead of silently producing a satisfied verdict.
+- Index same-file references and use an exact Jaccard prefix join for clone detection; preserve source coverage and verify indexed results against exhaustive comparisons.
+- Advance persisted state to schema 2 so older graph snapshots are diagnosed rather than silently reused.
+- Share ambiguous-call candidate labels across edges, reducing repeated allocations. Replace the short graph-cache TTL with source/configuration content and directory-entry validation, preventing duplicate graph construction after long verification runs.
+- Recognize Ruby gem, Dart package and Gradle library/application boundaries. Keep JavaExec code-generation tasks from turning a library into an application; exclude Dart callback fields from abstract-method declarations.
+- Resolve JSX component references through actual default, named and namespace imports, including JSX in JavaScript files and top-level rendering. Recognize Alembic upgrade/downgrade hooks only in configured revision directories with revision metadata.
+- Separate structural membership/inheritance from runtime call reachability, retaining ambiguous paths as possible evidence. A caller without a runtime source no longer satisfies explicit entry contracts.
+- Reject invalid explicit Git baselines and report the actual baseline commit. Session baselines use source hashes to detect existing-file changes, additions, and deletions, including non-Git workspaces and changes with preserved timestamps.
+- Isolate plans, baselines, and Stop state by workspace/session/task; publish atomically and diagnose expired, branch-mismatched, corrupt, or legacy state. Remove global last-workspace fallback.
+- Replace automatic safe-to-delete labels with missing-reference evidence, scope, uncertainty, and review instructions.
+- Distinguish test failures from launch errors, timeout, and output overflow; persist per-run evidence and terminate the test process tree on timeout/overflow.
+- Preserve argument positions, literal placeholders, repeated arguments, and multiple call sites when checking L2 target consumption. Match the target argument to a parameter actually referenced by the consumer, rather than any non-unused parameter. Ambiguous bindings remain `INCONCLUSIVE`.
+- Keep L3 `INCONCLUSIVE` when test code exists but has not been run. Explicit test commands also run without an active blueprint; failed commands yield `VIOLATED` / `ISSUES_FOUND`.
+- Parse documented blueprint CLI flags and reject unknown options or missing values. Verification exits 1 on violations, 2 on CLI errors, and 0 when no explicit violation is found (including inconclusive reports). Add `--run-tests` and `--project-mode` options.
+
+### Tests & Documentation
+- Add alternating frozen-engine A/B/B/A performance measurements and complete-report equivalence checks. Retain the rejected phase8 experiment and its timeout/memory evidence; restore the validated phase7 engine.
+- Add 35 regressions derived from upstream source failures, bringing the Node test cases to 76 alongside 142 existing assertions. Verify on Windows with Node 18.20.8 and 24.14.0.
+- Add two paired disconnect cases in complete pot-desktop source copies and a separately reported compiler-backed Rust behavior fixture; preserve intermediate Axum/ripgrep parser failures.
+- Add a paired Bruno timer behavior probe with deterministic timers and explicit dependency substitutes; preserve the intermediate grouping-argument false positive and its passing retest.
+- Preserve intermediate hardening scans and add frozen 39-repository retests, 12 original mutation pairs, 10 explicit target contracts and three newly cloned repository pairs. See the dated report for measured results and remaining limitations.
+- Add repeatable real-repository scans, paired source mutations with behavior probes, blueprint retests, source review labels, commit/source manifests, and a frozen 36-repository baseline report. Track remaining production-readiness work separately; do not extrapolate fixture scores to arbitrary repositories.
+- Add 23 engine-integrity cases covering reachability, baseline handling, state isolation, test execution faults and cache invalidation with preserved timestamps.
+- Add 18 regression cases covering argument binding, actual behavioral tests, persisted CLI plans, and exit codes; run them with the existing 142 assertions in CI and add full-workspace self-verification.
+- Limit benchmark accuracy claims to checked-in fixtures and identify the missing reproducibility materials for historical repository inspections.
 
 ## [0.2.0] - 2026-11-11
 
@@ -85,3 +167,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - Portable MCP Server (`stdio` JSON-RPC 2.0 + `rootUri` handshake + CLI mode) and aligned `SessionStart` / `Stop` hooks with `PLUGIN_DATA` persistence and SHA-1 state deduplication.
 - **CI Matrix & 40-Assertion Adversarial Torture, Fuzzing & Contract Suite (`.github/workflows/ci.yml`, `test/torture-suite.mjs`)**:
   - Multi-OS GitHub Actions CI (`ubuntu`, `windows`, `macos` × Node `18, 20, 22`) and 40 zero-dependency assertions covering 10 languages, TypeScript/PHP promoted constructor properties, assertion guards, eval harness zoning, 8 fault-injection mutations, and Hook/MCP protocol contracts.
+# Rust semantic and native runtime validation (2026-11-13)
+
+- Add opt-in rust-analyzer call hierarchy and macro expansion evidence for full current-checkout verification, with explicit Cargo features/target and bounded process-tree cleanup.
+- Map exact compiler references into the graph; preserve dynamic trait implementations as candidates and generated declarations without unique source locations as inconclusive.
+- Add reproducible Windows SwitchHosts native WebView2 IPC, CodeMirror widget and Rust listener controls plus recompiled registration-deletion controls.
+- Exclude generated `build-tauri` bundles from source scans.

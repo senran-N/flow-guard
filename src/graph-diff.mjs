@@ -1,33 +1,12 @@
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
-import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { EXT_LANG } from "./lang-presets.mjs";
 import { parseSourceFileContent } from "./file-parser.mjs";
 import { assembleFlowGraph, cloneParsedFile } from "./graph-builder.mjs";
 
-export function getFlowGuardDataDir() {
-  const pluginData = process.env.PLUGIN_DATA;
-  if (pluginData) {
-    try {
-      fs.mkdirSync(pluginData, { recursive: true });
-      return pluginData;
-    } catch {
-      return os.tmpdir();
-    }
-  }
-  return os.tmpdir();
-}
-
-export function getWorkspaceKeyHash(workspaceRoot) {
-  const resolved = path.resolve(workspaceRoot);
-  return crypto.createHash("sha1").update(resolved).digest("hex").slice(0, 16);
-}
-
-function getBaselineFilePath(workspaceRoot) {
-  return path.join(getFlowGuardDataDir(), `flowguard-baseline-${getWorkspaceKeyHash(workspaceRoot)}.json`);
-}
+import { readScopedState, writeScopedState } from "./state-store.mjs";
+export { getFlowGuardDataDir, getWorkspaceKeyHash } from "./state-store.mjs";
 
 function getCurrentGitHead(workspaceRoot) {
   if (!fs.existsSync(path.join(workspaceRoot, ".git"))) return null;
@@ -79,7 +58,9 @@ export function serializeGraphSnapshot(graph, meta = {}) {
       baseTypes: [...(sym.baseTypes || [])],
       params: [...(sym.params || [])],
       isPublicApi: Boolean(sym.isPublicApi),
+      projectMode: sym.projectMode || graph.workspaceProfile?.projectMode || "hybrid",
       isPackageEntryExport: Boolean(sym.isPackageEntryExport),
+      hasCargoBoundary: Boolean(sym.hasCargoBoundary),
       isEntrySource: Boolean(sym.isEntrySource),
       isReferencedInFile: Boolean(sym.isReferencedInFile),
       isFeatureGated: Boolean(sym.isFeatureGated),
@@ -88,6 +69,8 @@ export function serializeGraphSnapshot(graph, meta = {}) {
       roles: [...(sym.roles || [])],
       reachableFromRuntimeSource: graph.reachableFromRuntimeSource.has(sym.id),
       reachableFromSource: graph.reachableFromSource.has(sym.id),
+      possiblyReachableFromRuntimeSource: graph.possiblyReachableFromRuntimeSource.has(sym.id),
+      frameworkCallbackCandidates: (sym.frameworkCallbackCandidates || []).map(c => ({ ...c })),
       reachesSink: graph.reachesSink.has(sym.id),
       writes: [...(sym.writes || [])],
       reads: [...(sym.reads || [])],
@@ -111,7 +94,8 @@ export function serializeGraphSnapshot(graph, meta = {}) {
         reason: rec.evidence?.reason || rec.kind,
         stateField: rec.evidence?.stateField || null,
         contract: rec.evidence?.contract || null,
-        confidence: rec.resolution?.confidence || "HIGH"
+        confidence: rec.resolution?.confidence || "HIGH",
+        resolutionMode: rec.resolution?.mode || null
       });
     }
   }
@@ -158,7 +142,7 @@ export function serializeGraphSnapshot(graph, meta = {}) {
     headCommit: meta.headCommit !== undefined ? meta.headCommit : getCurrentGitHead(graph.workspaceRoot || ""),
     workspaceRoot: graph.workspaceRoot || "",
     projectMode: graph.workspaceProfile?.projectMode || "hybrid",
-    files: graph.files.map((f) => ({ file: f.file, zone: f.zone, lang: f.lang })),
+    files: graph.files.map((f) => ({ file: f.file, zone: f.zone, lang: f.lang, contentHash: f.contentHash || null })),
     symbols,
     edges,
     states,
@@ -167,32 +151,20 @@ export function serializeGraphSnapshot(graph, meta = {}) {
   };
 }
 
-export function saveSessionBaseline(workspaceRoot, graph) {
-  const snap = serializeGraphSnapshot(graph, {
-    source: "SESSION_SNAPSHOT",
-    baseRef: "SESSION_START"
-  });
-  const outPath = getBaselineFilePath(workspaceRoot);
-  try {
-    fs.writeFileSync(outPath, JSON.stringify(snap), "utf8");
-  } catch {
-    // Non-fatal if temp directory is read-only
-  }
-  return { saved: fs.existsSync(outPath), baselinePath: outPath, snapshot: snap };
+export function saveSessionBaseline(workspaceRoot, graph, options = {}) {
+  const snapshot = serializeGraphSnapshot(graph, { source: "SESSION_SNAPSHOT", baseRef: "SESSION_START" });
+  const baselinePath = writeScopedState("baseline", workspaceRoot, snapshot, options);
+  return { saved: true, baselinePath, snapshot };
 }
 
-export function loadSavedSessionBaseline(workspaceRoot) {
-  const filePath = getBaselineFilePath(workspaceRoot);
-  if (!fs.existsSync(filePath)) return null;
-  try {
-    const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    if (parsed && parsed.version && parsed.symbols && parsed.states) {
-      return parsed;
-    }
-  } catch {
+export function loadSavedSessionBaseline(workspaceRoot, options = {}) {
+  const snapshot = readScopedState("baseline", workspaceRoot, options);
+  if (snapshot && (!snapshot.symbols || !snapshot.states || !Array.isArray(snapshot.files)
+    || snapshot.files.some((f) => !f.contentHash))) {
+    options.stateDiagnostics?.push({ kind: "baseline", code: "INCOMPLETE_BASELINE", reason: "Missing graph or file hashes" });
     return null;
   }
-  return null;
+  return snapshot;
 }
 
 function extractAddedAntiPatternsFromDiff(diffText) {
@@ -362,57 +334,27 @@ export function resolveBaselineForVerification(workspaceRoot, currGraph, gitWork
   if (options.baseRef) {
     const gitBase = reconstructBaselineFromGitRef(workspaceRoot, currGraph, options.baseRef, options);
     if (gitBase) return gitBase;
+    throw new Error(`Cannot resolve or reconstruct requested Git baseline: ${options.baseRef}`);
   }
 
   if (options.fullScan) {
     return null;
   }
 
-  // 2. If working tree has uncommitted edits or deletions vs HEAD, reconstruct against HEAD unless session baseline predates HEAD
-  const savedSession = options.useSessionBaseline === false ? null : loadSavedSessionBaseline(workspaceRoot);
-  const currentHead = getCurrentGitHead(workspaceRoot);
-  const hasWorkingChanges =
-    gitWorkingStatus.isGitRepo &&
+  // A valid session snapshot represents the actual task start, including pre-existing dirty files.
+  const savedSession = options.useSessionBaseline === false ? null : loadSavedSessionBaseline(workspaceRoot, options);
+  const hasWorkingChanges = gitWorkingStatus.isGitRepo &&
     (gitWorkingStatus.changedFiles.length > 0 || (gitWorkingStatus.deletedFiles?.length || 0) > 0);
-
   if (savedSession) {
-    const sessionDiffersFromHead = Boolean(savedSession.headCommit && currentHead && savedSession.headCommit !== currentHead);
-    if (sessionDiffersFromHead || !gitWorkingStatus.isGitRepo) {
-      const currFilesSet = new Set(currGraph.files.map((f) => f.file));
-      const snapFilesSet = new Set((savedSession.files || []).map((f) => f.file));
-      const changed = [];
-      const deleted = [];
-      for (const f of currFilesSet) {
-        if (!snapFilesSet.has(f)) changed.push(f);
-      }
-      for (const f of snapFilesSet) {
-        if (!currFilesSet.has(f)) deleted.push(f);
-      }
-      for (const f of gitWorkingStatus.changedFiles || []) {
-        if (!changed.includes(f)) changed.push(f);
-      }
-      if (sessionDiffersFromHead && savedSession.headCommit) {
-        const refDelta = reconstructBaselineFromGitRef(workspaceRoot, currGraph, savedSession.headCommit, options);
-        if (refDelta) {
-          return {
-            snapshot: savedSession,
-            changedFiles: Array.from(new Set([...changed, ...refDelta.changedFiles])),
-            deletedFiles: Array.from(new Set([...deleted, ...refDelta.deletedFiles])),
-            renamedOldByNew: refDelta.renamedOldByNew,
-            addedAntiPatterns: refDelta.addedAntiPatterns
-          };
-        }
-      }
-      if (changed.length > 0 || deleted.length > 0) {
-        return {
-          snapshot: savedSession,
-          changedFiles: changed,
-          deletedFiles: deleted,
-          renamedOldByNew: {},
-          addedAntiPatterns: gitWorkingStatus.addedAntiPatterns || []
-        };
-      }
-    }
+    const before = new Map(savedSession.files.map((file) => [file.file, file.contentHash]));
+    const after = new Map(currGraph.files.map((file) => [file.file, file.contentHash]));
+    const changedFiles = [...after].filter(([file, hash]) => before.get(file) !== hash).map(([file]) => file);
+    const deletedFiles = [...before.keys()].filter((file) => !after.has(file));
+    return {
+      snapshot: savedSession, changedFiles, deletedFiles, renamedOldByNew: {},
+      addedAntiPatterns: (gitWorkingStatus.addedAntiPatterns || []).filter((item) =>
+        changedFiles.some((file) => item.location.startsWith(`${file}:`)))
+    };
   }
 
   if (hasWorkingChanges) {
@@ -528,18 +470,18 @@ export function computeFlowGraphDiff(baseSnap, currGraph, diffMeta = {}) {
               exposure: cSym.exposure,
               classification: "UNWIRED_NEW_PRIVATE_SYMBOL",
               verdict: "VIOLATED",
-              evidenceStrength: "CONFIRMED_UNWIRED",
+              evidenceStrength: "NO_STATIC_CALLER_EVIDENCE",
               diagnosis: `新增内部符号 "${cSym.name}" 无任何生产调用边或入口触发路径（写了却没接上）`
             });
           } else {
             const langHasRuntime = profile.runtimeLanguages?.has(cSym.lang);
-            const isLibMode = profile.projectMode === "library";
+            const isLibMode = cSym.projectMode === "library" && (!cSym.hasCargoBoundary || cSym.isPackageEntryExport);
             const isPkgEntry = Boolean(cSym.isPackageEntryExport);
 
-            if (isLibMode || (isPkgEntry && profile.projectMode !== "application")) {
+            if (isLibMode || (isPkgEntry && cSym.projectMode !== "application")) {
               // Legitimate public library API surface — NOT a violation
             } else if (
-              profile.projectMode === "application" &&
+              cSym.projectMode === "application" &&
               (langHasRuntime || profile.declaredApp) &&
               !profile.hasDynamicPluginLoading
             ) {
@@ -605,7 +547,7 @@ export function computeFlowGraphDiff(baseSnap, currGraph, diffMeta = {}) {
       (cSym.kind === "function" || cSym.kind === "method") &&
       bSym.reachableFromRuntimeSource &&
       !cSym.reachableFromRuntimeSource &&
-      profile.projectMode === "application"
+      cSym.projectMode === "application"
     ) {
       markIfUntouched(cSym.file);
       newlyOrphanedSymbols.push({
@@ -624,6 +566,14 @@ export function computeFlowGraphDiff(baseSnap, currGraph, diffMeta = {}) {
         inUntouchedFile: !changedSourceFiles.has(cSym.file),
         diagnosis: `符号 "${cSym.name}" 原先流向真实终端 Sink，本次修改后下游消费链路断裂`
       });
+    }
+    if (bSym.frameworkCallbackCandidates?.length && !cSym.frameworkCallbackCandidates?.length &&
+        !cSym.possiblyReachableFromRuntimeSource && !newlyOrphanedSymbols.some(s => s.symbol === formatSnapSym(cSym))) {
+      markIfUntouched(cSym.file);
+      newlyOrphanedSymbols.push({ symbol: formatSnapSym(cSym), file: cSym.file,
+        inUntouchedFile: !changedSourceFiles.has(cSym.file), classification: 'REMOVED_CALLBACK_REGISTRATION',
+        evidence: bSym.frameworkCallbackCandidates.map(c => `${c.file}:${c.line}: ${c.reason}`),
+        diagnosis: `原有框架回调引用 "${cSym.name}" 已删除，未发现替代生产连接；不证明此前运行时已执行` });
     }
   }
 
@@ -670,6 +620,21 @@ export function computeFlowGraphDiff(baseSnap, currGraph, diffMeta = {}) {
       removedEdges.push(e);
       const fromStillExists = currByStable.get(e.fromKey);
       const toStillExists = currByStable.get(e.toKey);
+      // A registration is a structural contract even when execution of its
+      // callback was never proven. Losing its last runtime-connected candidate
+      // must be visible in an incremental scan, without upgrading the baseline
+      // callback to an executed call.
+      if (e.kind === 'REGISTRATION' && e.confidence !== 'AMBIGUOUS' &&
+          ['RUST_CALLBACK_REFERENCE', 'VUE_TEMPLATE_EVENT', 'REACT_LIFECYCLE'].includes(e.resolutionMode) &&
+          baseByStable.get(e.fromKey)?.possiblyReachableFromRuntimeSource && toStillExists?.zone === 'prod' &&
+          !toStillExists.possiblyReachableFromRuntimeSource &&
+          !newlyOrphanedSymbols.some(item => item.symbol === formatSnapSym(toStillExists))) {
+        markIfUntouched(toStillExists.file);
+        newlyOrphanedSymbols.push({ symbol: formatSnapSym(toStillExists), file: toStillExists.file,
+          inUntouchedFile: !changedSourceFiles.has(toStillExists.file), classification: 'REMOVED_CALLBACK_REGISTRATION',
+          evidence: [`${e.file}:${e.line}: ${e.reason}`],
+          diagnosis: `原有回调注册 "${toStillExists.name}" 已删除，未发现其他生产入口注册或调用；该结论只证明注册连接丢失，不证明回调曾执行` });
+      }
       if (
         fromStillExists &&
         toStillExists &&

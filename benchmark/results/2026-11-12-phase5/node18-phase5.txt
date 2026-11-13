@@ -1,0 +1,342 @@
+{"suite":"flow-guard Adversarial Torture, Mutation Fuzzing & Contract Suite","status":"ALL_PASSED","assertionsVerified":69,"elapsedMs":2280}
+{"suite":"flow-guard Real-Task Incomplete-Wiring & Counterexample Benchmark Suite","status":"ALL_PASSED","metrics":{"incompleteWiringTasks":"8/8 recall (100%)","legalCounterexamples":"0/6 false violations (0%)","assertionsVerified":73},"elapsedMs":16058}
+TAP version 13
+# Subtest: class membership does not make an uncalled method runtime reachable
+ok 1 - class membership does not make an uncalled method runtime reachable
+  ---
+  duration_ms: 91.1679
+  ...
+# Subtest: unchanged graph reuse is content-based even after a long verification
+ok 2 - unchanged graph reuse is content-based even after a long verification
+  ---
+  duration_ms: 15.8921
+  ...
+# Subtest: manifest edits invalidate cached package modes even with preserved size and mtime
+ok 3 - manifest edits invalidate cached package modes even with preserved size and mtime
+  ---
+  duration_ms: 35.2072
+  ...
+# Subtest: cache detects new and removed files with directory timestamps restored
+ok 4 - cache detects new and removed files with directory timestamps restored
+  ---
+  duration_ms: 73.9325
+  ...
+# Subtest: a caller without a runtime entry cannot satisfy entry wiring
+ok 5 - a caller without a runtime entry cannot satisfy entry wiring
+  ---
+  duration_ms: 31.0036
+  ...
+# Subtest: ambiguous calls remain possible paths instead of confirmed runtime reachability
+ok 6 - ambiguous calls remain possible paths instead of confirmed runtime reachability
+  ---
+  duration_ms: 15.9141
+  ...
+# Subtest: an invalid explicit Git baseline fails in API and CLI without fallback
+ok 7 - an invalid explicit Git baseline fails in API and CLI without fallback
+  ---
+  duration_ms: 1257.5612
+  ...
+# Subtest: valid explicit baselines report the exact resolved commit
+ok 8 - valid explicit baselines report the exact resolved commit
+  ---
+  duration_ms: 878.1459
+  ...
+# Subtest: non-Git same-size edits with preserved mtime produce a content-based delta
+ok 9 - non-Git same-size edits with preserved mtime produce a content-based delta
+  ---
+  duration_ms: 63.3381
+  ...
+# Subtest: session snapshots track additions and deletions and preserve a clean delta
+ok 10 - session snapshots track additions and deletions and preserve a clean delta
+  ---
+  duration_ms: 51.0545
+  ...
+# Subtest: session snapshots exclude dirty changes already present at task start
+ok 11 - session snapshots exclude dirty changes already present at task start
+  ---
+  duration_ms: 970.6061
+  ...
+# Subtest: blueprints and baselines are isolated by session and task
+ok 12 - blueprints and baselines are isolated by session and task
+  ---
+  duration_ms: 285.0491
+  ...
+# Subtest: expired, corrupt and mismatched state is diagnosed rather than reused
+ok 13 - expired, corrupt and mismatched state is diagnosed rather than reused
+  ---
+  duration_ms: 243.6229
+  ...
+# Subtest: branch switches invalidate saved task state
+ok 14 - branch switches invalidate saved task state
+  ---
+  duration_ms: 899.2969
+  ...
+# Subtest: state publication is atomic and untrusted IDs stay inside the data directory
+ok 15 - state publication is atomic and untrusted IDs stay inside the data directory
+  ---
+  duration_ms: 28.7025
+  ...
+# Subtest: MCP workspace resolution never falls back to another workspace's shared cache
+ok 16 - MCP workspace resolution never falls back to another workspace's shared cache
+  ---
+  duration_ms: 57.1721
+  ...
+# Subtest: unreferenced private code carries uncertainty and no automatic deletion verdict
+ok 17 - unreferenced private code carries uncertainty and no automatic deletion verdict
+  ---
+  duration_ms: 47.9667
+  ...
+# Subtest: test runs preserve stdout, stderr, exit status and a durable artifact
+ok 18 - test runs preserve stdout, stderr, exit status and a durable artifact
+  ---
+  duration_ms: 404.1589
+  ...
+# Subtest: failed assertions remain violations
+ok 19 - failed assertions remain violations
+  ---
+  duration_ms: 420.1113
+  ...
+# Subtest: missing commands are execution errors, not behavioral violations
+ok 20 - missing commands are execution errors, not behavioral violations
+  ---
+  duration_ms: 803.4539
+  ...
+# Subtest: timeouts remain inconclusive with a distinct outcome
+ok 21 - timeouts remain inconclusive with a distinct outcome
+  ---
+  duration_ms: 817.1332
+  ...
+# Subtest: output limits are execution errors and do not masquerade as assertion failures
+ok 22 - output limits are execution errors and do not masquerade as assertion failures
+  ---
+  duration_ms: 721.4749
+  ...
+# Subtest: CLI forwards session/task isolation to persisted blueprints
+ok 23 - CLI forwards session/task isolation to persisted blueprints
+  ---
+  duration_ms: 707.3529
+  ...
+# Subtest: prototype-named calls remain names and do not crash real-test evidence collection (Hono)
+ok 24 - prototype-named calls remain names and do not crash real-test evidence collection (Hono)
+  ---
+  duration_ms: 70.1967
+  ...
+# Subtest: import aliases safely support Object prototype names
+ok 25 - import aliases safely support Object prototype names
+  ---
+  duration_ms: 2.2335
+  ...
+# Subtest: indexed clone comparison agrees exactly with exhaustive Jaccard pairs
+ok 26 - indexed clone comparison agrees exactly with exhaustive Jaccard pairs
+  ---
+  duration_ms: 145.3942
+  ...
+# Subtest: report counts and headline include every blocker and unresolved dropped input
+ok 27 - report counts and headline include every blocker and unresolved dropped input
+  ---
+  duration_ms: 15.9565
+  ...
+# Subtest: inline function bodies retain consumed arguments, return values and call-site positions
+ok 28 - inline function bodies retain consumed arguments, return values and call-site positions
+  ---
+  duration_ms: 1.9986
+  ...
+# Subtest: validation guards remain executable bodies instead of unconditional exception stubs (p-limit)
+ok 29 - validation guards remain executable bodies instead of unconditional exception stubs (p-limit)
+  ---
+  duration_ms: 4.1541
+  ...
+# Subtest: multiline generic class bodies retain their actual implementations (Zod)
+ok 30 - multiline generic class bodies retain their actual implementations (Zod)
+  ---
+  duration_ms: 6.2349
+  ...
+# Subtest: same-named versioned base classes never share method obligations (Zod v3/v4)
+ok 31 - same-named versioned base classes never share method obligations (Zod v3/v4)
+  ---
+  duration_ms: 22.6719
+  ...
+# Subtest: stream decoding is data consumption, not a persistence-only field read (httpx)
+ok 32 - stream decoding is data consumption, not a persistence-only field read (httpx)
+  ---
+  duration_ms: 54.114
+  ...
+# Subtest: Go package calls connect library helpers without accepting another package's names
+ok 33 - Go package calls connect library helpers without accepting another package's names
+  ---
+  duration_ms: 29.3023
+  ...
+# Subtest: library package boundaries preserve app wiring checks in mixed workspaces
+ok 34 - library package boundaries preserve app wiring checks in mixed workspaces
+  ---
+  duration_ms: 138.5597
+  ...
+# Subtest: Dart callback fields do not become abstract methods (Dio)
+ok 35 - Dart callback fields do not become abstract methods (Dio)
+  ---
+  duration_ms: 3.892
+  ...
+# Subtest: Ruby, Dart and Gradle package boundaries preserve application-only entry checks
+ok 36 - Ruby, Dart and Gradle package boundaries preserve application-only entry checks
+  ---
+  duration_ms: 81.325
+  ...
+# Subtest: JSX connects exact default, named and namespace imports with rendering evidence
+ok 37 - JSX connects exact default, named and namespace imports with rendering evidence
+  ---
+  duration_ms: 44.6205
+  ...
+# Subtest: Alembic hooks require configured version paths and revision metadata
+ok 38 - Alembic hooks require configured version paths and revision metadata
+  ---
+  duration_ms: 18.2655
+  ...
+# Subtest: generic constraints and qualified names identify only actual base types
+ok 39 - generic constraints and qualified names identify only actual base types
+  ---
+  duration_ms: 4.5462
+  ...
+# Subtest: nested Python functions are local helpers, not required sibling methods (httpx)
+ok 40 - nested Python functions are local helpers, not required sibling methods (httpx)
+  ---
+  duration_ms: 2.4527
+  ...
+# Subtest: platform arity includes underscore and unnamed parameters while detecting genuine drift
+ok 41 - platform arity includes underscore and unnamed parameters while detecting genuine drift
+  ---
+  duration_ms: 12.4559
+  ...
+# Subtest: conditional compilation compares branch overload sets, not nearby or body directives
+ok 42 - conditional compilation compares branch overload sets, not nearby or body directives
+  ---
+  duration_ms: 18.0014
+  ...
+# Subtest: different Rust traits and local helper scopes do not become platform twins
+ok 43 - different Rust traits and local helper scopes do not become platform twins
+  ---
+  duration_ms: 10.259
+  ...
+# Subtest: ordinary same-file references do not exempt a dropped input as a callback (Click)
+ok 44 - ordinary same-file references do not exempt a dropped input as a callback (Click)
+  ---
+  duration_ms: 26.5316
+  ...
+# Subtest: only declared abstract or interface members are required across siblings
+ok 45 - only declared abstract or interface members are required across siblings
+  ---
+  duration_ms: 13.3793
+  ...
+# Subtest: a function blueprint does not inherit unrelated classes' factory obligations (Click)
+ok 46 - a function blueprint does not inherit unrelated classes' factory obligations (Click)
+  ---
+  duration_ms: 18.9354
+  ...
+# Subtest: default interface methods and protocol extensions are implementations, not missing obligations
+ok 47 - default interface methods and protocol extensions are implementations, not missing obligations
+  ---
+  duration_ms: 7.7242
+  ...
+# Subtest: public library alternatives and interfaces do not imply a closed factory registry
+ok 48 - public library alternatives and interfaces do not imply a closed factory registry
+  ---
+  duration_ms: 5.702
+  ...
+# Subtest: L2 rejects a target passed to an unused parameter even when another parameter is read
+ok 49 - L2 rejects a target passed to an unused parameter even when another parameter is read
+  ---
+  duration_ms: 75.1001
+  ...
+# Subtest: L2 preserves literal positions and exposes the matched argument in trace evidence
+ok 50 - L2 preserves literal positions and exposes the matched argument in trace evidence
+  ---
+  duration_ms: 20.5065
+  ...
+# Subtest: L2 does not deduplicate repeated arguments
+ok 51 - L2 does not deduplicate repeated arguments
+  ---
+  duration_ms: 24.1004
+  ...
+# Subtest: L2 examines later calls and multiline arguments
+ok 52 - L2 examines later calls and multiline arguments
+  ---
+  duration_ms: 19.1142
+  ...
+# Subtest: L2 preserves underscore-prefixed parameter positions
+ok 53 - L2 preserves underscore-prefixed parameter positions
+  ---
+  duration_ms: 14.2117
+  ...
+# Subtest: L2 requires an exact field token instead of a substring
+ok 54 - L2 requires an exact field token instead of a substring
+  ---
+  duration_ms: 15.3284
+  ...
+# Subtest: L2 keeps spread argument binding inconclusive
+ok 55 - L2 keeps spread argument binding inconclusive
+  ---
+  duration_ms: 14.1896
+  ...
+# Subtest: L2 does not treat a same-named parameter as evidence of the target's origin
+ok 56 - L2 does not treat a same-named parameter as evidence of the target's origin
+  ---
+  duration_ms: 20.426
+  ...
+# Subtest: L2 keeps an ambiguous consumer name inconclusive
+ok 57 - L2 keeps an ambiguous consumer name inconclusive
+  ---
+  duration_ms: 70.6981
+  ...
+# Subtest: L2 accepts a field read directly by the consumer
+ok 58 - L2 accepts a field read directly by the consumer
+  ---
+  duration_ms: 16.8052
+  ...
+# Subtest: L3 stays inconclusive for unexecuted test code, including a failing test
+ok 59 - L3 stays inconclusive for unexecuted test code, including a failing test
+  ---
+  duration_ms: 19.2106
+  ...
+# Subtest: L3 reports successful execution of a real behavioral test
+ok 60 - L3 reports successful execution of a real behavioral test
+  ---
+  duration_ms: 331.3897
+  ...
+# Subtest: L3 remains inconclusive when no target test code is found
+ok 61 - L3 remains inconclusive when no target test code is found
+  ---
+  duration_ms: 19.6782
+  ...
+# Subtest: L3 reports a real failing test as violated
+ok 62 - L3 reports a real failing test as violated
+  ---
+  duration_ms: 422.0085
+  ...
+# Subtest: CLI blueprint flags persist the intended task and JSON arguments remain supported
+ok 63 - CLI blueprint flags persist the intended task and JSON arguments remain supported
+  ---
+  duration_ms: 913.6407
+  ...
+# Subtest: CLI returns 1 on violations and 0 on a satisfied scan
+ok 64 - CLI returns 1 on violations and 0 on a satisfied scan
+  ---
+  duration_ms: 626.5889
+  ...
+# Subtest: CLI runs explicit behavioral tests without an active blueprint
+ok 65 - CLI runs explicit behavioral tests without an active blueprint
+  ---
+  duration_ms: 1455.8766
+  ...
+# Subtest: CLI rejects missing values, unknown flags and invalid workspace paths
+ok 66 - CLI rejects missing values, unknown flags and invalid workspace paths
+  ---
+  duration_ms: 1140.9379
+  ...
+1..66
+# tests 66
+# suites 0
+# pass 66
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9281.7994

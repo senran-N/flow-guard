@@ -1,0 +1,110 @@
+{
+  "entries": {
+    "sourceHash": "7b87e5da00133c12252c5c2d8650569ee7b56155662b7e0629b0191090d2a9a6",
+    "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+    "results": [
+      {
+        "symbol": "start_server",
+        "variant": "control",
+        "modes": {
+          "full": {
+            "targetStatuses": [],
+            "verdict": "INCONCLUSIVE"
+          },
+          "incremental": {
+            "targetStatuses": [],
+            "verdict": "SATISFIED"
+          },
+          "planned": {
+            "targetStatuses": [
+              "SATISFIED"
+            ],
+            "verdict": "INCONCLUSIVE"
+          }
+        }
+      },
+      {
+        "symbol": "start_server",
+        "variant": "defect",
+        "modes": {
+          "full": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          },
+          "incremental": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          },
+          "planned": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          }
+        }
+      },
+      {
+        "symbol": "tray_event_handler",
+        "variant": "control",
+        "modes": {
+          "full": {
+            "targetStatuses": [],
+            "verdict": "INCONCLUSIVE"
+          },
+          "incremental": {
+            "targetStatuses": [],
+            "verdict": "SATISFIED"
+          },
+          "planned": {
+            "targetStatuses": [
+              "SATISFIED"
+            ],
+            "verdict": "INCONCLUSIVE"
+          }
+        }
+      },
+      {
+        "symbol": "tray_event_handler",
+        "variant": "defect",
+        "modes": {
+          "full": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          },
+          "incremental": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          },
+          "planned": {
+            "targetStatuses": [
+              "VIOLATED"
+            ],
+            "verdict": "VIOLATED"
+          }
+        }
+      }
+    ],
+    "limitations": [
+      "Real upstream source mutations with static expectations, not executed Tauri behavior",
+      "Cases used during development; not an independent accuracy estimate"
+    ]
+  },
+  "provenance": {
+    "original": "D:\\Myproject\\crack\\pot-desktop",
+    "copy": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\entry-source-cases-phase9\\copy",
+    "commit": "594d32ede96acd106b0256deaa8bb440ffcdff40",
+    "initialStatus": "",
+    "originalFinalStatus": "",
+    "copyFinalStatus": "",
+    "sourceFile": "src-tauri/src/main.rs",
+    "sourceFileHash": "30f6ae3b2470a3ddb68038a4d70e4fd684463a5baf7a75f35786a79e6ba1e5ef"
+  }
+}

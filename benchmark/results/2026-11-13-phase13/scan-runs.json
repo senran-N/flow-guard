@@ -1,0 +1,134 @@
+[
+  {
+    "repository": "axum",
+    "run": 2,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "elapsedMs": 9285,
+    "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase13-final2-rust\\scans\\axum.2.json",
+    "stderr": "",
+    "resultHash": "34eef5da402ab67e562bcb4768dabe303d7b5ffa3f93dc5650307806d0dba8e7"
+  },
+  {
+    "repository": "axum",
+    "run": 1,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "elapsedMs": 9887,
+    "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase13-final2-rust\\scans\\axum.1.json",
+    "stderr": "",
+    "resultHash": "34eef5da402ab67e562bcb4768dabe303d7b5ffa3f93dc5650307806d0dba8e7"
+  },
+  {
+    "repository": "clash-verge-rev",
+    "run": 2,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "elapsedMs": 13361,
+    "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase13-final2-rust\\scans\\clash-verge-rev.2.json",
+    "stderr": "",
+    "resultHash": "4e56a96de2c5f73f83c9ea1fedc50dc07d8adf158b25fab3bf51f402e3b91f6a"
+  },
+  {
+    "repository": "clash-verge-rev",
+    "run": 1,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "elapsedMs": 13992,
+    "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase13-final2-rust\\scans\\clash-verge-rev.1.json",
+    "stderr": "",
+    "resultHash": "4e56a96de2c5f73f83c9ea1fedc50dc07d8adf158b25fab3bf51f402e3b91f6a"
+  },
+  {
+    "repository": "fd",
+    "run": 1,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "elapsedMs": 790,
+    "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase13-final2-rust\\scans\\fd.1.json",
+    "stderr": "",
+    "resultHash": "93be26d647337eb03357e9e783b725d5d4ee500b203d2e6c38f57c53de62c9c5"
+  },
+  {
+    "repository": "fd",
+    "run": 2,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "elapsedMs": 794,
+    "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase13-final2-rust\\scans\\fd.2.json",
+    "stderr": "",
+    "resultHash": "93be26d647337eb03357e9e783b725d5d4ee500b203d2e6c38f57c53de62c9c5"
+  },
+  {
+    "repository": "pot-desktop",
+    "run": 1,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "elapsedMs": 1582,
+    "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase13-final2-rust\\scans\\pot-desktop.1.json",
+    "stderr": "",
+    "resultHash": "ef0e2f61c7da9c5553863658431292cca999b7b2ead3e89863a6c93d1c95a555"
+  },
+  {
+    "repository": "pot-desktop",
+    "run": 2,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "elapsedMs": 1562,
+    "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase13-final2-rust\\scans\\pot-desktop.2.json",
+    "stderr": "",
+    "resultHash": "ef0e2f61c7da9c5553863658431292cca999b7b2ead3e89863a6c93d1c95a555"
+  },
+  {
+    "repository": "ripgrep",
+    "run": 2,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "elapsedMs": 3366,
+    "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase13-final2-rust\\scans\\ripgrep.2.json",
+    "stderr": "",
+    "resultHash": "3e58dc9f02f19810086b247dc1f66d3f9d6df7ee27793a06678a43e8075564e7"
+  },
+  {
+    "repository": "ripgrep",
+    "run": 1,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "elapsedMs": 3568,
+    "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase13-final2-rust\\scans\\ripgrep.1.json",
+    "stderr": "",
+    "resultHash": "3e58dc9f02f19810086b247dc1f66d3f9d6df7ee27793a06678a43e8075564e7"
+  },
+  {
+    "repository": "SwitchHosts",
+    "run": 1,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "elapsedMs": 2589,
+    "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase13-final2-rust\\scans\\SwitchHosts.1.json",
+    "stderr": "",
+    "resultHash": "06d98ae945d887678b3ebac09752807d240084008bb5c7096fbae188c89fde49"
+  },
+  {
+    "repository": "SwitchHosts",
+    "run": 2,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "elapsedMs": 2637,
+    "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase13-final2-rust\\scans\\SwitchHosts.2.json",
+    "stderr": "",
+    "resultHash": "06d98ae945d887678b3ebac09752807d240084008bb5c7096fbae188c89fde49"
+  }
+]

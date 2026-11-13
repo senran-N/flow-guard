@@ -1,0 +1,1232 @@
+[
+  {
+    "id": "httpx-encoding-bytes",
+    "repository": "httpx",
+    "holdout": false,
+    "variant": "control",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": true,
+      "infrastructureFailure": false,
+      "status": 0,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    "scans": {
+      "full": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "httpx-encoding-bytes",
+    "repository": "httpx",
+    "holdout": false,
+    "variant": "defect",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": false,
+      "infrastructureFailure": false,
+      "status": 1,
+      "error": null,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\r\n  File \"D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\mutations-phase7\\cases\\httpx-encoding-bytes\\defect\\probe.py\", line 7, in <module>\r\n    assert to_bytes(\"é\", \"latin-1\") == bytes([233]); assert to_bytes(b\"abc\", \"ascii\") == b\"abc\"\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    "scans": {
+      "full": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "httpx/_utils.py:79-80 (to_bytes)",
+            "unusedParams": [
+              "encoding"
+            ],
+            "diagnosis": "进水口断流：形参 [encoding] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "httpx/_utils.py:79-80 (to_bytes)",
+            "unusedParams": [
+              "encoding"
+            ],
+            "diagnosis": "进水口断流：形参 [encoding] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "httpx-encoding-str",
+    "repository": "httpx",
+    "holdout": false,
+    "variant": "control",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": true,
+      "infrastructureFailure": false,
+      "status": 0,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    "scans": {
+      "full": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "httpx-encoding-str",
+    "repository": "httpx",
+    "holdout": false,
+    "variant": "defect",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": false,
+      "infrastructureFailure": false,
+      "status": 1,
+      "error": null,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\r\n  File \"D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\mutations-phase7\\cases\\httpx-encoding-str\\defect\\probe.py\", line 7, in <module>\r\n    assert to_str(bytes([233]), \"latin-1\") == \"é\"; assert to_str(\"abc\", \"ascii\") == \"abc\"\r\n           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\mutations-phase7\\copies\\httpx\\httpx\\_utils.py\", line 84, in to_str\r\n    return value if isinstance(value, str) else value.decode()\r\n                                                ~~~~~~~~~~~~^^\r\nUnicodeDecodeError: 'utf-8' codec can't decode byte 0xe9 in position 0: unexpected end of data\r\n"
+    },
+    "scans": {
+      "full": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "httpx/_utils.py:83-84 (to_str)",
+            "unusedParams": [
+              "encoding"
+            ],
+            "diagnosis": "进水口断流：形参 [encoding] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "httpx/_utils.py:83-84 (to_str)",
+            "unusedParams": [
+              "encoding"
+            ],
+            "diagnosis": "进水口断流：形参 [encoding] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "flask-dotenv-default",
+    "repository": "flask",
+    "holdout": false,
+    "variant": "control",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": true,
+      "infrastructureFailure": false,
+      "status": 0,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    "scans": {
+      "full": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "flask-dotenv-default",
+    "repository": "flask",
+    "holdout": false,
+    "variant": "defect",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": false,
+      "infrastructureFailure": false,
+      "status": 1,
+      "error": null,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\r\n  File \"D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\mutations-phase7\\cases\\flask-dotenv-default\\defect\\probe.py\", line 7, in <module>\r\n    os.environ.pop(\"FLASK_SKIP_DOTENV\", None); assert get_load_dotenv(False) is False; assert get_load_dotenv(True) is True; os.environ[\"FLASK_SKIP_DOTENV\"] = \"1\"; assert get_load_dotenv() is False\r\n                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    "scans": {
+      "full": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "src/flask/helpers.py:36-48 (get_load_dotenv)",
+            "unusedParams": [
+              "default"
+            ],
+            "diagnosis": "进水口断流：形参 [default] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "src/flask/helpers.py:36-48 (get_load_dotenv)",
+            "unusedParams": [
+              "default"
+            ],
+            "diagnosis": "进水口断流：形参 [default] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "click-posixify-name",
+    "repository": "click",
+    "holdout": true,
+    "variant": "control",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": true,
+      "infrastructureFailure": false,
+      "status": 0,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    "scans": {
+      "full": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "VIOLATED",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "click-posixify-name",
+    "repository": "click",
+    "holdout": true,
+    "variant": "defect",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": false,
+      "infrastructureFailure": false,
+      "status": 1,
+      "error": null,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\r\n  File \"D:\\Myproject\\flowguard-validation\\2026-11-11-v020\\mutations-phase7\\cases\\click-posixify-name\\defect\\probe.py\", line 7, in <module>\r\n    assert _posixify(\"Hello World\") == \"hello-world\"; assert _posixify(\"  A\tB  \") == \"a-b\"; assert _posixify(\"\") == \"\"\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    "scans": {
+      "full": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "VIOLATED",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "src/click/utils.py:32-33 (_posixify)",
+            "unusedParams": [
+              "name"
+            ],
+            "diagnosis": "进水口断流：形参 [name] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "src/click/utils.py:32-33 (_posixify)",
+            "unusedParams": [
+              "name"
+            ],
+            "diagnosis": "进水口断流：形参 [name] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "hono-split-path",
+    "repository": "hono",
+    "holdout": false,
+    "variant": "control",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": true,
+      "infrastructureFailure": false,
+      "status": 0,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    "scans": {
+      "full": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "hono-split-path",
+    "repository": "hono",
+    "holdout": false,
+    "variant": "defect",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": false,
+      "infrastructureFailure": false,
+      "status": 1,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:107\r\n    triggerUncaughtException(\r\n    ^\r\n\r\nAssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\r\n+ actual - expected\r\n\r\n+ []\r\n- [\r\n-   'a',\r\n-   'b'\r\n- ]\r\n\r\n    at file:///D:/Myproject/flowguard-validation/2026-11-11-v020/mutations-phase7/cases/hono-split-path/defect/probe.mjs:9:8\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)\r\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\r\n  generatedMessage: true,\r\n  code: 'ERR_ASSERTION',\r\n  actual: [],\r\n  expected: [ 'a', 'b' ],\r\n  operator: 'deepStrictEqual',\r\n  diff: 'simple'\r\n}\r\n\r\nNode.js v24.14.0\r\n"
+    },
+    "scans": {
+      "full": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "src/utils/url.ts:8-14 (splitPath)",
+            "unusedParams": [
+              "path"
+            ],
+            "diagnosis": "进水口断流：形参 [path] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "src/utils/url.ts:8-14 (splitPath)",
+            "unusedParams": [
+              "path"
+            ],
+            "diagnosis": "进水口断流：形参 [path] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "hono-custom-decoder",
+    "repository": "hono",
+    "holdout": false,
+    "variant": "control",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": true,
+      "infrastructureFailure": false,
+      "status": 0,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    "scans": {
+      "full": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "hono-custom-decoder",
+    "repository": "hono",
+    "holdout": false,
+    "variant": "defect",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": false,
+      "infrastructureFailure": false,
+      "status": 1,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:107\r\n    triggerUncaughtException(\r\n    ^\r\n\r\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\r\n\r\n'abc' !== 'ABC'\r\n\r\n    at file:///D:/Myproject/flowguard-validation/2026-11-11-v020/mutations-phase7/cases/hono-custom-decoder/defect/probe.mjs:15:8\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)\r\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\r\n  generatedMessage: true,\r\n  code: 'ERR_ASSERTION',\r\n  actual: 'abc',\r\n  expected: 'ABC',\r\n  operator: 'strictEqual',\r\n  diff: 'simple'\r\n}\r\n\r\nNode.js v24.14.0\r\n"
+    },
+    "scans": {
+      "full": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "src/utils/url.ts:81-93 (tryDecode)",
+            "unusedParams": [
+              "decoder"
+            ],
+            "diagnosis": "进水口断流：形参 [decoder] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "src/utils/url.ts:81-93 (tryDecode)",
+            "unusedParams": [
+              "decoder"
+            ],
+            "diagnosis": "进水口断流：形参 [decoder] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "p-limit-concurrency-validation",
+    "repository": "p-limit",
+    "holdout": true,
+    "variant": "control",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": true,
+      "infrastructureFailure": false,
+      "status": 0,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    "scans": {
+      "full": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "p-limit-concurrency-validation",
+    "repository": "p-limit",
+    "holdout": true,
+    "variant": "defect",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": false,
+      "infrastructureFailure": false,
+      "status": 1,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:107\r\n    triggerUncaughtException(\r\n    ^\r\n\r\nAssertionError [ERR_ASSERTION]: Missing expected exception (TypeError).\r\n    at file:///D:/Myproject/flowguard-validation/2026-11-11-v020/mutations-phase7/cases/p-limit-concurrency-validation/defect/probe.mjs:7:8\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)\r\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\r\n  generatedMessage: false,\r\n  code: 'ERR_ASSERTION',\r\n  actual: undefined,\r\n  expected: [Function: TypeError],\r\n  operator: 'throws',\r\n  diff: 'simple'\r\n}\r\n\r\nNode.js v24.14.0\r\n"
+    },
+    "scans": {
+      "full": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "index.js:144-148 (validateConcurrency)",
+            "unusedParams": [
+              "concurrency"
+            ],
+            "diagnosis": "进水口断流：形参 [concurrency] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "index.js:144-148 (validateConcurrency)",
+            "unusedParams": [
+              "concurrency"
+            ],
+            "diagnosis": "进水口断流：形参 [concurrency] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "gin-accept-header",
+    "repository": "gin",
+    "holdout": false,
+    "variant": "control",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": true,
+      "infrastructureFailure": false,
+      "status": 0,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    "scans": {
+      "full": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "gin-accept-header",
+    "repository": "gin",
+    "holdout": false,
+    "variant": "defect",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": false,
+      "infrastructureFailure": false,
+      "status": 1,
+      "error": null,
+      "stdout": "",
+      "stderr": "panic: lost Accept header\n\ngoroutine 1 [running]:\nmain.main()\n\tD:/Myproject/flowguard-validation/2026-11-11-v020/mutations-phase7/cases/gin-accept-header/defect/probe.go:16 +0xa5\nexit status 2\n"
+    },
+    "scans": {
+      "full": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "utils.go:111-123 (parseAccept)",
+            "unusedParams": [
+              "acceptHeader"
+            ],
+            "diagnosis": "进水口断流：形参 [acceptHeader] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "utils.go:111-123 (parseAccept)",
+            "unusedParams": [
+              "acceptHeader"
+            ],
+            "diagnosis": "进水口断流：形参 [acceptHeader] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "gin-base-path",
+    "repository": "gin",
+    "holdout": false,
+    "variant": "control",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": true,
+      "infrastructureFailure": false,
+      "status": 0,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    "scans": {
+      "full": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "gin-base-path",
+    "repository": "gin",
+    "holdout": false,
+    "variant": "defect",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": false,
+      "infrastructureFailure": false,
+      "status": 1,
+      "error": null,
+      "stdout": "",
+      "stderr": "panic: lost base path\n\ngoroutine 1 [running]:\nmain.main()\n\tD:/Myproject/flowguard-validation/2026-11-11-v020/mutations-phase7/cases/gin-base-path/defect/probe.go:20 +0x8f\nexit status 2\n"
+    },
+    "scans": {
+      "full": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "utils.go:136-146 (joinPaths)",
+            "unusedParams": [
+              "absolutePath"
+            ],
+            "diagnosis": "进水口断流：形参 [absolutePath] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "utils.go:136-146 (joinPaths)",
+            "unusedParams": [
+              "absolutePath"
+            ],
+            "diagnosis": "进水口断流：形参 [absolutePath] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "chi-wildcards",
+    "repository": "chi",
+    "holdout": true,
+    "variant": "control",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": true,
+      "infrastructureFailure": false,
+      "status": 0,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    "scans": {
+      "full": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "chi-wildcards",
+    "repository": "chi",
+    "holdout": true,
+    "variant": "defect",
+    "behavior": {
+      "kind": "isolated-real-function-execution",
+      "passed": false,
+      "infrastructureFailure": false,
+      "status": 1,
+      "error": null,
+      "stdout": "",
+      "stderr": "panic: lost route pattern\n\ngoroutine 1 [running]:\nmain.main()\n\tD:/Myproject/flowguard-validation/2026-11-11-v020/mutations-phase7/cases/chi-wildcards/defect/probe.go:6 +0xac\nexit status 2\n"
+    },
+    "scans": {
+      "full": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "context.go:163-165 (replaceWildcards)",
+            "unusedParams": [
+              "p"
+            ],
+            "diagnosis": "进水口断流：形参 [p] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": true,
+        "targetedViolation": false,
+        "overallVerdict": "INCONCLUSIVE",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [
+          {
+            "kind": "DEAD_INPUT_PARAM",
+            "location": "context.go:163-165 (replaceWildcards)",
+            "unusedParams": [
+              "p"
+            ],
+            "diagnosis": "进水口断流：形参 [p] 传入后在函数体内从未被读取使用"
+          }
+        ],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "pot-client-channel",
+    "repository": "pot-desktop",
+    "holdout": false,
+    "variant": "control",
+    "behavior": {
+      "kind": "static-command-contract",
+      "command": "reload_store",
+      "declared": true,
+      "registered": true,
+      "passed": true
+    },
+    "scans": {
+      "full": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "VIOLATED",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "pot-client-channel",
+    "repository": "pot-desktop",
+    "holdout": false,
+    "variant": "defect",
+    "behavior": {
+      "kind": "static-command-contract",
+      "command": "reload_store_missing",
+      "declared": false,
+      "registered": false,
+      "passed": false
+    },
+    "scans": {
+      "full": {
+        "detected": true,
+        "targetedViolation": true,
+        "overallVerdict": "VIOLATED",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [
+          {
+            "kind": "TAURI_IPC",
+            "fromFile": "src/utils/store.js",
+            "fromSymbol": "initStore",
+            "fromLine": 14,
+            "contract": "invoke(\"reload_store_missing\")",
+            "payloadFields": [],
+            "toFile": null,
+            "toSymbol": "reload_store_missing",
+            "toLine": null,
+            "confidence": "HIGH",
+            "status": "BROKEN_TARGET"
+          }
+        ],
+        "violations": [
+          {
+            "id": "DIAGNOSTIC-7",
+            "diagnosticKey": "[\"TAURI_IPC\",\"invoke(\\\"reload_store_missing\\\")\",\"src/utils/store.js\",14,\"initStore\"]",
+            "station": "PROTOCOL_COUNTERPART",
+            "layer": "L1_STRUCTURAL",
+            "required": true,
+            "status": "VIOLATED",
+            "targetLocation": "src/utils/store.js:14 (initStore)",
+            "finding": "违反：跨界协议 \"invoke(\"reload_store_missing\")\" 断链 (BROKEN_TARGET)",
+            "evidence": [
+              "src/utils/store.js -> BROKEN_TARGET"
+            ],
+            "sourceBasis": "全量静态分析"
+          }
+        ],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": true
+      },
+      "incremental": {
+        "detected": true,
+        "targetedViolation": true,
+        "overallVerdict": "VIOLATED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [
+          {
+            "kind": "TAURI_IPC",
+            "fromFile": "src/utils/store.js",
+            "fromSymbol": "initStore",
+            "fromLine": 14,
+            "contract": "invoke(\"reload_store_missing\")",
+            "payloadFields": [],
+            "toFile": null,
+            "toSymbol": "reload_store_missing",
+            "toLine": null,
+            "confidence": "HIGH",
+            "status": "BROKEN_TARGET"
+          }
+        ],
+        "violations": [
+          {
+            "id": "AUTO-1",
+            "diagnosticKey": "[\"TAURI_IPC\",\"invoke(\\\"reload_store_missing\\\")\",\"src/utils/store.js\",14,\"initStore\"]",
+            "station": "PROTOCOL_COUNTERPART",
+            "layer": "L1_STRUCTURAL",
+            "required": true,
+            "targetLocation": "src/utils/store.js:14 (initStore)",
+            "reason": "跨语言/IPC/HTTP 调用必须存在明确匹配的对端处理器",
+            "expectedRelation": "TAURI_IPC 契约 \"invoke(\"reload_store_missing\")\" 双端连通",
+            "sourceBasis": "增量跨界桥接差异",
+            "status": "VIOLATED",
+            "evidence": [
+              "src/utils/store.js -> BROKEN_TARGET"
+            ],
+            "finding": "违反：跨界协议 \"invoke(\"reload_store_missing\")\" 断链 (BROKEN_TARGET)",
+            "remediation": "请补齐或对齐 \"invoke(\"reload_store_missing\")\" 的跨语言接收端实现。"
+          }
+        ],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": true
+      }
+    }
+  },
+  {
+    "id": "pot-command-rename",
+    "repository": "pot-desktop",
+    "holdout": false,
+    "variant": "control",
+    "behavior": {
+      "kind": "static-command-contract",
+      "command": "reload_store_v2",
+      "declared": true,
+      "registered": true,
+      "passed": true
+    },
+    "scans": {
+      "full": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "VIOLATED",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      },
+      "incremental": {
+        "detected": false,
+        "targetedViolation": false,
+        "overallVerdict": "SATISFIED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [],
+        "violations": [],
+        "baselineDetected": false,
+        "newlyDetected": false,
+        "newTargetedViolation": false
+      }
+    }
+  },
+  {
+    "id": "pot-command-rename",
+    "repository": "pot-desktop",
+    "holdout": false,
+    "variant": "defect",
+    "behavior": {
+      "kind": "static-command-contract",
+      "command": "reload_store",
+      "declared": false,
+      "registered": true,
+      "passed": false
+    },
+    "scans": {
+      "full": {
+        "detected": true,
+        "targetedViolation": true,
+        "overallVerdict": "VIOLATED",
+        "scanMode": "FULL_WORKSPACE",
+        "diagnostics": [
+          {
+            "kind": "TAURI_IPC",
+            "fromFile": "src/utils/store.js",
+            "fromSymbol": "initStore",
+            "fromLine": 14,
+            "contract": "invoke(\"reload_store\")",
+            "payloadFields": [],
+            "toFile": null,
+            "toSymbol": "reload_store",
+            "toLine": null,
+            "confidence": "HIGH",
+            "status": "BROKEN_TARGET"
+          }
+        ],
+        "violations": [
+          {
+            "id": "DIAGNOSTIC-7",
+            "diagnosticKey": "[\"TAURI_IPC\",\"invoke(\\\"reload_store\\\")\",\"src/utils/store.js\",14,\"initStore\"]",
+            "station": "PROTOCOL_COUNTERPART",
+            "layer": "L1_STRUCTURAL",
+            "required": true,
+            "status": "VIOLATED",
+            "targetLocation": "src/utils/store.js:14 (initStore)",
+            "finding": "违反：跨界协议 \"invoke(\"reload_store\")\" 断链 (BROKEN_TARGET)",
+            "evidence": [
+              "src/utils/store.js -> BROKEN_TARGET"
+            ],
+            "sourceBasis": "全量静态分析"
+          }
+        ],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": true
+      },
+      "incremental": {
+        "detected": true,
+        "targetedViolation": true,
+        "overallVerdict": "VIOLATED",
+        "scanMode": "INCREMENTAL_GIT_DIFF",
+        "diagnostics": [
+          {
+            "kind": "TAURI_IPC",
+            "fromFile": "src/utils/store.js",
+            "fromSymbol": "initStore",
+            "fromLine": 14,
+            "contract": "invoke(\"reload_store\")",
+            "payloadFields": [],
+            "toFile": null,
+            "toSymbol": "reload_store",
+            "toLine": null,
+            "confidence": "HIGH",
+            "status": "BROKEN_TARGET"
+          }
+        ],
+        "violations": [
+          {
+            "id": "AUTO-1",
+            "diagnosticKey": "[\"TAURI_IPC\",\"invoke(\\\"reload_store\\\")\",\"src/utils/store.js\",14,\"initStore\"]",
+            "station": "PROTOCOL_COUNTERPART",
+            "layer": "L1_STRUCTURAL",
+            "required": true,
+            "targetLocation": "src/utils/store.js:14 (initStore)",
+            "reason": "跨语言/IPC/HTTP 调用必须存在明确匹配的对端处理器",
+            "expectedRelation": "TAURI_IPC 契约 \"invoke(\"reload_store\")\" 双端连通",
+            "sourceBasis": "增量跨界桥接差异",
+            "status": "VIOLATED",
+            "evidence": [
+              "src/utils/store.js -> BROKEN_TARGET"
+            ],
+            "finding": "违反：跨界协议 \"invoke(\"reload_store\")\" 断链 (BROKEN_TARGET)",
+            "remediation": "请补齐或对齐 \"invoke(\"reload_store\")\" 的跨语言接收端实现。"
+          }
+        ],
+        "baselineDetected": false,
+        "newlyDetected": true,
+        "newTargetedViolation": true
+      }
+    }
+  }
+]

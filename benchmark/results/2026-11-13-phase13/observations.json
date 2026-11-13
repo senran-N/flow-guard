@@ -1,0 +1,104 @@
+[
+  {
+    "repository": "axum",
+    "previousSourceHash": "3cbb11a8c479e01def64ef3ca8504751fa8c8fee1c0fc2d5e1b58e1d351b3927",
+    "before": {
+      "total": 1159,
+      "satisfied": 0,
+      "violated": 0,
+      "inconclusive": 1159
+    },
+    "after": {
+      "total": 1161,
+      "satisfied": 0,
+      "violated": 0,
+      "inconclusive": 1161
+    },
+    "verdict": "INCONCLUSIVE"
+  },
+  {
+    "repository": "clash-verge-rev",
+    "previousSourceHash": "3cbb11a8c479e01def64ef3ca8504751fa8c8fee1c0fc2d5e1b58e1d351b3927",
+    "before": {
+      "total": 646,
+      "satisfied": 0,
+      "violated": 15,
+      "inconclusive": 631
+    },
+    "after": {
+      "total": 638,
+      "satisfied": 0,
+      "violated": 5,
+      "inconclusive": 633
+    },
+    "verdict": "VIOLATED"
+  },
+  {
+    "repository": "fd",
+    "previousSourceHash": "3cbb11a8c479e01def64ef3ca8504751fa8c8fee1c0fc2d5e1b58e1d351b3927",
+    "before": {
+      "total": 128,
+      "satisfied": 0,
+      "violated": 2,
+      "inconclusive": 126
+    },
+    "after": {
+      "total": 127,
+      "satisfied": 0,
+      "violated": 0,
+      "inconclusive": 127
+    },
+    "verdict": "INCONCLUSIVE"
+  },
+  {
+    "repository": "pot-desktop",
+    "previousSourceHash": "3cbb11a8c479e01def64ef3ca8504751fa8c8fee1c0fc2d5e1b58e1d351b3927",
+    "before": {
+      "total": 46,
+      "satisfied": 0,
+      "violated": 0,
+      "inconclusive": 46
+    },
+    "after": {
+      "total": 46,
+      "satisfied": 0,
+      "violated": 0,
+      "inconclusive": 46
+    },
+    "verdict": "INCONCLUSIVE"
+  },
+  {
+    "repository": "ripgrep",
+    "previousSourceHash": "3cbb11a8c479e01def64ef3ca8504751fa8c8fee1c0fc2d5e1b58e1d351b3927",
+    "before": {
+      "total": 1599,
+      "satisfied": 0,
+      "violated": 3,
+      "inconclusive": 1596
+    },
+    "after": {
+      "total": 1570,
+      "satisfied": 0,
+      "violated": 2,
+      "inconclusive": 1568
+    },
+    "verdict": "VIOLATED"
+  },
+  {
+    "repository": "SwitchHosts",
+    "previousSourceHash": "3cbb11a8c479e01def64ef3ca8504751fa8c8fee1c0fc2d5e1b58e1d351b3927",
+    "before": {
+      "total": 318,
+      "satisfied": 0,
+      "violated": 7,
+      "inconclusive": 311
+    },
+    "after": {
+      "total": 311,
+      "satisfied": 0,
+      "violated": 7,
+      "inconclusive": 304
+    },
+    "verdict": "VIOLATED"
+  }
+]

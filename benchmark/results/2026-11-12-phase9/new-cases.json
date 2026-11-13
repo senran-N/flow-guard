@@ -1,0 +1,311 @@
+[
+  {
+    "repo": "yocto-queue",
+    "symbol": "enqueue",
+    "param": "value",
+    "variant": "control",
+    "behaviorPassed": true,
+    "scans": {
+      "full": {
+        "verdict": "SATISFIED",
+        "targetedBlock": false,
+        "diagnostic": false,
+        "relevant": []
+      },
+      "incremental": {
+        "verdict": "SATISFIED",
+        "targetedBlock": false,
+        "diagnostic": false,
+        "relevant": []
+      },
+      "planned": {
+        "verdict": "INCONCLUSIVE",
+        "targetedBlock": false,
+        "diagnostic": false,
+        "relevant": [
+          {
+            "layer": "L1_STRUCTURAL",
+            "status": "SATISFIED",
+            "finding": "目标符号 \"enqueue\" 已连通生产控制流入口"
+          },
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "SATISFIED",
+            "finding": "目标符号 \"enqueue\" 的入参与下游出水口链路闭合"
+          },
+          {
+            "layer": "L3_BEHAVIORAL",
+            "status": "INCONCLUSIVE",
+            "finding": "已发现引用目标符号/字段的测试代码 (1 处)，但尚未运行；L3 行为证据待确认"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "repo": "yocto-queue",
+    "symbol": "enqueue",
+    "param": "value",
+    "variant": "defect",
+    "behaviorPassed": false,
+    "scans": {
+      "full": {
+        "verdict": "INCONCLUSIVE",
+        "targetedBlock": false,
+        "diagnostic": true,
+        "relevant": [
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "INCONCLUSIVE",
+            "finding": "待确认：进水口断流：形参 [value] 传入后在函数体内从未被读取使用"
+          }
+        ]
+      },
+      "incremental": {
+        "verdict": "INCONCLUSIVE",
+        "targetedBlock": false,
+        "diagnostic": true,
+        "relevant": [
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "INCONCLUSIVE",
+            "finding": "待确认：进水口断流：形参 [value] 传入后在函数体内从未被读取使用"
+          }
+        ]
+      },
+      "planned": {
+        "verdict": "VIOLATED",
+        "targetedBlock": true,
+        "diagnostic": true,
+        "relevant": [
+          {
+            "layer": "L1_STRUCTURAL",
+            "status": "SATISFIED",
+            "finding": "目标符号 \"enqueue\" 已连通生产控制流入口"
+          },
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "VIOLATED",
+            "finding": "目标符号 \"enqueue\" 的形参 [value] 在函数体内未被消费"
+          },
+          {
+            "layer": "L3_BEHAVIORAL",
+            "status": "INCONCLUSIVE",
+            "finding": "已发现引用目标符号/字段的测试代码 (1 处)，但尚未运行；L3 行为证据待确认"
+          },
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "INCONCLUSIVE",
+            "finding": "待确认：进水口断流：形参 [value] 传入后在函数体内从未被读取使用"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "repo": "packaging",
+    "symbol": "canonicalize_name",
+    "param": "validate",
+    "variant": "control",
+    "behaviorPassed": true,
+    "scans": {
+      "full": {
+        "verdict": "INCONCLUSIVE",
+        "targetedBlock": false,
+        "diagnostic": false,
+        "relevant": []
+      },
+      "incremental": {
+        "verdict": "SATISFIED",
+        "targetedBlock": false,
+        "diagnostic": false,
+        "relevant": []
+      },
+      "planned": {
+        "verdict": "INCONCLUSIVE",
+        "targetedBlock": false,
+        "diagnostic": false,
+        "relevant": [
+          {
+            "layer": "L1_STRUCTURAL",
+            "status": "SATISFIED",
+            "finding": "目标符号 \"canonicalize_name\" 已连通生产控制流入口"
+          },
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "SATISFIED",
+            "finding": "目标符号 \"canonicalize_name\" 的入参与下游出水口链路闭合"
+          },
+          {
+            "layer": "L3_BEHAVIORAL",
+            "status": "INCONCLUSIVE",
+            "finding": "已发现引用目标符号/字段的测试代码 (6 处)，但尚未运行；L3 行为证据待确认"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "repo": "packaging",
+    "symbol": "canonicalize_name",
+    "param": "validate",
+    "variant": "defect",
+    "behaviorPassed": false,
+    "scans": {
+      "full": {
+        "verdict": "INCONCLUSIVE",
+        "targetedBlock": false,
+        "diagnostic": true,
+        "relevant": [
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "INCONCLUSIVE",
+            "finding": "待确认：进水口断流：形参 [validate] 传入后在函数体内从未被读取使用"
+          }
+        ]
+      },
+      "incremental": {
+        "verdict": "INCONCLUSIVE",
+        "targetedBlock": false,
+        "diagnostic": true,
+        "relevant": [
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "INCONCLUSIVE",
+            "finding": "待确认：进水口断流：形参 [validate] 传入后在函数体内从未被读取使用"
+          }
+        ]
+      },
+      "planned": {
+        "verdict": "VIOLATED",
+        "targetedBlock": true,
+        "diagnostic": true,
+        "relevant": [
+          {
+            "layer": "L1_STRUCTURAL",
+            "status": "SATISFIED",
+            "finding": "目标符号 \"canonicalize_name\" 已连通生产控制流入口"
+          },
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "VIOLATED",
+            "finding": "目标符号 \"canonicalize_name\" 的形参 [validate] 在函数体内未被消费"
+          },
+          {
+            "layer": "L3_BEHAVIORAL",
+            "status": "INCONCLUSIVE",
+            "finding": "已发现引用目标符号/字段的测试代码 (6 处)，但尚未运行；L3 行为证据待确认"
+          },
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "INCONCLUSIVE",
+            "finding": "待确认：进水口断流：形参 [validate] 传入后在函数体内从未被读取使用"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "repo": "httprouter",
+    "symbol": "CleanPath",
+    "param": "p",
+    "variant": "control",
+    "behaviorPassed": true,
+    "scans": {
+      "full": {
+        "verdict": "SATISFIED",
+        "targetedBlock": false,
+        "diagnostic": false,
+        "relevant": []
+      },
+      "incremental": {
+        "verdict": "SATISFIED",
+        "targetedBlock": false,
+        "diagnostic": false,
+        "relevant": []
+      },
+      "planned": {
+        "verdict": "INCONCLUSIVE",
+        "targetedBlock": false,
+        "diagnostic": false,
+        "relevant": [
+          {
+            "layer": "L1_STRUCTURAL",
+            "status": "SATISFIED",
+            "finding": "目标符号 \"CleanPath\" 已连通生产控制流入口"
+          },
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "SATISFIED",
+            "finding": "目标符号 \"CleanPath\" 的入参与下游出水口链路闭合"
+          },
+          {
+            "layer": "L3_BEHAVIORAL",
+            "status": "INCONCLUSIVE",
+            "finding": "已发现引用目标符号/字段的测试代码 (5 处)，但尚未运行；L3 行为证据待确认"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "repo": "httprouter",
+    "symbol": "CleanPath",
+    "param": "p",
+    "variant": "defect",
+    "behaviorPassed": false,
+    "scans": {
+      "full": {
+        "verdict": "INCONCLUSIVE",
+        "targetedBlock": false,
+        "diagnostic": true,
+        "relevant": [
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "INCONCLUSIVE",
+            "finding": "待确认：进水口断流：形参 [p] 传入后在函数体内从未被读取使用"
+          }
+        ]
+      },
+      "incremental": {
+        "verdict": "INCONCLUSIVE",
+        "targetedBlock": false,
+        "diagnostic": true,
+        "relevant": [
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "INCONCLUSIVE",
+            "finding": "待确认：进水口断流：形参 [p] 传入后在函数体内从未被读取使用"
+          }
+        ]
+      },
+      "planned": {
+        "verdict": "VIOLATED",
+        "targetedBlock": true,
+        "diagnostic": true,
+        "relevant": [
+          {
+            "layer": "L1_STRUCTURAL",
+            "status": "SATISFIED",
+            "finding": "目标符号 \"CleanPath\" 已连通生产控制流入口"
+          },
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "VIOLATED",
+            "finding": "目标符号 \"CleanPath\" 的形参 [p] 在函数体内未被消费"
+          },
+          {
+            "layer": "L3_BEHAVIORAL",
+            "status": "INCONCLUSIVE",
+            "finding": "已发现引用目标符号/字段的测试代码 (5 处)，但尚未运行；L3 行为证据待确认"
+          },
+          {
+            "layer": "L2_DATA_FLOW",
+            "status": "INCONCLUSIVE",
+            "finding": "待确认：进水口断流：形参 [p] 传入后在函数体内从未被读取使用"
+          }
+        ]
+      }
+    }
+  }
+]

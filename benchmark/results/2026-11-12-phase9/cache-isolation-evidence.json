@@ -1,0 +1,85 @@
+{
+  "before": "1a3e9003385612938dbc44e735c1ab856328ce1c4ca7a2c5584e50e4252a6c99",
+  "after": "967d5c9ec428d15b1c6ffb661bb01849ca4bcb7f2f6a9c8ff30f83631f21b927",
+  "changedEngineFiles": [
+    "graph-builder.mjs"
+  ],
+  "runs": [
+    {
+      "repository": "bruno",
+      "run": 1,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "elapsedMs": 42821,
+      "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase4-cache\\scans\\bruno.1.json",
+      "stderr": "",
+      "resultHash": "125c774023fe8e46d7b3097fe01001ce9b3761db35a1178dea027b02fe622d43"
+    },
+    {
+      "repository": "bruno",
+      "run": 2,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "elapsedMs": 42834,
+      "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase4-cache\\scans\\bruno.2.json",
+      "stderr": "",
+      "resultHash": "125c774023fe8e46d7b3097fe01001ce9b3761db35a1178dea027b02fe622d43"
+    },
+    {
+      "repository": "llama.cpp",
+      "run": 2,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "elapsedMs": 106159,
+      "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase4-cache\\scans\\llama.cpp.2.json",
+      "stderr": "",
+      "resultHash": "f72e8368f753910576ee881053399ac21e124ea749101b450697ccb073436f7d"
+    },
+    {
+      "repository": "llama.cpp",
+      "run": 1,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "elapsedMs": 106191,
+      "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase4-cache\\scans\\llama.cpp.1.json",
+      "stderr": "",
+      "resultHash": "f72e8368f753910576ee881053399ac21e124ea749101b450697ccb073436f7d"
+    },
+    {
+      "repository": "memos",
+      "run": 1,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "elapsedMs": 23181,
+      "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase4-cache\\scans\\memos.1.json",
+      "stderr": "",
+      "resultHash": "97e61d0787ed51ae76089cbab4feb0da06d883eea1db2db29f98280ef579ee78"
+    },
+    {
+      "repository": "memos",
+      "run": 2,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "elapsedMs": 23186,
+      "destination": "D:\\Myproject\\flowguard-validation\\2026-11-12-hardening\\phase4-cache\\scans\\memos.2.json",
+      "stderr": "",
+      "resultHash": "97e61d0787ed51ae76089cbab4feb0da06d883eea1db2db29f98280ef579ee78"
+    }
+  ],
+  "unchangedReports": [
+    {
+      "repository": "bruno",
+      "sameHash": true
+    },
+    {
+      "repository": "memos",
+      "sameHash": true
+    }
+  ]
+}
